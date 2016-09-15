@@ -1,0 +1,23 @@
+#! /bin/bash
+
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2008
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2009
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2010
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2011
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2012
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2013
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/CapFlat/2014 
+
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2008
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2009
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2010
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2011
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2012
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2013
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/LemnTre/2014 
+
+
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/Wollgng/2011
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/Wollgng/2012
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/Wollgng/2013
+wget -r -np -nH -A .tar -P /media/meso/Passport/data/radar/ http://flurry-bm.bom.gov.au/nowcast/nowcast_data/rapic/Wollgng/2014 

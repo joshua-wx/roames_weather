@@ -1,0 +1,9 @@
+function kml_out=ge_document(kml_in,name)
+%WHAT: Applies the document header and footer to the kml input
+
+kml_out=     ['<Document>',10,...
+                    '<name>',name,'</name>',10,...
+                    kml_in,...
+             '</Document>',10];   
+         
+         

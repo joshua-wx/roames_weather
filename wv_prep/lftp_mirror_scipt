@@ -1,0 +1,2 @@
+#!/bin/bash
+lftp -e 'set ftp:sync-mode off;mirror --delete --parallel=10 register/bom517/benAWrij4/radar /tmp/rapic_mirror; bye' -u anonymous,j.soderholm@uq.edu.au ftp.bom.gov.au

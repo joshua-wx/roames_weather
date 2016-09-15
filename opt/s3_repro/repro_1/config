@@ -1,0 +1,6 @@
+s3_year        1999
+s3_log_fn      s3.log
+local_log_fn   local.log
+s3_in          s3://roames-wxradar-archive/radar_archive/
+s3_out         s3://roames-wxradar-archive/odimh5_archive/
+s3_bvol        s3://roames-wxradar-archive/odimh5_archive/broken_vols/

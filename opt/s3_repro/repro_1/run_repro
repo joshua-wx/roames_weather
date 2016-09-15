@@ -1,0 +1,8 @@
+#! /bin/bash
+
+touch restart.flag
+./run_repro_1.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+while [ -e restart.flag ]; do
+	./run_repro_1.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+done
+

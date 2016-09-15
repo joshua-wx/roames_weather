@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#set global variables
+s3_path=s3://roames-weathervis/realtime-kml/
+local_path=/WeatherShare/realtime-kml/
+
+touch sync2s3_kill_flag
+
+while [ -f sync2s3_kill_flag ]          #check if s3cmd kill flag still exists
+do
+        #start s3 sync
+	echo ""
+	echo "STARTING SYNC"
+        s3cmd sync --delete-removed -Pr $local_path $s3_path &
+
+	#loop while s3cmd is running
+	counter=0
+	while [ -n "$(pgrep s3cmd)" ]
+	do
+		#increase counter if it's less than 60 and sleep
+		if [ $counter -le 60 ]; then
+			sleep 1
+			counter=$(expr "$counter" + 1)
+			continue
+		#if gt 60 than kill s3cmd		
+		else
+			killall s3cmd
+			echo "SYNC KILLED"
+			break
+		fi
+	done
+
+	echo "SYNC FINISHED, SLEEPING"
+	sleep 20
+done
+
