@@ -72,13 +72,13 @@ for j=1:length(rapic_list)
         continue
     end
     r_id_str = rapic_list{j}(10:11);
-%     r_id     = str2num(r_id_str);
+    r_id     = str2num(r_id_str);
 %     r_date = datenum(rapic_list{j}(13:20),'yyyymmdd');
-%     if r_id<r_id_start
-%         msg = ['skipping ',rapic_list{j},' r_id less than r_id_start'];
-%         write_log(local_log_fn,'file filter',msg);
-%         continue
-%     end
+    if r_id<str2num(r_id_start)
+        msg = ['skipping ',rapic_list{j},' r_id less than r_id_start']
+        %write_log(local_log_fn,'file filter',msg);
+        continue
+    end
 %     if r_date<dnum_start || r_date>dnum_stop
 %         msg = ['skipping ',rapic_list{j},' r_date outside stop/start dates'];
 %         write_log(local_log_fn,'file filter',msg);

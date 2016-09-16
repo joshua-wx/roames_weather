@@ -11,7 +11,7 @@ function wv_process
 
 %%Load VARS
 	% general vars
-	restart_cofig_fn  = 'temp_process_vars.mat';
+	restart_cofig_fn  = 'restart_vars.mat';
 	process_config_fn = 'wv_process.config';
 	global_config_fn  = 'wv_global.config';
 	site_info_fn      = 'site_info.txt';
@@ -91,8 +91,8 @@ while exist('kill_wv_process','file')==2
         display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_list))])
         
         %check for tiny cappi files
-        file_info = dir(pending_h5_list{i}); file_size = file_info.bytes;
-        if file_size<20000
+        file_info = dir(pending_h5_list{i}); file_size = file_info.bytes/1000;
+        if file_size<20
             display('Skipping due to CAPPI')
             continue
         end

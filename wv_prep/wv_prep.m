@@ -2,28 +2,20 @@ function wv_prep
 % WHAT
 %BoM volumetric lftp download manager. Downloads complete volumes (all files
 %which make up one volume scan), rather than just new files, elimating the
-%problem with delayed uploads to the ftp server. previously downloaded
-%filenames are saved. Once a volume has been downloaded, the IMAGE header is
-%removed, files are cat'ed and then moved to the correct archive directory.
+%problem with delayed uploads to the ftp server. FTP server is first synced
+%to a folder in tmp before applying time/site filters as required. Complete
+%volumes which pass are cat'ed,converted to odim_h5 and moved to the
+%correct s3 or local directory. directory ls provides indexing (perhaps
+%move to dynamodb for remote?)
 
-%scan_fn: list of downloaded individual scan files
-%vol_fn: list of cated scan_fn files
-%add function path if not deployed
 if ~isdeployed
     addpath('../lib/m_lib');
 end
-addpath('../etc');
 
 %load global config file
-config_input_path = 'wv_prep.config';
+config_input_path = 'config';
 read_config(config_input_path)
 load([config_input_path,'.mat'])
-
-%kill function is dest is missing (config broken)
-if isempty(dest)
-    msgbox('prep config broken')
-    return
-end
 
 %Create script termination file
 if exist('kill_wv_prep','file')~=2
@@ -37,12 +29,20 @@ if exist(local_mirror_path,'file')~=7
     mkdir(local_mirror_path);
 end
 
+%local and remote switch
+if local_flag == 1
+    dest_path = local_path;
+else
+    dest_path = s3_path;
+end
+
 tic
 while exist('kill_wv_prep','file')==2 %run loop while script termination control still exists
         %open ftp and create nlist
         ftp_timer = tic;
 
 		%create lftp script to mirror remote server
+        disp('starting lftp sync')
         lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_path);
         
         %run ftp script, usually brings in 27k files
@@ -77,7 +77,9 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
         
         %filter using h5 archive index
         for i = 1:length(fetch_volumes)
-            [index_h5_fn,~] = index_read(dest,fetch_r_id(i),fetch_datetime(i));
+            
+            [index_h5_fn,~] = list_path(dest_path,fetch_r_id(i),fetch_datetime(i));
+            %[index_h5_fn,~] = index_read(dest_path,fetch_r_id(i),fetch_datetime(i));
             temp_h5_fn   = [num2str(fetch_r_id(i),'%02.0f'),'_',datestr(fetch_datetime(i),'yyyymmdd'),'_',datestr(fetch_datetime(i),'HHMMSS'),'.h5'];
             if ~any(strcmp(index_h5_fn,temp_h5_fn))
                 filt_fetch_volumes = [filt_fetch_volumes,fetch_volumes(i)];
@@ -90,7 +92,7 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
 
         for i=1:no_vols
             %cat rapic scans into volumes and convert to hdf5
-            rapic_convert(filt_fetch_volumes{i},local_mirror_path,dest);
+            rapic_convert(filt_fetch_volumes{i},local_mirror_path,dest_path);
             disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_fetch_volumes{i}{1}])
         end
         %output ftp open time and number of files downloaded
@@ -181,7 +183,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,local_mirror_path,dest)
+function rapic_convert(file_list,local_mirror_path,dest_path)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
@@ -189,7 +191,7 @@ function rapic_convert(file_list,local_mirror_path,dest)
 
 %INPUT
 %file_list: cell array of strings of file names in the tmp dir
-%dest: path to destination dir for h5 file
+%dest_path: path to destination dir for h5 file
 
 %create full path filenames
 dled_files=strcat( repmat({[' ',local_mirror_path,'/']},length(file_list),1),file_list);
@@ -200,14 +202,16 @@ date_num = datenum(file_list{1}(10:21),'yyyymmddHHMM');
 radar_id = str2num(file_list{1}(4:5));
 
 %create correct archive folder
-archive_dest=[dest,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
-if ~isdir(archive_dest)
+archive_dest=[dest_path,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
+%create local folder
+if ~isdir(archive_dest) && ~strcmp(dest_path(1:2),'s3')
     mkdir(archive_dest);
 end
 
 %create new h5 volume ffn
-h5_fn  = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.h5'];
-h5_ffn = [archive_dest,h5_fn];
+h5_fn      = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.h5'];
+tmp_h5_ffn = [tempdir,h5_fn];
+h5_ffn     = [archive_dest,h5_fn];
 
 %cat scans into temp rapic volume 
 tmp_rapic_ffn = [tempdir,'ftp_cat.rapic'];
@@ -219,23 +223,42 @@ if sout ~= 0
 end
 
 %convert to odim and save in correct archive folder
-cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',h5_ffn];
+cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',tmp_h5_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
     log_cmd_write('prep_convert.log',h5_fn,'','')
 end
 
-%check file exist
-if exist(h5_ffn,'file') ~= 2
-    display(eout);
-else
-    %write to index file in the rapic archive
-    index_write(dest,radar_id,date_num,h5_fn);
+%if h5 file does not exist, move rapic file to broken vol
+if exist(tmp_h5_ffn,'file')~=2
+    display('conversion failure, moving rapic file to broken_vols')
+    broken_file(tmp_rapic_ffn,[archive_dest,'broken_vols/'])
+    return
 end
 
-%remove tmp rapic file
-delete(tmp_rapic_ffn)
 
+%move to required directory
+if strcmp(dest_path(1:2),'s3')
+    cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 cp ',tmp_h5_ffn,' ',h5_ffn];
+    [sout,eout] = unix(cmd);
+    if sout ~= 0
+        log_cmd_write('pre_s3.log',h5_fn,cmd,eout)
+    end
+else
+    copyfile(tmp_h5_ffn,h5_ffn)
+end
+
+% %check file exist
+% if exist(h5_ffn,'file') ~= 2
+%     display(eout);
+% else
+%     %write to index file in the rapic archive
+%     index_write(dest_path,radar_id,date_num,h5_fn);
+% end
+
+%remove tmp files
+delete(tmp_rapic_ffn)
+delete(tmp_h5_ffn)
 
 function lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_path)
 % WHAT
@@ -266,4 +289,25 @@ fid = fopen('lftp_mirror_scipt', 'wt');
 fprintf(fid,'%s',script);
 fclose(fid);
 %set permission!
-[~,~]=system('chmod +xw lftp_mirror_scipt');   
+[~,~]=system('chmod +xw lftp_mirror_scipt');
+
+
+
+%move broken file
+function broken_file(ffn,target_path)
+prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
+
+if strcmp(target_path(1:2),'s3')
+    %s3 cmd
+    cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_s3_path]
+    [sout,eout]        = unix(cmd);
+    if sout ~= 0
+        msg = [cmd,' returned ',eout]
+    end
+else
+    %local cmd
+    if exist(target_path,'file')~=7
+        mkdir(target_path)
+    end
+    copyfile(ffn,target_path)
+end

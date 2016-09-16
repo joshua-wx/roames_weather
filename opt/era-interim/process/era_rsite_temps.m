@@ -3,27 +3,26 @@ function era_rsite_temps()
 %freezing and -20C heights for each radar site across the country
 
 %OUT:
+%for each radar
 %era_t_struct.time                 matlab datenum
-%            .(site_id)
-%                   .fz_z           %fz level above msl (m)
-%                   .minus20_z     
+%            .fz_z                 0C level above msl (m)
+%            .minus20_z            -20C level above msl (m)
 
 %add paths for lib/etc
 addpath('/home/meso/Dropbox/dev/wv/lib/m_lib/')
 addpath('/home/meso/Dropbox/dev/wv/etc/')
 
-%read site
-read_site_info('site_info.txt');
-load('site_info.txt.mat');
-
-era_tz_struct   = struct('time',[]);
-for i=1:100;
-    site_id                           = ['r',num2str(i)];
-    era_tz_struct.(site_id).fz_z      = [];
-    era_tz_struct.(site_id).minus20_z = [];
+%out_dir
+out_path = 'out/';
+if exist(out_path,'file')==7
+    rmdir(out_path,'s')
 end
-    
-    
+mkdir(out_path)
+
+%read site
+%read_site_info('site_info.txt');
+load('site_info.txt.mat');
+   
 year_list       = 1997:2016;
 
 for i=1:length(year_list)
@@ -39,10 +38,11 @@ for i=1:length(year_list)
     offset_dt = datenum('1900-01-01','yyyy-mm-dd');
     era_dt    = offset_dt + era_hour./24;
     
-    era_tz_struct.time = [era_tz_struct.time;era_dt];
-    
     %loop through radar sites
     for j=1:length(site_id_list)
+        %init radar data
+        tmp_struct   = struct('time',[],'fz_z',[],'minus20_z',[]);
+
         site_lat     = site_lat_list(j);
         site_lon     = site_lon_list(j);
         site_id      = site_id_list(j);
@@ -50,8 +50,9 @@ for i=1:length(year_list)
         
         [~,lat_ind]  = min(abs(era_lat-site_lat));
         [~,lon_ind]  = min(abs(era_lon-site_lon));
-        fz_z         = zeros(length(era_dt),1);
-        minus20_z    = zeros(length(era_dt),1);
+        tmp_struct.time      = era_dt;
+        tmp_struct.fz_z      = zeros(length(era_dt),1);
+        tmp_struct.minus20_z = zeros(length(era_dt),1);
         for k=1:length(era_dt)
             %extract profile for single time
             t_profile = era_t(lon_ind,lat_ind,:,k);
@@ -63,11 +64,20 @@ for i=1:length(year_list)
             fz_level      = sounding_interp(t_profile,z_profile,0);
             minus20_level = sounding_interp(t_profile,z_profile,-20);
             %cat
-            fz_z(k)       = fz_level;
-            minus20_z(k)  = minus20_level;
+            tmp_struct.fz_z(k)       = fz_level;
+            tmp_struct.minus20_z(k)  = minus20_level;
         end
-        era_tz_struct.(site_id_str).fz_z       = [era_tz_struct.(site_id_str).fz_z;fz_z];
-        era_tz_struct.(site_id_str).minus20_z  = [era_tz_struct.(site_id_str).minus20_z;minus20_z];
+        %
+        out_ffn = [out_path,site_id_str,'.mat'];
+        if exist(out_ffn,'file') ~= 2
+            era_tz_struct = tmp_struct;
+        else
+            load(out_ffn)
+            era_tz_struct.time      = [era_tz_struct.time;tmp_struct.time];
+            era_tz_struct.fz_z      = [era_tz_struct.fz_z;tmp_struct.fz_z];
+            era_tz_struct.minus20_z = [era_tz_struct.minus20_z;tmp_struct.minus20_z];
+        end
+        save(out_ffn,'era_tz_struct');  
         disp(['finished site ',site_id_str,' for year ',num2str(target_year)]);
     end
     disp(['finished year ',num2str(target_year)]);

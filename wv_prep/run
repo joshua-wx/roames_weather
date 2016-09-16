@@ -1,0 +1,3 @@
+#! /bin/bash
+
+./run_wv_prep.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
