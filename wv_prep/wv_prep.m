@@ -17,11 +17,6 @@ config_input_path = 'config';
 read_config(config_input_path)
 load([config_input_path,'.mat'])
 
-%Create script termination file
-if exist('kill_wv_prep','file')~=2
-    fid = fopen('kill_wv_prep', 'w'); fprintf(fid, '%s', ''); fclose(fid);
-end
-
 %init local mirror folder
 local_mirror_path = [tempdir,'rapic_mirror'];
 if exist(local_mirror_path,'file')~=7
@@ -36,70 +31,92 @@ else
     dest_path = s3_path;
 end
 
-tic
+kill_timer = tic;
+kill_wait  = 60*60; %kill time in seconds
+
 while exist('kill_wv_prep','file')==2 %run loop while script termination control still exists
-        %open ftp and create nlist
-        ftp_timer = tic;
-
-		%create lftp script to mirror remote server
-        disp('starting lftp sync')
-        lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_path);
-        
-        %run ftp script, usually brings in 27k files
-        cmd         = 'export LD_LIBRARY_PATH=/usr/lib; ./lftp_mirror_scipt';
-        [sout,eout] = unix(cmd);
-        if sout ~= 0
-            log_cmd_write('prep_lftp.log',' ',cmd,eout)
+    
+    %Kill function
+    if toc(kill_timer)>kill_wait
+        %update user
+        disp(['@@@@@@@@@ wv_prep restarted at ',datestr(now)])
+        %restart
+        if ~isdeployed
+            %not deployed method: trigger background restart command before
+            %kill
+            [~,~] = unix(['matlab -desktop -r "run ',pwd,'/wv_prep.m" &'])
+        else
+            %deployed method: restart controlled by run_wv_process sh
+            %script
+            disp('is deployed - passing restart to run script kill existance')
         end
-		%reate dir listing
-        local_mirror_dir = dir(local_mirror_path); local_mirror_list = {local_mirror_dir.name}; local_mirror_list(1:2)=[];
-        
-		%check files exist in tempdir mirror
-        if isempty(local_mirror_list)
-            display('local mirror is empty')
-            continue
+        quit force
+    end
+    
+    %create lftp script to mirror remote server
+    disp('starting lftp sync')
+    lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_path);
+    
+    %run ftp script, usually brings in 27k files
+    ftp_timer   = tic;
+    cmd         = 'export LD_LIBRARY_PATH=/usr/lib; ./lftp_mirror_scipt';
+    [sout,eout] = unix(cmd);
+    if sout ~= 0
+        log_cmd_write('prep_lftp.log',' ',cmd,eout)
+    end
+    %reate dir listing
+    local_mirror_dir = dir(local_mirror_path); local_mirror_list = {local_mirror_dir.name}; local_mirror_list(1:2)=[];
+    
+    %check files exist in tempdir mirror
+    if isempty(local_mirror_list)
+        display('local mirror is empty')
+        continue
+    end
+    
+    %update on lftp time
+    disp(['ftp mirror download took  ',num2str(toc(ftp_timer)),' seconds',10])
+    
+    %only process files of the correction fn length (remove others fns)
+    clean_rapic_list = {};
+    for i = 1:length(local_mirror_list)
+        if strcmp(local_mirror_list{i}(end-2:end),'txt')
+            clean_rapic_list = [clean_rapic_list;local_mirror_list{i}];
         end
-		
-        %Convert nlist char matrix to cell array
-        disp(['ftp mirror download took  ',num2str(toc(ftp_timer)),' seconds',10])
+    end
+    
+    %Run volume sorter...
+    volume_timer = tic;
+    [fetch_volumes,fetch_datetime,fetch_r_id] = filter_ftp_list(clean_rapic_list,ftp_oldest);
+    filt_fetch_volumes = {};
+    disp(['volume sorter took  ',num2str(toc(volume_timer)),' seconds',10])
+    
+    %filter using h5 archive index
+    index_timer = tic;
+    for i = 1:length(fetch_volumes)
         
-        %only process files of the correction fn length (remove others fns)
-        clean_rapic_list = {};
-        for i = 1:length(local_mirror_list)
-            if strcmp(local_mirror_list{i}(end-2:end),'txt')
-                clean_rapic_list = [clean_rapic_list;local_mirror_list{i}];
-            end
+        [index_h5_fn,~] = list_path(dest_path,fetch_r_id(i),fetch_datetime(i));
+        %[index_h5_fn,~] = index_read(dest_path,fetch_r_id(i),fetch_datetime(i));
+        temp_h5_fn   = [num2str(fetch_r_id(i),'%02.0f'),'_',datestr(fetch_datetime(i),'yyyymmdd'),'_',datestr(fetch_datetime(i),'HHMMSS'),'.h5'];
+        if ~any(strcmp(index_h5_fn,temp_h5_fn))
+            filt_fetch_volumes = [filt_fetch_volumes,fetch_volumes(i)];
         end
-        
-        %Run volume sorter...
-        [fetch_volumes,fetch_datetime,fetch_r_id] = filter_ftp_list(clean_rapic_list,ftp_oldest);
-        filt_fetch_volumes = {};
-        
-        %filter using h5 archive index
-        for i = 1:length(fetch_volumes)
-            
-            [index_h5_fn,~] = list_path(dest_path,fetch_r_id(i),fetch_datetime(i));
-            %[index_h5_fn,~] = index_read(dest_path,fetch_r_id(i),fetch_datetime(i));
-            temp_h5_fn   = [num2str(fetch_r_id(i),'%02.0f'),'_',datestr(fetch_datetime(i),'yyyymmdd'),'_',datestr(fetch_datetime(i),'HHMMSS'),'.h5'];
-            if ~any(strcmp(index_h5_fn,temp_h5_fn))
-                filt_fetch_volumes = [filt_fetch_volumes,fetch_volumes(i)];
-            end
-        end
-        
-        %Loop through sorted_volumes
-        no_vols = length(filt_fetch_volumes);
-        disp(['########Passing ',num2str(no_vols),' volumes to rapic_convert'])
-
-        for i=1:no_vols
-            %cat rapic scans into volumes and convert to hdf5
-            rapic_convert(filt_fetch_volumes{i},local_mirror_path,dest_path);
-            disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_fetch_volumes{i}{1}])
-        end
-        %output ftp open time and number of files downloaded
-        disp(['######Script Runtime ',num2str(roundn(toc/60/60,-2)),'hrs with ',num2str(no_vols),' volumes preprocessed',10]);
-        
-        %be nice to server
-        pause(10)
+    end
+    disp(['index filter took  ',num2str(toc(index_timer)),' seconds',10])
+    
+    %Loop through sorted_volumes
+    no_vols = length(filt_fetch_volumes);
+    disp(['########Passing ',num2str(no_vols),' volumes to rapic_convert'])
+    
+    for i=1:no_vols
+        %cat rapic scans into volumes and convert to hdf5
+        rapic_convert(filt_fetch_volumes{i},local_mirror_path,dest_path);
+        disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_fetch_volumes{i}{1}])
+    end
+    %output ftp open time and number of files downloaded
+    disp(['###### ',num2str(no_vols),' volumes preprocessed',10]);
+    
+    %be nice to server
+    pause(10)
 end
 
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc),' @@@@@@@@@'])
@@ -299,7 +316,7 @@ prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
 if strcmp(target_path(1:2),'s3')
     %s3 cmd
-    cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_s3_path]
+    cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_path]
     [sout,eout]        = unix(cmd);
     if sout ~= 0
         msg = [cmd,' returned ',eout]

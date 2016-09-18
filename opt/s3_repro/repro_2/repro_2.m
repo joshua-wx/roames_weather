@@ -4,7 +4,7 @@ function repro_2
 %processes for only one year
 
 prefix_cmd       = 'export LD_LIBRARY_PATH=/usr/lib; ';
-restart_vars_fn  = 'restart_vars.mat';
+restart_vars_fn  = 'restart_vars_1.mat';
 config_fn        = 'config';
 %read config
 read_config(config_fn,[config_fn,'.mat']);
@@ -39,20 +39,19 @@ kill_timer = tic;
 kill_wait  = 60*60; %kill time in seconds
 
 for j=1:length(rapic_list)
-    
     %update pending list
     pending_rapic_list = rapic_list(j:end);
-    save(restart_vars_fn,'pending_rapic_list')
-    
     %Kill function
     if toc(kill_timer)>kill_wait
+        %save pending list
+        save(restart_vars_fn,'pending_rapic_list')
         %update user
         disp(['@@@@@@@@@ s3_repro restarted at ',datestr(now)])
         %restart
         if ~isdeployed
             %not deployed method: trigger background restart command before
             %kill
-            [~,~] = unix(['matlab -desktop -r "run ',pwd,'/s3_rapic_to_odimh5_type1.m" &'])
+            [~,~] = unix(['matlab -desktop -r "run ',pwd,'/repro_2.m" &'])
         else
             %deployed method: restart controlled by run_wv_process sh
             %script

@@ -14,3 +14,5 @@ Completed 1 part(s) with ... file(s) remaining
 15-Sep-2016 14:06:30 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/2015_201606radar_archive/2015_201606/02/radar.IDR02.20150105.lz4 /tmp/radar_archive/2015_201606/02/radar.IDR02.20150105.lz4 returned An error occurred (404) when calling the HeadObject operation: Key "radar_archive/2015_201606radar_archive/2015_201606/02/radar.IDR02.20150105.lz4" does not exist
 Completed 1 part(s) with ... file(s) remaining
 
+18-Sep-2016 09:35:26 s3 list export LD_LIBRARY_PATH=/usr/lib; aws s3 ls s3://roames-wxradar-archive/radar_archive/2015_201606/ --recursive returned /bin/bash: aws: command not found
+

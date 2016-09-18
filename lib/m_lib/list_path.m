@@ -30,7 +30,10 @@ end
 
 %build h5_fn
 for i=1:length(file_list)
-    if strcmp(file_list{i}(end-1:end),'h5') && length(file_list{i})==21
+    if length(file_list{i})~=21
+        continue
+    end
+    if strcmp(file_list{i}(end-1:end),'h5')
         index_h5_fn = [index_h5_fn;file_list{i}];
     end
 end
