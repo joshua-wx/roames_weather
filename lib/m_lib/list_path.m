@@ -38,10 +38,18 @@ for i=1:length(file_list)
     end
 end
 
+%files filtered out...
+if isempty(index_h5_fn)
+    return
+end
+
 %build ffn
 rep_path     = repmat({full_path},length(index_h5_fn),1);
+try
 index_h5_ffn = strcat(rep_path,index_h5_fn);
-
+catch
+    keyboard
+end
 
     
 

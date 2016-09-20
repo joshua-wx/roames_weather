@@ -31,10 +31,15 @@ else
     dest_path = s3_path;
 end
 
-kill_timer = tic;
-kill_wait  = 60*60; %kill time in seconds
+kill_timer         = tic;
+kill_wait          = 60*60; %kill time in seconds
+fetch_h5_fn        = {};
+
 
 while exist('kill_wv_prep','file')==2 %run loop while script termination control still exists
+    %be nice to server
+    disp('pausing for 10s')
+    pause(10)
     
     %Kill function
     if toc(kill_timer)>kill_wait
@@ -79,49 +84,105 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
     %only process files of the correction fn length (remove others fns)
     clean_rapic_list = {};
     for i = 1:length(local_mirror_list)
+        if length(local_mirror_list{i})<3
+            continue
+        end
         if strcmp(local_mirror_list{i}(end-2:end),'txt')
             clean_rapic_list = [clean_rapic_list;local_mirror_list{i}];
         end
     end
     
-    %Run volume sorter...
-    volume_timer = tic;
-    [fetch_volumes,fetch_datetime,fetch_r_id] = filter_ftp_list(clean_rapic_list,ftp_oldest);
-    filt_fetch_volumes = {};
-    disp(['volume sorter took  ',num2str(toc(volume_timer)),' seconds',10])
+    %check files exist in tempdir mirror
+    if isempty(clean_rapic_list)
+        display('clean_rapic_list is empty')
+        continue
+    end   
     
-    %filter using h5 archive index
-    index_timer = tic;
-    for i = 1:length(fetch_volumes)
-        
-        [index_h5_fn,~] = list_path(dest_path,fetch_r_id(i),fetch_datetime(i));
-        %[index_h5_fn,~] = index_read(dest_path,fetch_r_id(i),fetch_datetime(i));
-        temp_h5_fn   = [num2str(fetch_r_id(i),'%02.0f'),'_',datestr(fetch_datetime(i),'yyyymmdd'),'_',datestr(fetch_datetime(i),'HHMMSS'),'.h5'];
-        if ~any(strcmp(index_h5_fn,temp_h5_fn))
-            filt_fetch_volumes = [filt_fetch_volumes,fetch_volumes(i)];
+    %Run volume sorter while preserving previous output (as these have all
+    %been processed)
+    %lftp_to_volumes
+    vol_timer = tic;
+    prev_fetch_h5_fn = fetch_h5_fn;
+    [fetch_volumes,fetch_datetime,fetch_r_id,fetch_h5_fn] = lftp_to_volumes(clean_rapic_list,ftp_oldest);
+    disp(['lftp to vol filter took  ',num2str(toc(vol_timer)),' seconds for ',num2str(length(clean_rapic_list)),' files'])
+    
+    %check files exist in tempdir mirror
+    if isempty(fetch_h5_fn)
+        display('fetch_h5_fn is empty')
+        continue
+    end   
+
+    %remove volumes processed in last run
+    [~,rm_idx]   = ismember(fetch_h5_fn,prev_fetch_h5_fn);
+    new_h5_fn    = fetch_h5_fn(~rm_idx);
+    new_volumes  = fetch_volumes(~rm_idx);
+    new_datetime = fetch_datetime(~rm_idx);
+    new_r_id     = fetch_r_id(~rm_idx);
+    
+    %check files exist in tempdir mirror
+    if isempty(new_h5_fn)
+        display('new_h5_fn is empty')
+        continue
+    end   
+    
+    %filter using h5 archive listing, only for init loop run (otherwise
+    %prev_fetch_hf_fn is sufficent)
+    if isempty(prev_fetch_h5_fn)
+        index_timer  = tic;
+        filt_volumes = {};
+        filt_h5_fn   = {};
+        [uniq_rows,~,uniq_idx] = unique([new_r_id,floor(new_datetime)],'rows'); %optimial method since files are in radar_id/date folers.
+        for i = 1:size(uniq_rows,1)
+            test_idx        = find(i==uniq_idx);
+            test_h5_fn      = new_h5_fn(test_idx);
+            test_volumes    = new_volumes(test_idx);
+            try
+            test_r_id       = uniq_rows(i,1);
+            catch
+                keyboard
+            end
+            test_datetime   = uniq_rows(i,2);
+            %pull listing from local or remote
+            [arch_h5_fn,~]  = list_path(dest_path,test_r_id,test_datetime);
+            %compare local or remote
+            new_idx           = ~ismember(test_h5_fn,arch_h5_fn);
+            %
+            %keep new volumes
+            if any(new_idx)
+                filt_h5_fn   = [filt_h5_fn;test_h5_fn(new_idx)];
+                filt_volumes = [filt_volumes;test_volumes(new_idx)];
+            end
         end
+        disp(['index filter took  ',num2str(toc(index_timer)),' seconds for ',num2str(length(new_datetime)),' volumes'])
+    else
+        filt_h5_fn   = new_h5_fn;
+        filt_volumes = new_volumes;
     end
-    disp(['index filter took  ',num2str(toc(index_timer)),' seconds',10])
+    
+    %check files exist in tempdir mirror
+    if isempty(filt_h5_fn)
+        display('filt_h5_fn is empty')
+        continue
+    end  
     
     %Loop through sorted_volumes
-    no_vols = length(filt_fetch_volumes);
+    no_vols = length(filt_volumes);
     disp(['########Passing ',num2str(no_vols),' volumes to rapic_convert'])
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_fetch_volumes{i},local_mirror_path,dest_path);
-        disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_fetch_volumes{i}{1}])
+        rapic_convert(filt_volumes{i},local_mirror_path,dest_path);
+        disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
     disp(['###### ',num2str(no_vols),' volumes preprocessed',10]);
     
-    %be nice to server
-    pause(10)
+
 end
 
-disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc),' @@@@@@@@@'])
+disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
 
-function [fetch_volumes,fetch_h5_datetime,fetch_h5_r_id] = filter_ftp_list(scan_filenames,min_offset)
+function [fetch_volumes,fetch_h5_datetime,fetch_h5_r_id,fetch_h5_fn] = lftp_to_volumes(scan_filenames,min_offset)
 %WHAT
 %Takes the dir listing from the ftp server and returns complete volumes
 %which as less than min_offset old and in cell arrays of complete volumes
@@ -138,6 +199,7 @@ function [fetch_volumes,fetch_h5_datetime,fetch_h5_r_id] = filter_ftp_list(scan_
 fetch_volumes     = {};
 fetch_h5_datetime = [];
 fetch_h5_r_id     = [];
+fetch_h5_fn       = {};
 oldest_date_num   = addtodate(utc_time,min_offset,'minute');
 
 %extract parameters from scan_filenames
@@ -154,7 +216,10 @@ if ~isempty(scan_filenames)
     scan_filenames = scan_filenames(IX);
     
     %generate the oldest date num and create filter for this cutoff
-    flt=find(date_num>=oldest_date_num);        
+    flt=find(date_num>=oldest_date_num);
+    if isempty(flt)
+        return
+    end
     %apply filter to datasets    
     date_num=date_num(flt); r_id=r_id(flt); scan_no=scan_no(flt); total_scans=total_scans(flt); scan_filenames=scan_filenames(flt);
     
@@ -185,9 +250,11 @@ if ~isempty(scan_filenames)
             if next_scan_no==1
                 if length(temp_vol)==r_total_scans
                     %length and end of scan number correct, volume complete
-                    fetch_volumes     = [fetch_volumes,{temp_vol}];
+                    fetch_volumes     = [fetch_volumes;{temp_vol}];
                     fetch_h5_datetime = [fetch_h5_datetime;temp_dt(1)];
                     fetch_h5_r_id     = [fetch_h5_r_id;uniq_r_id];
+                    temp_h5_fn        = [num2str(uniq_r_id,'%02.0f'),'_',datestr(temp_dt(1),'yyyymmdd'),'_',datestr(temp_dt(1),'HHMMSS'),'.h5'];
+                    fetch_h5_fn       = [fetch_h5_fn;temp_h5_fn];
                 %elseif str2num(temp_vol{1}(23:24))==1 && length(temp_vol)>=8
                     %volume missing end/middle scans, 1st scan is still there.
                     %sorted_volumes=[sorted_volumes,{temp_vol}];
@@ -200,7 +267,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,local_mirror_path,dest_path)
+function rapic_convert(file_list,local_mirror_path,arch_path)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
@@ -219,11 +286,12 @@ date_num = datenum(file_list{1}(10:21),'yyyymmddHHMM');
 radar_id = str2num(file_list{1}(4:5));
 
 %create correct archive folder
-archive_dest=[dest_path,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
+archive_dest = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
 %create local folder
-if ~isdir(archive_dest) && ~strcmp(dest_path(1:2),'s3')
+if ~isdir(archive_dest) && ~strcmp(arch_path(1:2),'s3')
     mkdir(archive_dest);
 end
+broken_dest  = [arch_path,'broken_vols/',num2str(radar_id,'%02.0f'),'/'];
 
 %create new h5 volume ffn
 h5_fn      = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.h5'];
@@ -243,19 +311,21 @@ end
 cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',tmp_h5_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
+    eout
     log_cmd_write('prep_convert.log',h5_fn,'','')
 end
 
-%if h5 file does not exist, move rapic file to broken vol
+%if h5 file does not exist, move rapic file to broken rapic vol
 if exist(tmp_h5_ffn,'file')~=2
     display('conversion failure, moving rapic file to broken_vols')
-    broken_file(tmp_rapic_ffn,[archive_dest,'broken_vols/'])
+    broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.rapic'];
+    broken_file(tmp_rapic_ffn,broken_rapic_fn,broken_dest)
     return
 end
 
 
 %move to required directory
-if strcmp(dest_path(1:2),'s3')
+if strcmp(arch_path(1:2),'s3')
     cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 cp ',tmp_h5_ffn,' ',h5_ffn];
     [sout,eout] = unix(cmd);
     if sout ~= 0
@@ -311,12 +381,12 @@ fclose(fid);
 
 
 %move broken file
-function broken_file(ffn,target_path)
+function broken_file(in_ffn,out_fn,target_path)
 prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
 if strcmp(target_path(1:2),'s3')
     %s3 cmd
-    cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_path]
+    cmd = [prefix_cmd,'aws s3 cp ',in_ffn,' ',target_path,out_fn]
     [sout,eout]        = unix(cmd);
     if sout ~= 0
         msg = [cmd,' returned ',eout]
@@ -326,5 +396,5 @@ else
     if exist(target_path,'file')~=7
         mkdir(target_path)
     end
-    copyfile(ffn,target_path)
+    copyfile(in_ffn,[target_path,out_fn])
 end

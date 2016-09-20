@@ -82,8 +82,8 @@ while exist('kill_wv_process','file')==2
     %Produce a list of filenames to process
     if ~isempty(pending_h5_list)
         pending_h5_list = file_filter(src_dir,oldest_time,newest_time,site_list);
-        complete_index  = ismember(pending_h5_list,complete_h5_list);
-        pending_h5_list = pending_h5_list(~complete_index);
+        new_index       = ~ismember(pending_h5_list,complete_h5_list);
+        pending_h5_list = pending_h5_list(new_index);
     end
     
     %loop through target ffn's
