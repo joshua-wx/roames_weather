@@ -8,13 +8,13 @@ kill_fn = 'flurry2archive.kill';
 [~,~] = system(['touch ',kill_fn]);
 
 %create date list
-datelist=datenum([2015,01,01]):datenum([2015,12,31]);
+datelist=datenum([2016,07,01]):datenum([2016,09,20]);
 %archive path
-archive_path='/media/meso/DATA/2010-2014_missing_sites_fill/';
+archive_path='/run/media/meso/DATA/201607-201609/';
 
 %flurry archive root
-%flurry_archive='http://wxdigicor2.bom.gov.au/nowcast/data/rapic/';
-flurry_archive='http://flurry-bm.bom.gov.au/nowcast/data/rapic/';
+flurry_archive='http://wxdigicor2.bom.gov.au/nowcast/data/rapic/';
+%flurry_archive='http://flurry-bm.bom.gov.au/nowcast/data/rapic/';
 
 %log setup
 log={};
@@ -24,11 +24,11 @@ log_fn=['flurry2archive_log_',datestr(now,'yymmdd_HHMM'),'.mat'];
 [~,~]=unix('touch kill_flurry2archive');
 
 %radar_id list
-%read_site_info;
-%load('site_info.mat')
+read_site_info;
+load('site_info.mat')
 
-site_s_name_list = {'PrthA_P','BrisA_P','R_hmptn','K_grlie','T_Hills'};
-site_id_list = [26,43,47,48,71];
+%site_s_name_list = {'PrthA_P','BrisA_P','R_hmptn','K_grlie','T_Hills'};
+%site_id_list = [26,43,47,48,71];
 
 
 %tmp dl dir path

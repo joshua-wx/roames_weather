@@ -24,6 +24,7 @@ function wv_process
 	addpath('../etc')
 	if ~isdeployed
 		addpath('../lib/m_lib','../bin');
+        addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
 	end
 
 	% load process_config
@@ -48,14 +49,14 @@ function wv_process
 	% site_info.txt
 	read_site_info(site_info_fn); load([site_info_fn,'.mat']);
 	% check if all sites are needed
-	if strcmp(site_list,'all')
-		site_list = site_id_list;
+	if strcmp(radar_id_list,'all')
+		radar_id_list = site_id_list;
 	end
 
 %% check environment
-	% halt if source dir fails
-	if exist(src_dir,'file')==0
-		disp('src_dir non existant');
+	% halt if dir fails
+    if local_dest_flag == 1 && exist(local_dest_path,'file')==0
+		disp('local local_dest_path does not exist');
 		return
 	end
 
@@ -75,13 +76,13 @@ while exist('kill_wv_process','file')==2
 		newest_time = utc_time;
 		oldest_time = addtodate(utc_time,realtime_offset,'hour');
 	else
-		newest_time = datenum(hist_newest,'dd-mm-yy_HH:MM');
-		oldest_time = datenum(hist_oldest,'dd-mm-yy_HH:MM');
+		newest_time = datenum(hist_newest,'dd-mm-yy');
+		oldest_time = datenum(hist_oldest,'dd-mm-yy');
 	end
     
     %Produce a list of filenames to process
-    if ~isempty(pending_h5_list)
-        pending_h5_list = file_filter(src_dir,oldest_time,newest_time,site_list);
+    if isempty(pending_h5_list)
+        pending_h5_list = file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag);
         new_index       = ~ismember(pending_h5_list,complete_h5_list);
         pending_h5_list = pending_h5_list(new_index);
     end
@@ -90,35 +91,24 @@ while exist('kill_wv_process','file')==2
     for i=1:length(pending_h5_list)
         display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_list))])
         
-        %check for tiny cappi files
-        file_info = dir(pending_h5_list{i}); file_size = file_info.bytes/1000;
-        if file_size<20
-            display('Skipping due to CAPPI')
-            continue
+        %fetch volume
+        h5_ffn = [tempdir,'wv_process.h5'];
+        if exist(h5_ffn,'file')==2
+            delete(h5_ffn)
         end
+        cp_odimh5(pending_h5_list{i},h5_ffn)
         
         %QA the h5 file (attempt to read groups)
-        [qa_flag,no_groups,start_timedate,radar_id,vel_flag] = qa_h5(pending_h5_list{i},min_n_groups,site_list);
+        [qa_flag,no_groups,radar_id,vel_flag] = qa_h5(h5_ffn,min_n_groups,radar_id_list);
         
         %QA exit
         if qa_flag==0
-            disp(['Volume failed QA: ' pending_h5_list{i}])
+            disp(['Volume failed QA: ' h5_ffn])
             continue
         end
         
-        %build processed archive directory and generic fn
-        date_tag  = datevec(start_timedate);
-        arch_path = [dest_dir,num2str(radar_id,'%02.0f'),...
-                    '/',num2str(date_tag(1)),'/',num2str(date_tag(2),'%02.0f'),...
-                    '/',num2str(date_tag(3),'%02.0f'),'/'];
-        arch_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(start_timedate,'yyyymmdd')];
-        %create new directory if required
-        if ~isdir(arch_path)
-            mkdir(arch_path);
-        end
-        
         %run regridding/interpolation
-        [vol_obj,refl_vol,vel_vol] = cart_interpol6(pending_h5_list{j},aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
+        [vol_obj,refl_vol,vel_vol] = vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
         
         %run cell identify if sig_refl has been detected
         if vol_obj.sig_refl==1
@@ -128,7 +118,6 @@ while exist('kill_wv_process','file')==2
             ewt_refl_image = medfilt2(ewt_refl_image, [ewt_kernel_size,ewt_kernel_size]);       
             %run EWT
             ewtBasinExtend = wdss_ewt(ewt_refl_image);
-
             %extract sounding level data
             if realtime_flag == 1
                 %extract radar lat lon
@@ -139,7 +128,6 @@ while exist('kill_wv_process','file')==2
             else
                 %load era-interim data for r_lat,r_lon,start_timedate
             end
-            
             %run ident
             prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
         else
@@ -147,7 +135,12 @@ while exist('kill_wv_process','file')==2
         end
         
         %create/update daily archives/objects from ident and intp objects
-        update_archive(arch_path,arch_tag,vol_obj,prc_obj)
+        if local_dest_flag == 1
+            data_root = local_dest_root;
+        else
+            data_root = s3_dest_root;
+        end
+        update_archive(data_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table)
         
         %run tracking algorithm if sig_refl has been detected
         if vol_obj.sig_refl==1 && ~isempty(prc_obj)
@@ -186,7 +179,7 @@ while exist('kill_wv_process','file')==2
     disp([10,'Processing complete',10])
     
     %break loop if cts_loop=0
-    if cts_loop==0
+    if realtime_flag==0
         delete('kill_wv_process');
     else
         pause(10)
@@ -204,38 +197,61 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer)
 % figure; hold on; axis xy;
 % for i=1:length(track_db); plot_track(track_db,ident_db,i); end
 
-function pending_list = file_filter(src_dir,oldest_time,newest_time,site_list)
+function pending_list = file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
 %src_dir (see wv_process input)
 %oldest_time: oldest time to crop files to (in datenum)
 %newest_time: newest time to crop files to (in datenum)
-%site_list: site ids of selected radar sites
+%radar_id_list: site ids of selected radar sites
 
 %OUTPUT
 %pending_list: updated list of all processed ftp files
 
 %init pending_list
 pending_list = {};
-
-%create a list of dates to read index
-date_list = floor(oldest_time):floor(newest_time);
-
 %read index files
-for i=1:length(site_list)
-    tmp_site_no = num2str(site_list(i),'%02.0f');
-    for j=1:length(date_list)
-        %read index ffn
-        [~,index_ffn] = index_read(src_dir,site_list(i),date_list(j));
-        %append to list
-        pending_list = [pending_list;index_ffn];
+for i=1:length(radar_id_list)
+    radar_id      = num2str(radar_id_list(i),'%02.0f');
+    start_datestr = datestr(oldest_time,'yyyy-mm-ddTHH:MM:SS');
+    stop_datestr  = datestr(addtodate(newest_time+1,-1,'second'),'yyyy-mm-ddTHH:MM:SS');
+    %run a query for a radar_id, between for time and no processed
+    %(sig_refl)
+    disp(['ddb query: ',start_datestr,' ',radar_id])
+    exp_json = ['{":r_id": {"N":"',radar_id,'"},',...
+        '":startTs": {"S":"',start_datestr,'"},',...
+        '":stopTs": {"S":"',stop_datestr,'"}}'];
+    cmd = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb query --table-name ',odimh5_ddb_table,' ',...
+        '--key-condition-expression "radar_id = :r_id AND start_timestamp BETWEEN :startTs AND :stopTs"',' ',...
+        '--expression-attribute-values ''',exp_json,'''',' ',...
+        '--projection-expression "h5_ffn,sig_refl_flag"'];
+    tic
+    [sout,eout]       = unix(cmd);
+    toc
+    if sout~=0
+        log_cmd_write('log.ddb','',cmd,eout)
+        continue
     end
+    %convert json to struct
+    jstruct           = loadjson(eout,'SimplifyCell',1);
+    if isempty(jstruct.Items)
+        continue
+    end
+    %convert jstruct fields to arrays
+    tmp_sig_refl_flag = clean_jdata([jstruct.Items.sig_refl_flag],'N');
+    tmp_h5_ffn        = clean_jdata([jstruct.Items.h5_ffn],'S');
+    %filter for realtime
+    if realtime_flag==1
+        tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
+    end
+    %append to list unprocessed files
+    pending_list = [pending_list;tmp_h5_ffn];
 end
 
 
 
-function update_archive(archive_path,arch_tag,vol_obj,prc_obj)
+function update_archive(data_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
@@ -246,11 +262,30 @@ function update_archive(archive_path,arch_tag,vol_obj,prc_obj)
 
 %% Update vol_db and vol_data
 
-%create paths
-vol_db_fn   = [arch_tag,'_vol_db.txt'];
-vol_data_fn = [arch_tag,'_vol_data.h5'];
-start_time  = str2num(datestr(vol_obj.start_timedate,'HHMMSS'));
-stop_time   = str2num(datestr(vol_obj.stop_timedate,'HHMMSS'));
+%setup paths and tags
+date_vec  = datevec(vol_obj.start_timedate);
+radar_id  = vol_obj.radar_id;
+data_path = [data_root,num2str(radar_id,'%02.0f'),...
+    '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
+    '/',num2str(date_vec(3),'%02.0f'),'/'];
+data_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,'yyyymmdd')];
+%create local data path
+if ~strcmp(data_root(1:2),'s3')
+    mkdir(data_path)
+end
+
+%% volume data
+vol_data_fn = [data_tag,'_vol_data.h5'];
+
+%add to odimh5_ddb_table (replaces any previous entries)
+%get-item
+jstruct_out = ddb_get_item(odimh5_ddb_table,radar_id,vol_obj.start_timedate);
+
+%add values of vel_flag, vel_ni, stop_datetime
+keyboard
+
+%put-item
+
 
 %load db
 if exist([archive_path,vol_db_fn],'file')==2 %file exists
@@ -297,7 +332,6 @@ if isempty(prc_obj)
 end
 
 %create paths
-prc_db_fn   = [arch_tag,'_prc_db.txt'];
 prc_data_fn = [arch_tag,'_prc_data.h5'];
 
 %load db

@@ -9,7 +9,8 @@ function wv_prep
 %move to dynamodb for remote?)
 
 if ~isdeployed
-    addpath('../lib/m_lib');
+    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
+    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
 end
 
 %load global config file
@@ -67,7 +68,7 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
     cmd         = 'export LD_LIBRARY_PATH=/usr/lib; ./lftp_mirror_scipt';
     [sout,eout] = unix(cmd);
     if sout ~= 0
-        log_cmd_write('prep_lftp.log',' ',cmd,eout)
+        log_cmd_write('log.lftp',' ',cmd,eout)
     end
     %reate dir listing
     local_mirror_dir = dir(local_mirror_path); local_mirror_list = {local_mirror_dir.name}; local_mirror_list(1:2)=[];
@@ -125,39 +126,34 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
         continue
     end   
     
-    %filter using h5 archive listing, only for init loop run (otherwise
+    %filter using h5 archive , only for init loop run (otherwise
     %prev_fetch_hf_fn is sufficent)
     if isempty(prev_fetch_h5_fn)
         index_timer  = tic;
         filt_volumes = {};
         filt_h5_fn   = {};
-        [uniq_rows,~,uniq_idx] = unique([new_r_id,floor(new_datetime)],'rows'); %optimial method since files are in radar_id/date folers.
-        for i = 1:size(uniq_rows,1)
-            test_idx        = find(i==uniq_idx);
-            test_h5_fn      = new_h5_fn(test_idx);
-            test_volumes    = new_volumes(test_idx);
-            try
-            test_r_id       = uniq_rows(i,1);
-            catch
-                keyboard
-            end
-            test_datetime   = uniq_rows(i,2);
-            %pull listing from local or remote
-            [arch_h5_fn,~]  = list_path(dest_path,test_r_id,test_datetime);
-            %compare local or remote
-            new_idx           = ~ismember(test_h5_fn,arch_h5_fn);
-            %
-            %keep new volumes
-            if any(new_idx)
-                filt_h5_fn   = [filt_h5_fn;test_h5_fn(new_idx)];
-                filt_volumes = [filt_volumes;test_volumes(new_idx)];
+        filt_r_id    = [];
+        for i = 1:size(new_h5_fn,1)
+            test_h5_fn      = new_h5_fn{i};
+            test_volumes    = new_volumes(i);
+            test_r_id       = new_r_id(i);
+            test_datetime   = new_datetime(i);
+            %pull index from dynamodb
+            jstruct_out = ddb_get_item(odimh5_ddb_table,test_r_id,test_datetime);
+            if isempty(jstruct_out)
+                filt_h5_fn   = [filt_h5_fn;test_h5_fn];
+                filt_volumes = [filt_volumes;test_volumes];
+                filt_r_id    = [filt_r_id;test_r_id];
+            else
+                continue
             end
         end
         disp(['index filter took  ',num2str(toc(index_timer)),' seconds for ',num2str(length(new_datetime)),' volumes'])
     else
+        filt_r_id    = new_r_id;
         filt_h5_fn   = new_h5_fn;
         filt_volumes = new_volumes;
-    end
+     end
     
     %check files exist in tempdir mirror
     if isempty(filt_h5_fn)
@@ -171,7 +167,7 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_volumes{i},local_mirror_path,dest_path);
+        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,odimh5_ddb_table);
         disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
@@ -267,7 +263,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,local_mirror_path,arch_path)
+function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,ddb_table)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
@@ -278,25 +274,20 @@ function rapic_convert(file_list,local_mirror_path,arch_path)
 %dest_path: path to destination dir for h5 file
 
 %create full path filenames
-dled_files=strcat( repmat({[' ',local_mirror_path,'/']},length(file_list),1),file_list);
+dled_files = strcat( repmat({[' ',local_mirror_path,'/']},length(file_list),1),file_list);
 
-%extract datetag
-date_vec = datevec(file_list{1}(10:21),'yyyymmddHHMM');
-date_num = datenum(file_list{1}(10:21),'yyyymmddHHMM');
-radar_id = str2num(file_list{1}(4:5));
-
-%create correct archive folder
-archive_dest = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
 %create local folder
-if ~isdir(archive_dest) && ~strcmp(arch_path(1:2),'s3')
-    mkdir(archive_dest);
+if ~isdir(arch_path) && ~strcmp(arch_path(1:2),'s3')
+    mkdir(arch_path);
 end
-broken_dest  = [arch_path,'broken_vols/',num2str(radar_id,'%02.0f'),'/'];
-
-%create new h5 volume ffn
-h5_fn      = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.h5'];
-tmp_h5_ffn = [tempdir,h5_fn];
-h5_ffn     = [archive_dest,h5_fn];
+broken_dest     = [arch_path,'broken_vols/',num2str(radar_id,'%02.0f'),'/'];
+broken_dt       = datenum(file_list{1}(10:21),'yyyymmddHHMM');
+broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(broken_dt,'yyyymmdd'),'_',datestr(broken_dt,'HHMMSS'),'.rapic'];
+%temp h5
+tmp_h5_ffn = [tempdir,'tmp.h5'];
+if exist(tmp_h5_ffn,'file') == 2
+    delete(tmp_h5_ffn)
+end
 
 %cat scans into temp rapic volume 
 tmp_rapic_ffn = [tempdir,'ftp_cat.rapic'];
@@ -304,7 +295,7 @@ if exist(tmp_rapic_ffn,'file') == 2; delete(tmp_rapic_ffn); end;
 cmd = ['cat ',cell2mat(dled_files'),' > ',tmp_rapic_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
-    log_cmd_write('prep_cat.log',h5_fn,cmd,eout)
+    log_cmd_write('log.cat',broken_rapic_fn,cmd,eout)
 end
 
 %convert to odim and save in correct archive folder
@@ -312,36 +303,53 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',tmp_h
 [sout,eout]=unix(cmd);
 if sout ~= 0
     eout
-    log_cmd_write('prep_convert.log',h5_fn,'','')
+    log_cmd_write('log.convert',broken_rapic_fn,'','')
 end
 
 %if h5 file does not exist, move rapic file to broken rapic vol
 if exist(tmp_h5_ffn,'file')~=2
     display('conversion failure, moving rapic file to broken_vols')
-    broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(date_num,'yyyymmdd'),'_',datestr(date_num,'HHMMSS'),'.rapic'];
     broken_file(tmp_rapic_ffn,broken_rapic_fn,broken_dest)
     return
+else
+    %extract h5 start date number 
+    h5_start_date = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','startdate'));
+    h5_start_time = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','starttime'));
+    h5_start_dt   = datenum([h5_start_date,h5_start_time],'yyyymmddHHMMSS');
+    h5_dir        = dir(tmp_h5_ffn);
+    h5_size       = round(h5_dir.bytes/1000);
 end
-
+%create correct archive folder
+h5_start_dt_vec  = datevec(h5_start_dt);
+archive_dest     = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(h5_start_dt_vec(1)),'/',num2str(h5_start_dt_vec(2),'%02.0f'),'/',num2str(h5_start_dt_vec(3),'%02.0f'),'/'];
+h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd'),'_',datestr(h5_start_dt,'HHMMSS'),'.h5'];
+h5_ffn           = [archive_dest,h5_fn];
 
 %move to required directory
 if strcmp(arch_path(1:2),'s3')
     cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 cp ',tmp_h5_ffn,' ',h5_ffn];
     [sout,eout] = unix(cmd);
     if sout ~= 0
-        log_cmd_write('pre_s3.log',h5_fn,cmd,eout)
+        log_cmd_write('log.s3',h5_fn,cmd,eout)
     end
 else
     copyfile(tmp_h5_ffn,h5_ffn)
 end
 
-% %check file exist
-% if exist(h5_ffn,'file') ~= 2
-%     display(eout);
-% else
-%     %write to index file in the rapic archive
-%     index_write(dest_path,radar_id,date_num,h5_fn);
-% end
+%write to dynamo db
+ddb_struct                      = struct;
+ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
+ddb_struct.start_timestamp.S    = datestr(h5_start_dt,'yyyy-mm-ddTHH:MM:SS');
+ddb_struct.h5_size.N            = num2str(h5_size);
+ddb_struct.h5_ffn.S             = h5_ffn;
+ddb_struct.sig_refl_flag.N      = '0';
+
+json        = savejson('',ddb_struct);
+cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb put-item --table-name ',ddb_table,' --item ''',json,''''];
+[sout,eout] = unix(cmd);
+if sout ~=0
+    log_cmd_write('log.ddb',h5_fn,cmd,eout)
+end
 
 %remove tmp files
 delete(tmp_rapic_ffn)

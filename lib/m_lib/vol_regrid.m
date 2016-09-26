@@ -1,4 +1,4 @@
-function [intp_struct,vol_refl_out,vol_vel_out]=vol_regrid(filename,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
+function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(filename,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
 %WHAT
 %Regrids 3D polarmetic data into cartesian coordinates using a max library
 
@@ -17,8 +17,8 @@ function [intp_struct,vol_refl_out,vol_vel_out]=vol_regrid(filename,aazi_grid,sl
 %v: regridded volume with coordinates lat,lon,z vec.
 
 %Load config file
-load('tmp_global_config.mat');
-load('site_info.mat');
+load('wv_global.config.mat');
+load('site_info.txt.mat');
 
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
@@ -41,14 +41,14 @@ r_lon    = double(site_centroid(site_ind,2));
 r_elv    = double(site_centroid(site_ind,3));
 
 %read the following paraters
-start_date = h5readatt(filename,['/dataset',num2str(1),'/what/'],'startdate');
-start_time = h5readatt(filename,['/dataset',num2str(1),'/what/'],'starttime');
-stop_date  = h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'enddate');
-stop_time  = h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'endtime');
+start_date = deblank(h5readatt(filename,['/dataset',num2str(1),'/what/'],'startdate'));
+start_time = deblank(h5readatt(filename,['/dataset',num2str(1),'/what/'],'starttime'));
+stop_date  = deblank(h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'enddate'));
+stop_time  = deblank(h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'endtime'));
 
 %collate time values
-start_timedate  = datenum(strcat(num2str(start_date),num2str(start_time)),'yyyymmddHHMMSS');
-stop_timedate   = datenum(strcat(num2str(stop_date),num2str(stop_time)),'yyyymmddHHMMSS');
+start_timedate  = datenum([start_date,start_time],'yyyymmddHHMMSS');
+stop_timedate   = datenum([stop_date,stop_time],'yyyymmddHHMMSS');
 
 %cartesian grid setup
 x_vec = -h_range:h_grid:h_range;                              %m, X domain vector

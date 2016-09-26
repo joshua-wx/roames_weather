@@ -1,4 +1,4 @@
-function [qa_flag,no_groups,start_timedate,radar_id,vel_flag]=qa_h5(h5_ffn,min_n_groups,site_list)
+function [qa_flag,no_groups,radar_id,vel_flag]=qa_h5(h5_ffn,min_n_groups,site_list)
 %WHAT:
 %Checks the h5 file is readable and contains atleast 8 scan levels
 
@@ -21,20 +21,20 @@ try
     h5_info=h5info(h5_ffn);
     %read scan startdate
     start_date = h5readatt(h5_ffn,strcat('/dataset',num2str(1),'/what/'),'startdate');
-    start_time = h5readatt(h5_fn,strcat('/dataset',num2str(1),'/what/'),'starttime');
+    start_time = h5readatt(h5_ffn,strcat('/dataset',num2str(1),'/what/'),'starttime');
     start_timedate=datenum(strcat(num2str(start_date),num2str(start_time)),'yyyymmddHHMMSS');
     %read radar id
     source = h5readatt(h5_ffn,'/what','source'); %source text tag (contains radar id)
     radar_id=str2num(source(7:8));
 catch err
     %catch failed read
-    log_cmd_write('process_qa.log',h5_ffn,'reading time/source atts',err.message);
+    log_cmd_write('log.qa',h5_ffn,'reading time/source atts',err.message);
     return
 end
 
 if ~ismember(radar_id,site_list)
     %catch corrupted file
-    log_cmd_write('process_qa.log',h5_ffn,'radar_id from h5 file not in site_list',num2str(radar_id));
+    log_cmd_write('log.qa',h5_ffn,'radar_id from h5 file not in site_list',num2str(radar_id));
     return 
 end
 
@@ -58,13 +58,13 @@ group_no_list_sorted=sort(group_no_list);
 %check for missing scans
 for i=1:length(group_no_list_sorted)
     if i~=group_no_list_sorted(i)
-        log_cmd_write('process_qa.log',h5_ffn,'missing elevation at tilt',num2str(i));
+        log_cmd_write('log.qa',h5_ffn,'missing elevation at tilt',num2str(i));
         return
     end
 end
 %check for a min number of groups and doubled scans (normally 14 levels)
 if length(group_no_list)<min_n_groups || length(group_no_list)>20 
-    log_cmd_write('process_qa.log',h5_ffn,'insufficent number of scans at',num2str(group_no_list));
+    log_cmd_write('log.qa',h5_ffn,'insufficent number of scans at',num2str(group_no_list));
     return
 end
 
