@@ -76,8 +76,8 @@ while exist('kill_wv_process','file')==2
 		newest_time = utc_time;
 		oldest_time = addtodate(utc_time,realtime_offset,'hour');
 	else
-		newest_time = datenum(hist_newest,'dd-mm-yy');
-		oldest_time = datenum(hist_oldest,'dd-mm-yy');
+		newest_time = datenum(hist_newest,'yyyy_mm_dd');
+		oldest_time = datenum(hist_oldest,'yyyy_mm_dd');
 	end
     
     %Produce a list of filenames to process
@@ -126,7 +126,8 @@ while exist('kill_wv_process','file')==2
                 %retrieve current GFS temperature data for above radar site
                 [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,r_lat,r_lon);
             else
-                %load era-interim data for r_lat,r_lon,start_timedate
+                %load era-interim fzlvl data from ddb
+                [nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id);
             end
             %run ident
             prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
@@ -147,7 +148,8 @@ while exist('kill_wv_process','file')==2
             %need to adapt for new archive
             
             keyboard
-            %up to here%%%%%
+            %up to here - tracking will need to load previous volumes/ddb,
+            %easy enough right???
             
             wdss_tracking(dest_dir,vol_obj.start_timedate,vol_obj.radar_id);
         end
@@ -226,9 +228,7 @@ for i=1:length(radar_id_list)
         '--key-condition-expression "radar_id = :r_id AND start_timestamp BETWEEN :startTs AND :stopTs"',' ',...
         '--expression-attribute-values ''',exp_json,'''',' ',...
         '--projection-expression "h5_ffn,sig_refl_flag"'];
-    tic
     [sout,eout]       = unix(cmd);
-    toc
     if sout~=0
         log_cmd_write('log.ddb','',cmd,eout)
         continue
@@ -239,8 +239,8 @@ for i=1:length(radar_id_list)
         continue
     end
     %convert jstruct fields to arrays
-    tmp_sig_refl_flag = clean_jdata([jstruct.Items.sig_refl_flag],'N');
-    tmp_h5_ffn        = clean_jdata([jstruct.Items.h5_ffn],'S');
+    tmp_sig_refl_flag = jstruct_to_mat([jstruct.Items.sig_refl_flag],'N');
+    tmp_h5_ffn        = jstruct_to_mat([jstruct.Items.h5_ffn],'S');
     %filter for realtime
     if realtime_flag==1
         tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
@@ -251,14 +251,14 @@ end
 
 
 
-function update_archive(data_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table)
+function update_archive(data_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
 %INPUT:
 %archive_dest: path to archive destination
 %vol_obj: new entires for vol_obj from cart_interpol6
-%prc_obj: new entires for prc_obj from ewt2ident
+%storm_obj: new entires for storm_obj from ewt2ident
 
 %% Update vol_db and vol_data
 
@@ -279,12 +279,24 @@ vol_data_fn = [data_tag,'_vol_data.h5'];
 
 %add to odimh5_ddb_table (replaces any previous entries)
 %get-item
-jstruct_out = ddb_get_item(odimh5_ddb_table,radar_id,vol_obj.start_timedate);
-
-%add values of vel_flag, vel_ni, stop_datetime
+jstruct_out = ddb_get_item(odimh5_ddb_table,...
+    'radar_id','N',num2str(radar_id,'%02.0f'),...
+    'start_timestamp','S',datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS'),'');
+%update jstruct
+jstruct_out.Item.sig_refl_flag = vol_obj.sig_refl;
+jstruct_out.Item.tilt1         = vol_obj.tilt1;
+jstruct_out.Item.tilt2         = vol_obj.tilt2;
+if ~isempty(vol_obj.vel_ni)
+    jstruct_out.Item.vel_ni    = vol_obj.vel_ni;
+end
 keyboard
+%write back to ddb
 
-%put-item
+%if storm_obj exists, write to ddb
+
+%create s3 h5 file (replaces a duplicate on s3 automatically)
+
+%done!
 
 
 %load db
@@ -326,8 +338,8 @@ h5_data_write(vol_data_fn,archive_path,vol_id,data_struct,att_struct)
 
 %% Update prc_db and prc_data
 
-%skip if prc_obj is empty
-if isempty(prc_obj)
+%skip if storm_obj is empty
+if isempty(storm_obj)
     return
 end
 
@@ -342,7 +354,7 @@ if exist([archive_path,prc_db_fn],'file')==2 %file exists
     delete_idx = find([prc_db.start_time] == start_time);
     %remove data from same timestep
     if ~isempty(ind)
-        disp(['duplicate prc_db objects exist for ',datestr(prc_obj.start_timedate),' IDR ',num2str(prc_obj.radar_id)]);
+        disp(['duplicate prc_db objects exist for ',datestr(storm_obj.start_timedate),' IDR ',num2str(storm_obj.radar_id)]);
         prc_db = db_delete(prc_db,delete_idx);
         disp('old data removed')
     end
@@ -355,14 +367,14 @@ end
 
 
 track_id = 0;
-for i=1:length(prc_obj)
+for i=1:length(storm_obj)
     
-    cell_llb   = round(prc_obj(i).subset_latlonbox*1000);
-    cell_dcent = round(prc_obj(i).dbz_latloncent*1000);
-    cell_stats = round(prc_obj(i).stats*10);
+    cell_llb   = round(storm_obj(i).subset_latlonbox*1000);
+    cell_dcent = round(storm_obj(i).dbz_latloncent*1000);
+    cell_stats = round(storm_obj(i).stats*10);
     %append and write db
     prc_db(end+1).subset_id     = subset_id;
-    prc_db(end+1).track_id      = prc_obj.track_id;
+    prc_db(end+1).track_id      = storm_obj.track_id;
     prc_db(end+1).start_time    = vol_obj.start_time;
     prc_db(end+1).stop_time     = vol_obj.stop_time;
     prc_db(end+1).cell_max_lat  = cell_llb(1);
@@ -373,17 +385,17 @@ for i=1:length(prc_obj)
     prc_db(end+1).dbz_cent_lon  = cell_dcent(2);
     %append stats
     for j=1:length(cell_stats)
-        prc_db(end+1).(prc_obj(i).stats_labels{j}) = cell_stats(j);
+        prc_db(end+1).(storm_obj(i).stats_labels{j}) = cell_stats(j);
     end
     db_write(prc_db_fn,archive_path,prc_db);
 
 
     %write data
     att_struct  = struct('h_grid',h_grid,'v_grid',v_grid);
-    data_struct = struct('refl_vol',prc_obj(i).subset_refl,'vel_vol',prc_obj(i).subset_vel,...
-                        'top_h_grid',prc_obj(i).top_h_grid,'sts_h_grid',prc_obj(i).sts_h_grid,...
-                        'MESH_grid',prc_obj(i).MESH_grid,'POSH_grid',prc_obj(i).sts_h_grid,...
-                        'max_dbz_grid',prc_obj(i).max_dbz_grid,'vil_grid',prc_obj(i).vil_grid);      
+    data_struct = struct('refl_vol',storm_obj(i).subset_refl,'vel_vol',storm_obj(i).subset_vel,...
+                        'top_h_grid',storm_obj(i).top_h_grid,'sts_h_grid',storm_obj(i).sts_h_grid,...
+                        'MESH_grid',storm_obj(i).MESH_grid,'POSH_grid',storm_obj(i).sts_h_grid,...
+                        'max_dbz_grid',storm_obj(i).max_dbz_grid,'vil_grid',storm_obj(i).vil_grid);      
     h5_data_write(vol_data_fn,archive_path,vol_id,data_struct,att_struct)
 
     %move to next subset if

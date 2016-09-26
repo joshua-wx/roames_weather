@@ -139,7 +139,9 @@ while exist('kill_wv_prep','file')==2 %run loop while script termination control
             test_r_id       = new_r_id(i);
             test_datetime   = new_datetime(i);
             %pull index from dynamodb
-            jstruct_out = ddb_get_item(odimh5_ddb_table,test_r_id,test_datetime);
+            jstruct_out = ddb_get_item(odimh5_ddb_table,...
+                'radar_id','N',num2str(test_r_id,'%02.0f'),...
+                'start_timestamp','S',datestr(test_datetime,'yyyy-mm-ddTHH:MM:SS'),'');
             if isempty(jstruct_out)
                 filt_h5_fn   = [filt_h5_fn;test_h5_fn];
                 filt_volumes = [filt_volumes;test_volumes];
