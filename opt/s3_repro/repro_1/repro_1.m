@@ -129,7 +129,7 @@ for j=1:length(rapic_list)
         rapic_ffn = [svol_path,svol_list{k}];
         %check file exists
         if exist(rapic_ffn,'file')~=2
-            msg = [rapic_ffn,' is missing, skipping'];
+            msg = [rapicG_ffn,' is missing, skipping'];
             write_log(local_log_fn,'CAPPI check',msg)
             continue
         end

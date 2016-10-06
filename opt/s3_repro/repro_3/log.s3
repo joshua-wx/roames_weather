@@ -1,0 +1,15 @@
+27-Sep-2016 10:35:45 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/50_1997-1997/ /tmp/ returned download failed: s3://roames-wxradar-archive/radar_archive/50_1997-1997/ to ../../../../../../../../tmp/ [Errno 21] Is a directory: '/tmp/'
+
+
+27-Sep-2016 10:36:10 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/50_1997-1997/ /tmp/ returned download failed: s3://roames-wxradar-archive/radar_archive/50_1997-1997/ to ../../../../../../../../tmp/ [Errno 21] Is a directory: '/tmp/'
+
+
+27-Sep-2016 10:36:57 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/50_1997-1997/ /tmp/ returned download failed: s3://roames-wxradar-archive/radar_archive/50_1997-1997/ to ../../../../../../../../tmp/ [Errno 21] Is a directory: '/tmp/'
+
+
+27-Sep-2016 11:46:55 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/50_1997-1997/ /tmp/ returned download failed: s3://roames-wxradar-archive/radar_archive/50_1997-1997/ to ../../../../../../../../tmp/ [Errno 21] Is a directory: '/tmp/'
+
+
+27-Sep-2016 11:47:38 cp_s3->local export LD_LIBRARY_PATH=/usr/lib; aws s3 cp s3://roames-wxradar-archive/radar_archive/50_1997-1997/ /tmp/ returned download failed: s3://roames-wxradar-archive/radar_archive/50_1997-1997/ to ../../../../../../../../tmp/ [Errno 21] Is a directory: '/tmp/'
+
+

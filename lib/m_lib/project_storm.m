@@ -1,4 +1,4 @@
-function [proj_lat,proj_lon,proj_azi,search_dist,track_length]=project_storm(tn1_init_ind,tn1_ident_ind,tn_dt,proj_min_track_len,mode_scan_freq,ident_db)
+function [proj_lat,proj_lon,proj_azi,search_dist,track_length]=project_storm(tn1_init_ind,tn1_ident_ind,tn_dt,proj_min_track_len,mode_scan_freq,storm_db)
 %WHAT: Generates a projected lat lon from the init lat lon (ind given by
 %tn1_init_ind) using the mean of the proj arc/azi for time tn_dt from tn1
 %tracks (given by tn1_ident_ind). If no projection can be generated a
@@ -6,11 +6,11 @@ function [proj_lat,proj_lon,proj_azi,search_dist,track_length]=project_storm(tn1
 %Designed to only work on linear simple tracks.
 
 %INPUT:
-%tn1_init_ind: Index in ident_db of target inital cell to project
-%tn1_ident_ind: Index(s) in ident_db of cells to generate fits from
+%tn1_init_ind: Index in storm_db of target inital cell to project
+%tn1_ident_ind: Index(s) in storm_db of cells to generate fits from
 %tn_dt: time to generate projection for
 %proj_min_track_len: minimum number of cells in a track to generate a fit 
-%ident_db: ident_db containing all cells and tracks
+%storm_db: storm_db containing all cells and tracks
 
 %OUTPUT:
 %proj_lat: projection of init lat at tn_dt using a linear fit of tn1_ident_ind lat(s)
@@ -25,18 +25,18 @@ proj_azi     = [];
 proj_arc     = [];
 search_dist  = [];
 
-load('tmp_global_config.mat');
+load('wv_global.config.mat');
 
 %loop through each end cell
 for i=1:length(tn1_ident_ind);
     
     %decompose end cell track
-    tn1_simple_id      = ident_db(tn1_ident_ind(i)).simple_id;
-    tn1_start_timedate = ident_db(tn1_ident_ind(i)).start_timedate;
-    trck_ind           = find([ident_db.simple_id]'==tn1_simple_id & [ident_db.start_timedate]'<=tn1_start_timedate);
+    tn1_simple_id       = storm_db.track_id(tn1_ident_ind(i));
+    tn1_start_timestamp = storm_db.start_timestamp(tn1_ident_ind(i));
+    trck_ind            = find(storm_db.track_id==tn1_simple_id & storm_db.start_timestamp<=tn1_start_timestamp);
     %sort track index to time
-    [~,sort_ix]        = sort([ident_db(trck_ind).start_timedate]);
-    trck_ind           = trck_ind(sort_ix);
+    [~,sort_ix]         = sort(storm_db.start_timestamp(trck_ind));
+    trck_ind            = trck_ind(sort_ix);
     
     
     %check track length
@@ -49,18 +49,17 @@ for i=1:length(tn1_ident_ind);
     %############################
     %REMOVE THIS CONDITION TO REDUCE LIENARITY ERROR
     if length(trck_ind)>max_track_len
-        trck_ind=trck_ind(end-max_track_len+1:end);
+        trck_ind = trck_ind(end-max_track_len+1:end);
         %subset if too long
     end
         
     
     
-    %extract timedate, latloncent for each track cell from ident_db
-    trck_dt         = vertcat(ident_db(trck_ind).start_timedate);
-    trck_latloncent = vertcat(ident_db(trck_ind).dbz_latloncent);
-    trck_latcent    = trck_latloncent(:,1);
-    trck_loncent    = trck_latloncent(:,2);
-    trck_stats      = vertcat(ident_db(trck_ind).stats);
+    %extract timedate, latloncent for each track cell from storm_db
+    trck_dt         = storm_db.start_timestamp(trck_ind);
+    trck_latcent    = storm_db.lat(trck_ind);
+    trck_loncent    = storm_db.lon(trck_ind);
+    trck_area       = storm_db.area(trck_ind);
     
     %calculate polyfit of lat lon cents
     [lat_p,lat_s,lat_mu] = polyfit(trck_dt,trck_latcent,1);
@@ -76,19 +75,16 @@ for i=1:length(tn1_ident_ind);
     [temp_arc, temp_azi] = distance(temp_proj_lat1,temp_proj_lon1,temp_proj_lat2,temp_proj_lon2);
     
     %collate
-    proj_arc=[proj_arc; temp_arc];
-    proj_azi=[proj_azi; temp_azi];
+    proj_arc = [proj_arc; temp_arc];
+    proj_azi = [proj_azi; temp_azi];
 end
 
 %Search Radius and track length
-scan_freq_hr=mode_scan_freq*24;
-max_search_distance=max_storm_speed*scan_freq_hr;
+scan_freq_hr        = mode_scan_freq*24;
+max_search_distance = max_storm_speed*scan_freq_hr;
 %extact init lat and lon
-init_latloncent=ident_db(tn1_init_ind).dbz_latloncent;
-
-init_lat=init_latloncent(:,1);
-init_lon=init_latloncent(:,2);
-  
+init_lat            = storm_db.lat(tn1_init_ind);
+init_lon            = storm_db.lon(tn1_init_ind);
 %case: proj output
 if ~isempty(proj_arc) && ~isempty(proj_azi)
     %take mean set
@@ -102,7 +98,7 @@ if ~isempty(proj_arc) && ~isempty(proj_azi)
     %for case (1), tn1 proj using tn1 track. set track length and search distance using simple track
     if isequal(tn1_init_ind,tn1_ident_ind)
         track_length = length(trck_ind);
-        search_dist  = ceil(sqrt(trck_stats(2)/pi));
+        search_dist  = ceil(sqrt(trck_area/pi));
     else
         %for case (2), tn1 proj using other tracks. set track length to 1 and proj area to max_search_distance
         track_length = 1;

@@ -1,9 +1,9 @@
-function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(filename,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
+function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
 %WHAT
 %Regrids 3D polarmetic data into cartesian coordinates using a max library
 
 %INPUT
-%filename: h5 filename
+%h5_ffn: h5 h5_ffn
 %aazi_grid: azi coord for regridding into
 %sl_range_grid: slant range coord for regridding into
 %eelv_grid: elv coord for regridding into
@@ -23,15 +23,15 @@ load('site_info.txt.mat');
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
 %pol grid constants
-r_width     = 360/double(h5readatt(filename,'/dataset1/where','nrays'));                 %deg, beam width
+r_width     = 360/double(h5readatt(h5_ffn,'/dataset1/where','nrays'));                 %deg, beam width
 a_vec       = 0:r_width:360;                                                             %deg, azimuth vector
-r_bin       =  double(h5readatt(filename,'/dataset1/where','rscale'));                   %m, range bin size (range res)
-r_start     = double(h5readatt(filename,'/dataset1/where','rstart'))*1000;               %m, range of radar
-r_range     = double(h5readatt(filename,'/dataset1/where','nbins'))*r_bin+r_start-r_bin; %m, range of radar
+r_bin       =  double(h5readatt(h5_ffn,'/dataset1/where','rscale'));                   %m, range bin size (range res)
+r_start     = double(h5readatt(h5_ffn,'/dataset1/where','rstart'))*1000;               %m, range of radar
+r_range     = double(h5readatt(h5_ffn,'/dataset1/where','nbins'))*r_bin+r_start-r_bin; %m, range of radar
 slant_r_vec = r_start:r_bin:r_range;                                                     %m,   slant range (along ray)
 
 %load radar id
-source   = h5readatt(filename,'/what','source');                                         %source text tag (contains radar id)
+source   = h5readatt(h5_ffn,'/what','source');                                         %source text tag (contains radar id)
 radar_id = str2num(source(7:8));
 
 %use radar id to load radar centroid from site_info matrix
@@ -41,14 +41,11 @@ r_lon    = double(site_centroid(site_ind,2));
 r_elv    = double(site_centroid(site_ind,3));
 
 %read the following paraters
-start_date = deblank(h5readatt(filename,['/dataset',num2str(1),'/what/'],'startdate'));
-start_time = deblank(h5readatt(filename,['/dataset',num2str(1),'/what/'],'starttime'));
-stop_date  = deblank(h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'enddate'));
-stop_time  = deblank(h5readatt(filename,['/dataset',num2str(no_datasets),'/what/'],'endtime'));
+start_date = deblank(h5readatt(h5_ffn,['/dataset',num2str(1),'/what/'],'startdate'));
+start_time = deblank(h5readatt(h5_ffn,['/dataset',num2str(1),'/what/'],'starttime'));
 
 %collate time values
 start_timedate  = datenum([start_date,start_time],'yyyymmddHHMMSS');
-stop_timedate   = datenum([stop_date,stop_time],'yyyymmddHHMMSS');
 
 %cartesian grid setup
 x_vec = -h_range:h_grid:h_range;                              %m, X domain vector
@@ -57,8 +54,8 @@ z_vec = [v_grid:v_grid:v_range]';                             %m, Z domain vecto
 
 %% EXTRACT SURFACE SCAN
 % Interpolate a surface scane image into carteisan coord
-[scan1_elv,scan1_refl,refl_vars,scan1_vel,vel_vars] = read_radar_scan(filename,1,slant_r_vec,a_vec,vel_flag);
-[scan2_elv,scan2_refl,~,scan2_vel,~]                = read_radar_scan(filename,2,slant_r_vec,a_vec,vel_flag);
+[scan1_elv,scan1_refl,refl_vars,scan1_vel,vel_vars] = read_radar_scan(h5_ffn,1,slant_r_vec,a_vec,vel_flag);
+[scan2_elv,scan2_refl,~,scan2_vel,~]                = read_radar_scan(h5_ffn,2,slant_r_vec,a_vec,vel_flag);
 
 %setup interpolation grid
 [imgrid_a,imgrid_sr]           = meshgrid(a_vec,slant_r_vec);   %coordinate for surface image
@@ -127,7 +124,7 @@ if sig_refl == 1
     end
     %load data frm h5 datasets into matrices
     for i=3:no_datasets
-        [temp_elv,temp_refl,~,temp_vel,~] = read_radar_scan(filename,i,slant_r_vec,a_vec,vel_flag);
+        [temp_elv,temp_refl,~,temp_vel,~] = read_radar_scan(h5_ffn,i,slant_r_vec,a_vec,vel_flag);
         if temp_elv == 0
             log_cmd_write('process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
             continue
@@ -150,7 +147,7 @@ if sig_refl == 1
     if length(elv_vec)~=length(uniq_elv_idx)
         log_cmd_write('process_regrid.log',h5_ffn,'duplicate scan in h5 file','');
         %exit interpolation and return blank entires
-        elv_vec  = elev_vec(uniq_elv_idx);
+        elv_vec  = elv_vec(uniq_elv_idx);
         refl_vol = refl_vol(:,:,uniq_elv_idx);
         if vel_flag == 1
             vel_vol = vel_vol(:,:,uniq_elv_idx);
@@ -214,16 +211,16 @@ if ~isempty(vol_vel_out)
     vol_vel_out  = double(vol_vel_out).*vel_vars(1)+vel_vars(2);
     vel_ni       = vel_vars(3);
 else
-    vel_ni       = [];
+    vel_ni       = 0;
 end
 
 %output into struct vol_obj
 vol_obj = struct('lon_vec',lon_vec,'lat_vec',lat_vec,'z_vec_amsl',z_vec+r_elv,...
     'llb',region_latlonbox,'start_timedate',start_timedate,...
-    'stop_timedate',stop_timedate,'radar_id',radar_id,'sig_refl',sig_refl,...
+    'radar_id',radar_id,'sig_refl',sig_refl,...
     'scan1_refl',scan1_refl_out,'scan2_refl',scan2_refl_out,...
     'scan1_vel',scan1_vel_out,'scan2_vel',scan2_vel_out,'vel_ni',vel_ni,...
-    'tilt1',tilt1,'tilt2',tilt2);
+    'tilt1',tilt1,'tilt2',tilt2,'refl_vars',refl_vars,'vel_vars',vel_vars);
 
 
 function [inside_ind,filt_eval] = boundary_filter(eval,elv_vec,r_min,r_max)
@@ -260,10 +257,10 @@ pix_r  = eval(:,2).*rang_m+rang_c;
 %elevation vector is non-monotonic, use a 1D inteprolation method.
 pix_e = interp1(elv_vec',1:length(elv_vec),eval(:,3),'pchip');
 
-function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(filename,dataset_no,slant_r_vec,a_vec,vel_flag)
-%WHAT: reads scan and elv data from dataset_no from filename.
+function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,dataset_no,slant_r_vec,a_vec,vel_flag)
+%WHAT: reads scan and elv data from dataset_no from h5_ffn.
 %INPUTS:
-%filename: path to h5 file
+%h5_ffn: path to h5 file
 %dataset_no: dataset number in h file
 %slant_r_vec: slant_r coordinate vector
 %a_vec: azimuth coordinates vector
@@ -273,13 +270,13 @@ function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(filename,da
 
 try
     %extract constants from what group for the dataset
-    elv      = hdf5read(filename,['/dataset',num2str(dataset_no),'/where/'],'elangle');
+    elv      = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/where/'],'elangle');
     vel_data = [];
     vel_vars = [];
     %read reflectivity data from hdf5 file, and scaling formula parameters, apply the forumla
-    refl_data   = h5read(filename,['/dataset',num2str(dataset_no),'/data1/data']);
-    refl_gain   = hdf5read(filename,['/dataset',num2str(dataset_no),'/data1/what/'],'gain');
-    refl_offset = hdf5read(filename,['/dataset',num2str(dataset_no),'/data1/what/'],'offset');
+    refl_data   = h5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/data']);
+    refl_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'gain');
+    refl_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'offset');
     %keep transformation variables
     refl_vars   = [refl_gain,refl_offset];
     %ensure continuity
@@ -295,10 +292,10 @@ try
     end
     %vel data
     if vel_flag == 1
-        vel_data   = h5read(filename,strcat('/dataset',num2str(dataset_no),'/data2/data'));
-        vel_gain   = hdf5read(filename,['/dataset',num2str(dataset_no),'/data2/what/'],'gain');
-        vel_offset = hdf5read(filename,['/dataset',num2str(dataset_no),'/data2/what/'],'offset');
-        vel_ni     = hdf5read(filename,['/dataset',num2str(dataset_no),'/how/'],'NI');
+        vel_data   = h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data2/data'));
+        vel_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'gain');
+        vel_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'offset');
+        vel_ni     = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
         %keep transformation variables
         vel_vars   = [vel_gain,vel_offset,vel_ni];
         %ensure continuity
@@ -313,7 +310,7 @@ try
         end
     end
 catch
-    disp(['/dataset',num2str(dataset_no),'/data2/data is broken (vel)']);
+    disp(['/dataset',num2str(dataset_no),' is broken']);
     elv       = 0;
     vel_data  = zeros(length(slant_r_vec),length(a_vec),'uint8');
     vel_vars  = [];

@@ -4,11 +4,10 @@ function jstruct_out = ddb_get_item(ddb_table,part_name,part_type,part_value,sor
 %returned as a struct. Att_list can be specified to only retrived specific
 %attributes
 
-
-if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-end
+% if ~isdeployed
+%     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
+%     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
+% end
 
 %build struct to item key
 ddb_struct                         = struct;
@@ -23,10 +22,11 @@ if ~isempty(att_list)
     cmd = [cmd,' --projection-expression ','"',att_list,'"'];
 end
 %run script
-[sout,eout]                        = unix(cmd);
+[sout,eout]                        = unix([cmd,' | tee eout.json']);
 %catch errors and convert out json to struct
 if sout ==0 && ~isempty(eout)
-    jstruct_out = loadjson(eout,'SimplifyCell',1);
+    jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
+    %jstruct_out = json_read('eout.json');
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else

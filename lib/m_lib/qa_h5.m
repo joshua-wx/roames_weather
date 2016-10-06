@@ -1,4 +1,4 @@
-function [qa_flag,no_groups,radar_id,vel_flag]=qa_h5(h5_ffn,min_n_groups,site_list)
+function [qa_flag,no_groups,radar_id,vel_flag,start_timedate]=qa_h5(h5_ffn,min_n_groups,site_list)
 %WHAT:
 %Checks the h5 file is readable and contains atleast 8 scan levels
 
@@ -13,7 +13,7 @@ function [qa_flag,no_groups,radar_id,vel_flag]=qa_h5(h5_ffn,min_n_groups,site_li
 qa_flag        = 0;
 no_groups      = [];
 vel_flag       = '';
-start_timedate = [];
+start_timedate = now;
 radar_id       = [];
 %load no_groups using old_hdf5info function (much faster than newer one)
 try

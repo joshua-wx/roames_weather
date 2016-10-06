@@ -17,11 +17,11 @@ tar_fn = [build_path,'repro.tar'];
 % tar(tar_fn,{'run_repro_1.sh','repro_1','config','run_repro'})
 
 % display('scp')
-% %machine 1
-% ec2_ip      = '52.65.210.114'
-% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
-% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
-% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])
+%machine 1
+ec2_ip      = '52.65.210.114'
+[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
+[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
+[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])
 % %machine 2
 % ec2_ip      = '52.65.205.133'
 % [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
@@ -37,8 +37,8 @@ tar_fn = [build_path,'repro.tar'];
 % [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
 % [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
 % [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])
-%machine 5
-ec2_ip     = '52.65.203.69'
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])
+% %machine 5
+% ec2_ip     = '52.65.203.69'
+% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
+% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
+% [sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])

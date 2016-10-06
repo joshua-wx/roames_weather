@@ -58,7 +58,7 @@ for i=1:length(year_list)
             [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,fz_level,minus20_level,era_dt(k),site_id);
             %write to ddb
             if tmp_sz==25 || k == length(era_dt)
-                batch_write_ddb(ddb_tmp_struct,ddb_table);
+                ddb_batch_write(ddb_tmp_struct,ddb_table);
                 %clear ddb_tmp_struct
                 ddb_tmp_struct  = struct;
                 %display('written_to ddb')
@@ -109,23 +109,5 @@ if hour(era_dt)<18 %haven't added the final timestamp for the last day, reduce s
 end
 
 
-function batch_write_ddb(ddb_tmp_struct,ddb_table)
 
-batch_json  = '';
-ddb_items_list = fieldnames(ddb_tmp_struct);
-
-for i=1:length(ddb_items_list)
-    tmp_struct                 = struct;
-    tmp_struct.PutRequest.Item = ddb_tmp_struct.(ddb_items_list{i});
-    batch_json                 = [batch_json,savejson('',tmp_struct)];
-    if i~=length(ddb_items_list)
-        batch_json = [batch_json,','];
-    end
-end
-batch_json  = ['{"',ddb_table,'": [',batch_json,']}'];
-cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb batch-write-item --request-items ''',batch_json,''''];
-[sout,eout] = unix(cmd);
-if sout ~=0
-    log_cmd_write('log.ddb','',cmd,eout)
-end
 

@@ -22,7 +22,7 @@ ewtBasinExtend = zeros(size(filt_refl_image));
 %profile clear
 %profile on
 %% Initalise variables
-load('tmp_global_config.mat');
+load('wv_global.config.mat');
 ewt_max_level = (ewt_b-ewt_a)/ewt_del;
 %transform refl data to double...
 %% SMOOTHING

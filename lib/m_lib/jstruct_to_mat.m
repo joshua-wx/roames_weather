@@ -4,5 +4,5 @@ function out = jstruct_to_mat(jstruct,type)
 if strcmp(type,'S')
     out = {jstruct.S}';
 else
-    out = str2num(vertcat(jstruct.N));
+    out = cellfun(@str2num,{jstruct.N})';
 end

@@ -1,4 +1,4 @@
-function h5_data_write(h5_fn,h5_path,group_number,data_struct,att_struct)
+function h5_data_write(h5_fn,h5_path,group_number,data_struct)
 %WHAT: Writes data_struct under group_name to h5_fn
 
 %build ffn
@@ -15,13 +15,6 @@ if exist(h5_ffn,'file')~=2
     root_id = H5G.open(h5_fid, '/', 'H5P_DEFAULT');
     H5Acreatestring(root_id, 'Owner', 'Fugro Roames (c)');
     H5Acreatestring(root_id, 'Creation Date', datestr(now));
-    %att group
-    att_id = H5G.create(root_id, 'att', 0, 0, 0);
-    %loop through field names of att struct
-    att_names = fieldnames(att_struct);
-    for i=1:length(att_names)
-        H5Acreatelong(att_id,att_names{i}, int64(att_struct.(att_names{i})));
-    end
 else
     h5_fid = H5F.open(h5_ffn,'H5F_ACC_RDWR','H5P_DEFAULT');
 end
@@ -55,12 +48,6 @@ space_id = H5S.create('H5S_SCALAR');
 attr_id  = H5A.create(root_id, a_name, type_id, space_id, 'H5P_DEFAULT', 'H5P_DEFAULT');
 H5A.write(attr_id, type_id, a_val);
 
-function H5Acreatelong(root_id, a_name, a_val)
-%writes a long att to H5
-space_id = H5S.create('H5S_SCALAR');
-attr_id  = H5A.create(root_id, a_name, 'H5T_STD_I64LE', space_id, 'H5P_DEFAULT', 'H5P_DEFAULT');
-H5A.write(attr_id, 'H5T_NATIVE_LONG', a_val);
-
 function write_data(group_id,data_name,data)
 
 %set compression
@@ -71,8 +58,12 @@ deflate_scal = 9;
 %setup data variable
 dataspace_id = H5S.create_simple(length(h5_size), h5_size, h5_size);
 plist        = H5P.create('H5P_DATASET_CREATE');
+try
 H5P.set_chunk(plist, chunk_size);
 H5P.set_deflate(plist, deflate_scal);
+catch
+    keyboard
+end
 
 %create data variable
 dataset_id = H5D.create(group_id,data_name,'H5T_STD_I16LE',dataspace_id, 'H5P_DEFAULT', plist, 'H5P_DEFAULT');

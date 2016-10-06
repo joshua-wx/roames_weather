@@ -1,5 +1,5 @@
-s3_year        2013
-r_id_start     3
+s3_year        2010
+r_id_start     59
 s3_log_fn      s3.log
 local_log_fn   local.log
 s3_in          s3://roames-wxradar-archive/radar_archive/

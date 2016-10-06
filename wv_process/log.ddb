@@ -1,12 +1,92 @@
-16:08_26-09-16  export LD_LIBRARY_PATH=/usr/lib; aws dynamodb get-item --table-name wxradar-odimh5-index --key '{
-	"radar_id": {
-		"N": "50"
-	},
-	"start_timestamp": {
-		"S": 736598.0013
-	}
-}
-' 
-Parameter validation failed:
-Invalid type for parameter Key.start_timestamp.S, value: 736598.0013, type: <class 'float'>, valid types: <class 'str'>
 
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item
+
+An error occurred (ValidationException) when calling the PutItem operation: One or more parameter values were invalid: Missing the key radar_id in the item

@@ -1,8 +1,6 @@
 function read_site_info(site_info_fn)
 
 %WHAT: Reads site_info.txt and converts it to a mat file called
-%site_info.txt
-addpath('../etc')
 %open site_info.txt in the config folder
 try
     fid       = fopen(site_info_fn);

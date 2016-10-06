@@ -1,0 +1,56 @@
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_013001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_021002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_023001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_030002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_031002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_032002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_033002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_044007.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_063001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_070002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_081002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_082001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_111002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_112002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_113002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_121001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_123001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_130002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_131002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_133001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_140002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_141002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_161001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_162001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_170002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_172002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_184010.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_194008.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_201001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_202001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_204008.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_210002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_212001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_220002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_222001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_230001.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_232002.rapic is a CAPPI, skipping
+04-Oct-2016 16:39:24 CAPPI check /tmp/59_20100121_233002.rapic is a CAPPI, skipping
+04-Oct-2016 16:47:23 DailyVol_to_Single_VOL /tmp/radar.IDR59.20100121.VOL returned no single volumes
+04-Oct-2016 16:48:25 DailyVol_to_Single_VOL /tmp/radar.IDR59.20100121.VOL returned no single volumes
+04-Oct-2016 16:56:06 DailyVol_to_Single_VOL /tmp/radar.IDR59.20100121.VOL returned no single volumes
+04-Oct-2016 17:12:37 odimh5 conversion failure fatal exception: failed to decode scan
+  -> corrupt scan detected (3)
+
+04-Oct-2016 17:12:38 CAPPI check /tmp/59_20100121_013001.rapic is missing, skipping
+04-Oct-2016 17:12:38 CAPPI check /tmp/59_20100121_013001.rapic is missing, skipping
+04-Oct-2016 17:12:38 CAPPI check /tmp/59_20100121_013001.rapic is missing, skipping
+04-Oct-2016 17:12:49 odimh5 conversion failure fatal exception: failed to decode scan
+  -> missing mandatory header STNID
+
+04-Oct-2016 17:12:50 CAPPI check /tmp/59_20100121_021002.rapic is missing, skipping
+04-Oct-2016 17:13:00 odimh5 conversion failure fatal exception: failed to decode scan
+  -> corrupt scan detected (3)
+
+04-Oct-2016 17:13:01 CAPPI check /tmp/59_20100121_023001.rapic is missing, skipping
+04-Oct-2016 17:13:01 CAPPI check /tmp/59_20100121_023001.rapic is missing, skipping

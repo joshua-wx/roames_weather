@@ -328,15 +328,7 @@ h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd
 h5_ffn           = [archive_dest,h5_fn];
 
 %move to required directory
-if strcmp(arch_path(1:2),'s3')
-    cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 cp ',tmp_h5_ffn,' ',h5_ffn];
-    [sout,eout] = unix(cmd);
-    if sout ~= 0
-        log_cmd_write('log.s3',h5_fn,cmd,eout)
-    end
-else
-    copyfile(tmp_h5_ffn,h5_ffn)
-end
+file_mv(tmp_h5_ffn,h5_ffn);
 
 %write to dynamo db
 ddb_struct                      = struct;
@@ -346,16 +338,11 @@ ddb_struct.h5_size.N            = num2str(h5_size);
 ddb_struct.h5_ffn.S             = h5_ffn;
 ddb_struct.sig_refl_flag.N      = '0';
 
-json        = savejson('',ddb_struct);
-cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb put-item --table-name ',ddb_table,' --item ''',json,''''];
-[sout,eout] = unix(cmd);
-if sout ~=0
-    log_cmd_write('log.ddb',h5_fn,cmd,eout)
-end
+ddb_put_item(ddb_struct,odimh5_ddb_table)
 
-%remove tmp files
+
+%remove tmp rapic file
 delete(tmp_rapic_ffn)
-delete(tmp_h5_ffn)
 
 function lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_path)
 % WHAT

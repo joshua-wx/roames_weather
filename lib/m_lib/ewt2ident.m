@@ -1,10 +1,10 @@
 function ident_obj=ewt2ident(intp_obj,refl_img,refl_vol,vel_vol,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
-load('tmp_global_config.mat');
+load('wv_global.config.mat');
 
 %create blank ident_obj
-ident_obj = struct ('radar_mode',{},'subset_refl',[],'subset_vel',[],'subset_id',[],...
+ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
     'dbz_latloncent',[],'subset_ijbox',[],'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
     'MESH_grid',[],'POSH_grid',[],'max_dbz_grid',[],'vil_grid',[],'stats_labels',{});
 
@@ -36,15 +36,20 @@ for i=1:length(extended_basin_stats)
 
     %subset subset_refl to ext_region_mask bounding region and smooth
     subset_refl     = refl_vol(i_subset,j_subset,:);
-    subset_vel      = vel_vol(i_subset,j_subset,:);
+    if ~isempty(vel_vol)
+        subset_vel      = vel_vol(i_subset,j_subset,:);
+    else
+        subset_vel      = [];
+    end
     
     %create masks
-    ss_region_mask  = repmat(region_mask(i_subset,j_subset),[1,1,size(refl_vol,3)]);
+    ss_region_mask  = repmat(ext_region_mask(i_subset,j_subset),[1,1,size(refl_vol,3)]);
     
     %set outside region to min_dbz
     subset_refl(~ss_region_mask) = min_dbz;
-    subset_vel(~ss_region_mask)  = min_vel;
-    
+    if ~isempty(subset_vel)
+        subset_vel(~ss_region_mask)  = min_vel;
+    end
     %create max_dbz_grid for extraction
     max_dbz_grid        = max(subset_refl,[],3);
     
@@ -71,7 +76,7 @@ for i=1:length(extended_basin_stats)
     %Shrink to ewt_a for volume calc
     shink_mask      = subset_refl>=ewt_a;
     %apply ewt_a threshold for max and mean calculations.
-    subset_refl_vec = subset_refl(:); subset_refl(subset_refl<ewt_a)=[];
+    subset_refl_vec = subset_refl(:); subset_refl_vec(subset_refl_vec<ewt_a)=[];
     
     %compile stats
     %note all stats are from extended basin except for area_wdss
@@ -84,7 +89,7 @@ for i=1:length(extended_basin_stats)
     max_dbz         =   max(subset_refl_vec);
     [~,md_idx]      =   max(subset_refl(:)); [~,~,md_k] = ind2sub(size(subset_refl),md_idx);
     max_dbz_h       =   h_asl_vec(md_k);
-    mean_dbz        =   mean(subset_refl_ext_vec);
+    mean_dbz        =   mean(subset_refl_vec);
     max_g_vil       =   max(subset_vil(:)); %units of kg/m2
     mass            =   sum(subset_vil(:))*area; %units of kt
     max_sts_dbz_h   =   max(sts_h_grid(:));
