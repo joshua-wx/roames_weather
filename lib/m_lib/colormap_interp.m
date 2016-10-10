@@ -29,5 +29,5 @@ interp_vel_b = interp1(vel_cmap(:,1),vel_cmap(:,4),vel_index);
 interp_vel_cmap  = [interp_vel_r',interp_vel_g',interp_vel_b']./255;
 
 %save to file
-mat_output_path = 'interp_cmaps.mat';
+mat_output_path = 'tmp/interp_cmaps.mat';
 save(mat_output_path,'interp_vel_cmap','interp_refl_cmap')

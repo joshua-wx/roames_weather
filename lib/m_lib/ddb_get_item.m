@@ -22,15 +22,15 @@ if ~isempty(att_list)
     cmd = [cmd,' --projection-expression ','"',att_list,'"'];
 end
 %run script
-[sout,eout]                        = unix([cmd,' | tee eout.json']);
+[sout,eout]                        = unix([cmd,' | tee tmp/eout.json']);
 %catch errors and convert out json to struct
 if sout ==0 && ~isempty(eout)
     jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
-    %jstruct_out = json_read('eout.json');
+    %jstruct_out = json_read('tmp/eout.json');
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else
-    log_cmd_write('log.ddb','',cmd,eout)
+    log_cmd_write('tmp/log.ddb','',cmd,eout)
     jstruct_out = [];
 end
     

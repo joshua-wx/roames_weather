@@ -1,7 +1,8 @@
 #! /bin/bash
 
-touch kill_wv_process
+mkdir tmp
+touch tmp/kill_process
 
-while [ -e kill_wv_process ]; do
-    ./run_wv_process.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+while [ -e tmp/kill_process ]; do
+    ./run_process.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
 done

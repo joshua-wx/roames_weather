@@ -10,8 +10,8 @@ config_fn        = 'config';
 read_config(config_fn,[config_fn,'.mat']);
 load([config_fn,'.mat']);
 
-% dnum_start = datenum(date_start,'yyyy_mm_dd');
-% dnum_stop  = datenum(date_stop,'yyyy_mm_dd');
+dnum_start = datenum(date_start,'yyyymmdd');
+dnum_stop  = datenum(date_stop,'yyyymmdd');
 
 s3_in = [s3_in,s3_year,'/vol/'];
 
@@ -72,17 +72,17 @@ for j=1:length(rapic_list)
     end
     r_id_str = rapic_list{j}(10:11);
     r_id     = str2num(r_id_str);
-%     r_date = datenum(rapic_list{j}(13:20),'yyyymmdd');
-    if r_id<str2num(r_id_start)
-        msg = ['skipping ',rapic_list{j},' r_id less than r_id_start']
+    r_date = datenum(rapic_list{j}(13:20),'yyyymmdd');
+    if r_id~=str2num(r_id_start)
+        msg = ['skipping ',rapic_list{j},' r_id not than r_id_start']
         %write_log(local_log_fn,'file filter',msg);
         continue
     end
-%     if r_date<dnum_start || r_date>dnum_stop
-%         msg = ['skipping ',rapic_list{j},' r_date outside stop/start dates'];
-%         write_log(local_log_fn,'file filter',msg);
-%         continue
-%     end
+    if r_date<dnum_start || r_date>dnum_stop
+        msg = ['skipping ',rapic_list{j},' r_date outside stop/start dates'];
+        write_log(local_log_fn,'file filter',msg);
+        continue
+    end
     %check if file is lz4
     if ~strcmp(rapic_list{j}(end-6:end),'VOL.lz4')
         msg = [rapic_list{j},' not lz4'];

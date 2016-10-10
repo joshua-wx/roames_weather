@@ -25,7 +25,7 @@ proj_azi     = [];
 proj_arc     = [];
 search_dist  = [];
 
-load('wv_global.config.mat');
+load('tmp/global.config.mat');
 
 %loop through each end cell
 for i=1:length(tn1_ident_ind);

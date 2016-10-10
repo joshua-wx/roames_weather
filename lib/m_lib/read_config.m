@@ -11,12 +11,12 @@ function read_config(config_input_path)
 %OUTPUT
 %config mat file
 
-mat_output_path = [config_input_path,'.mat'];
+mat_output_path = ['tmp/',config_input_path,'.mat'];
 
 %% SOFTWARE CONFIG FILE    
 
 %reomve existing mat file
-if exist(mat_output_path,'file')
+if exist(mat_output_path,'file') == 2
     delete(mat_output_path)
 end
 

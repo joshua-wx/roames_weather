@@ -1,2 +1,4 @@
 build/
 *~
+wv_kml/tmp
+wv_process/tmp

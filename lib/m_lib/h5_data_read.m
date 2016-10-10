@@ -1,4 +1,4 @@
-function [data_struct,att_struct] = h5_data_read(h5_fn,h5_path,group_number)
+function data_struct = h5_data_read(h5_fn,h5_path,group_number)
 %WHAT: reads group_name from h5_fn and returns the associated data struct
 %and the global attributes as att_struct
 
@@ -9,20 +9,11 @@ h5_ffn = [h5_path,h5_fn];
 if exist(h5_ffn,'file')~=2
     display(['h5 file missing: ',h5_ffn])
     data_struct = struct;
-    att_struct  = struct;
     return
 end
 
 %lock file
-lock_ffn = lock_file(h5_fn);
-
-%read att group
-att_h5data = h5info(h5_ffn,'/att');
-att_h5data = att_h5data.Attributes;
-att_struct = [];
-for i = 1:length(att_h5data)
-    att_struct.(att_h5data(i).Name) = att_h5data(i).Value;
-end
+%lock_ffn = lock_file(h5_fn);
 
 %read data group
 group_name   = num2str(group_number);
@@ -36,4 +27,4 @@ for i = 1:length(group_h5data)
 end
 
 %remove lock file
-delete(lock_ffn);
+%delete(lock_ffn);

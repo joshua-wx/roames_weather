@@ -5,7 +5,7 @@ function h5_data_write(h5_fn,h5_path,group_number,data_struct)
 h5_ffn = [h5_path,h5_fn];
 
 %lock file
-lock_ffn = lock_file(h5_fn);
+%lock_ffn = lock_file(h5_fn);
 
 %check if it exists
 if exist(h5_ffn,'file')~=2
@@ -34,7 +34,7 @@ end
 H5F.close(h5_fid);
 
 %remove lock file
-delete(lock_ffn);
+%delete(lock_ffn);
 
 
 function H5Acreatestring(root_id, a_name, a_val)

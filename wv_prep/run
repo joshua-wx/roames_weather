@@ -1,7 +1,7 @@
 #! /bin/bash
 
-touch kill_wv_prep
+touch kill_prep
 
-while [ -e kill_wv_prep ]; do
-    ./run_wv_prep.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+while [ -e kill_prep ]; do
+    ./run_prep.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
 done

@@ -16,7 +16,7 @@ function wdss_tracking(tn_dt,tn_radar_id)
 %updated track_db (saved to file)
 
 %load vars
-load('wv_global.config.mat');
+load('tmp/global.config.mat');
 
 %% Load Databases
 tn_radar_id_str   = num2str(tn_radar_id,'%02.0f');
@@ -25,7 +25,7 @@ tn_date_start_str = datestr(tn_date_start,'yyyy-mm-ddTHH:MM:SS');
 tn_date_stop      = addtodate(tn_date_start+1,-1,'second');
 tn_date_stop_str  = datestr(tn_date_stop,'yyyy-mm-ddTHH:MM:SS');
 odimh5_p_exp      = 'start_timestamp';
-storm_p_exp       = 'subset_id,start_timestamp,track_id,dbz_cent_lat,dbz_cent_lon,area,cell_vil';
+storm_p_exp       = 'subset_id,start_timestamp,track_id,storm_dbz_centlat,storm_dbz_centlon,area,cell_vil';
 
 %create correct archive folder
 odimh5_jstruct         = ddb_query('radar_id',tn_radar_id_str,'start_timestamp',tn_date_start_str,tn_date_stop_str,odimh5_p_exp,odimh5_ddb_table);
@@ -33,14 +33,15 @@ odimh5_start_timestamp = datenum(jstruct_to_mat([odimh5_jstruct.start_timestamp]
 
 %extract storm items for the current day
 storm_jstruct         = ddb_query('radar_id',tn_radar_id_str,'subset_id',tn_date_start_str,tn_date_stop_str,storm_p_exp,storm_ddb_table);
-try
-    storm_subset_id       = jstruct_to_mat([storm_jstruct.subset_id],'S');
-catch
-    keyboard
+if isempty(storm_jstruct)
+    return %no data is present
 end
+
+storm_subset_id       = jstruct_to_mat([storm_jstruct.subset_id],'S');
+
 storm_start_timestamp = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),'yyyy-mm-ddTHH:MM:SS');
-storm_lat             = jstruct_to_mat([storm_jstruct.dbz_cent_lat],'N')./1000;
-storm_lon             = jstruct_to_mat([storm_jstruct.dbz_cent_lon],'N')./1000;
+storm_lat             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N')./1000;
+storm_lon             = jstruct_to_mat([storm_jstruct.storm_dbz_centlon],'N')./1000;
 storm_track_id        = jstruct_to_mat([storm_jstruct.track_id],'N');
 storm_area            = jstruct_to_mat([storm_jstruct.area],'N')./10;
 storm_cell_vil        = jstruct_to_mat([storm_jstruct.area],'N')./10;

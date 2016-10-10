@@ -28,13 +28,13 @@ try
     radar_id=str2num(source(7:8));
 catch err
     %catch failed read
-    log_cmd_write('log.qa',h5_ffn,'reading time/source atts',err.message);
+    log_cmd_write('tmp/log.qa',h5_ffn,'reading time/source atts',err.message);
     return
 end
 
 if ~ismember(radar_id,site_list)
     %catch corrupted file
-    log_cmd_write('log.qa',h5_ffn,'radar_id from h5 file not in site_list',num2str(radar_id));
+    log_cmd_write('tmp/log.qa',h5_ffn,'radar_id from h5 file not in site_list',num2str(radar_id));
     return 
 end
 
@@ -58,13 +58,13 @@ group_no_list_sorted=sort(group_no_list);
 %check for missing scans
 for i=1:length(group_no_list_sorted)
     if i~=group_no_list_sorted(i)
-        log_cmd_write('log.qa',h5_ffn,'missing elevation at tilt',num2str(i));
+        log_cmd_write('tmp/log.qa',h5_ffn,'missing elevation at tilt',num2str(i));
         return
     end
 end
 %check for a min number of groups and doubled scans (normally 14 levels)
 if length(group_no_list)<min_n_groups || length(group_no_list)>20 
-    log_cmd_write('log.qa',h5_ffn,'insufficent number of scans at',num2str(group_no_list));
+    log_cmd_write('tmp/log.qa',h5_ffn,'insufficent number of scans at',num2str(group_no_list));
     return
 end
 

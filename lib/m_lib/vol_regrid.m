@@ -17,8 +17,8 @@ function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(h5_ffn,aazi_grid,sl_rrang
 %v: regridded volume with coordinates lat,lon,z vec.
 
 %Load config file
-load('wv_global.config.mat');
-load('site_info.txt.mat');
+load('tmp/global.config.mat');
+load('tmp/site_info.txt.mat');
 
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
@@ -96,7 +96,14 @@ region_latlonbox       = [max(r_lat_vec);min(r_lat_vec);max(r_lon_vec);min(r_lon
 %criteria
 
 %mask scan
-temp_scan       = double(scan2_refl_out).*refl_vars(1)+refl_vars(2);
+try
+    temp_scan       = double(scan2_refl_out).*refl_vars(1)+refl_vars(2);
+catch
+    vol_obj      = [];
+    vol_refl_out = [];
+    vol_vel_out  = [];
+    return
+end    
 temp_mask       = temp_scan>=ewt_a;
 %calc number of pixels required for saliency
 saliency_pixels = floor(ewt_saliency/h_grid*h_grid);
@@ -126,7 +133,7 @@ if sig_refl == 1
     for i=3:no_datasets
         [temp_elv,temp_refl,~,temp_vel,~] = read_radar_scan(h5_ffn,i,slant_r_vec,a_vec,vel_flag);
         if temp_elv == 0
-            log_cmd_write('process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
+            log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
             continue
         end
         elv_vec(i)         = temp_elv;    
@@ -145,7 +152,7 @@ if sig_refl == 1
     %check for duplicate elevations
     [~,uniq_elv_idx] = unique(elv_vec);
     if length(elv_vec)~=length(uniq_elv_idx)
-        log_cmd_write('process_regrid.log',h5_ffn,'duplicate scan in h5 file','');
+        log_cmd_write('tmp/process_regrid.log',h5_ffn,'duplicate scan in h5 file','');
         %exit interpolation and return blank entires
         elv_vec  = elv_vec(uniq_elv_idx);
         refl_vol = refl_vol(:,:,uniq_elv_idx);
@@ -166,7 +173,7 @@ if sig_refl == 1
     %regrid refl into cartesian
     %run interp C function
     refl_vol(refl_vol==0)=NaN;
-    intp_refl = mirt3D_mexinterp_unix64(refl_vol,pix_a,pix_r,pix_e);
+    intp_refl = mirt3D_mexinterp(refl_vol,pix_a,pix_r,pix_e);
     intp_refl = uint8(intp_refl);
     %resize to 3D array
     vol_refl_out = zeros(eval_length,1,'uint8');
@@ -182,7 +189,7 @@ if sig_refl == 1
     if vel_flag == 1
         %run interp C function
         vel_vol(vel_vol==0) = NaN;
-        intp_vel = mirt3D_mexinterp_unix64(vel_vol,pix_a,pix_r,pix_e);
+        intp_vel = mirt3D_mexinterp(vel_vol,pix_a,pix_r,pix_e);
         intp_vel = uint8(intp_vel);
         %resize to 3D array
         vol_vel_out = zeros(eval_length,1,'uint8');

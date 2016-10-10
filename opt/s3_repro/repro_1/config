@@ -1,4 +1,6 @@
 s3_year        2010
+date_start     20100101
+date_stop      20101231
 r_id_start     59
 s3_log_fn      s3.log
 local_log_fn   local.log

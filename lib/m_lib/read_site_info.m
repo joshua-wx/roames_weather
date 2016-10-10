@@ -24,8 +24,8 @@ try
     end
     
     %write to file
-    save([site_info_fn,'.mat'],'site_id_list','site_s_name_list','site_lat_list','site_lon_list','site_elv_list','site_centroid')
+    save(['tmp/',site_info_fn,'.mat'],'site_id_list','site_s_name_list','site_lat_list','site_lon_list','site_elv_list','site_centroid')
 catch
-    disp('site_info.txt not found')
+    disp('site_info.txt not found or no tmp folder')
     return
 end    

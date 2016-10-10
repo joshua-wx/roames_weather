@@ -1,7 +1,7 @@
 function ident_obj=ewt2ident(intp_obj,refl_img,refl_vol,vel_vol,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
-load('wv_global.config.mat');
+load('tmp/global.config.mat');
 
 %create blank ident_obj
 ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
