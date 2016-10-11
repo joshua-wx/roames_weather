@@ -1,0 +1,82 @@
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+
+An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+
+An error occurred (ResourceNotFoundException) when calling the BatchWriteItem operation: Requested resource not found
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}
+{
+    "UnprocessedItems": {}
+}

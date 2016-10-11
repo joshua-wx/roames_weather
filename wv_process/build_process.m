@@ -27,7 +27,7 @@ display('scp')
 ec2_ip      = '52.65.218.97';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/wv_process/real/'])
 %machine historical
-ec2_ip      = '54.66.140.60';
+ec2_ip      = '52.63.216.144';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/wv_process/hist/'])
 
 delete('/home/meso/Dropbox/dev/wv/wv_process/etc/global.config')

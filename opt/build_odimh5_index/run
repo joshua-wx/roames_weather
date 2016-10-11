@@ -1,4 +1,0 @@
-#! /bin/bash
-
-./run_build_index.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
-

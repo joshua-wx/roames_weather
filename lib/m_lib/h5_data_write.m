@@ -1,4 +1,4 @@
-function h5_data_write(h5_fn,h5_path,group_number,data_struct)
+function h5_data_write(h5_fn,h5_path,group_number,data_struct,r_scale)
 %WHAT: Writes data_struct under group_name to h5_fn
 
 %build ffn
@@ -26,7 +26,7 @@ group_id   = H5G.create(root_id,group_name, 0, 0, 0);
 %add data to group
 data_names = fieldnames(data_struct);
 for i=1:length(data_names)
-    dataset = int16(round(data_struct.(data_names{i}).*10));
+    dataset = int16(round(data_struct.(data_names{i}).*r_scale));
     write_data(group_id,data_names{i},dataset);
 end
 

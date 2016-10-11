@@ -22,4 +22,4 @@ ftp_path        register/bom517/benAWrij4/radar
 ftp_oldest      -30
 %
 %dynamodb table name
-odimh5_ddb_table wxradar-odimh5-index
+odimh5_ddb_table wxradar_odimh5_index

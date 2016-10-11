@@ -20,6 +20,9 @@ end
 batch_json  = ['{"',ddb_table,'": [',batch_json,']}'];
 cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb batch-write-item --request-items ''',batch_json,''''];
 [sout,eout] = unix([cmd,' >> tmp/log.ddb 2>&1',back_cmd]);
+
+
+
 % if sout ~=0
 %     log_cmd_write('log.ddb','',cmd,eout)
 % end

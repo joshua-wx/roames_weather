@@ -56,9 +56,9 @@ if exist(restart_cofig_fn,'file')==2
     delete(restart_cofig_fn);
 else
     %new start
-    complete_h5_dt   = [];
-    complete_h5_list = {};
-    gfs_extract_list = [];
+    complete_h5_dt      = [];
+    complete_h5_fn_list = {};
+    gfs_extract_list    = [];
     hist_oldest_restart = [];
 end
 
@@ -126,13 +126,13 @@ while exist('tmp/kill_process','file')==2
             newest_time = date_list(d);
             oldest_time = addtodate(date_list(d),realtime_offset,'hour');
             %Produce a list of filenames to process
-            fetch_h5_list  = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag);
-            new_index      = ~ismember(fetch_h5_list,complete_h5_list);
-            fetch_h5_list  = fetch_h5_list(new_index);
+            [fetch_h5_ffn_list,fetch_h5_fn_list]  = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag);
+            new_index                             = ~ismember(fetch_h5_fn_list,complete_h5_fn_list);
+            fetch_h5_ffn_list                     = fetch_h5_ffn_list(new_index);
             %update user
-            disp(['Realtime processing downloading ',num2str(length(fetch_h5_list)),' files']);
-            for i=1:length(fetch_h5_list)
-                file_cp(fetch_h5_list{i},download_path,0)
+            disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
+            for i=1:length(fetch_h5_ffn_list)
+                file_cp(fetch_h5_ffn_list{i},download_path,0)
             end
         else
             radar_id = radar_id_list(1); %only has one entry for climatology processing
@@ -145,13 +145,13 @@ while exist('tmp/kill_process','file')==2
         
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
-        pending_h5_list = {download_path_dir.name};
+        pending_h5_fn_list = {download_path_dir.name};
 
         
-        for i=1:length(pending_h5_list)
-            display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_list))])
+        for i=1:length(pending_h5_fn_list)
+            display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
             %init local filename for processing
-            h5_ffn = [download_path,pending_h5_list{i}];
+            h5_ffn = [download_path,pending_h5_fn_list{i}];
             if exist(h5_ffn,'file')~=2
                 continue
             end
@@ -161,8 +161,8 @@ while exist('tmp/kill_process','file')==2
 
             %QA exit
             if qa_flag==0
-                disp(['Volume failed QA: ' pending_h5_list{i}])
-                complete_h5_list = [complete_h5_list;pending_h5_list{i}];
+                disp(['Volume failed QA: ' pending_h5_fn_list{i}])
+                complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
                 complete_h5_dt   = [complete_h5_dt;start_dt];
                 delete(h5_ffn)
                 continue
@@ -171,8 +171,8 @@ while exist('tmp/kill_process','file')==2
             %run regridding/interpolation
             [vol_obj,refl_vol,vel_vol] = vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
             if isempty(vol_obj)
-                disp(['Volume datasets missing: ' pending_h5_list{i}])
-                complete_h5_list = [complete_h5_list;pending_h5_list{i}];
+                disp(['Volume datasets missing: ' pending_h5_fn_list{i}])
+                complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
                 complete_h5_dt   = [complete_h5_dt;start_dt];
                 delete(h5_ffn)
                 continue
@@ -212,19 +212,19 @@ while exist('tmp/kill_process','file')==2
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
-                complete_h5_list = [complete_h5_list;fetch_h5_list{i}];
+                complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
                 complete_h5_dt   = [complete_h5_dt;start_dt];
                 clean_idx        = complete_h5_dt < oldest_time;
-                complete_h5_list(clean_idx) = [];
+                complete_h5_fn_list(clean_idx) = [];
                 complete_h5_dt(clean_idx)   = [];
             end
             
-            disp(['Added ',num2str(length(prc_obj)),' objects from ',pending_h5_list{i},' Volume ',num2str(i),' of ',num2str(length(pending_h5_list))])
+            disp(['Added ',num2str(length(prc_obj)),' objects from ',pending_h5_fn_list{i},' Volume ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
 
             %Kill function
             if toc(kill_timer)>kill_wait
                 hist_oldest_restart = date_list(d);
-                save('temp_process_vars.mat','pending_h5_list','complete_h5_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+                save('temp_process_vars.mat','pending_h5_fn_list','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
                 %update user
                 disp(['@@@@@@@@@ wv_process restarted at ',datestr(now)])
                 %restart
@@ -263,7 +263,7 @@ catch err
     %save vars
     display(err)
     hist_oldest_restart = date_list(d);
-    save('temp_process_vars.mat','pending_h5_list','complete_h5_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+    save('temp_process_vars.mat','pending_h5_fn_list','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
 end
 
@@ -271,7 +271,7 @@ end
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 %profile off
 %profile viewer
-function pending_list = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag)
+function [pending_ffn_list,pending_fn_list] = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -284,7 +284,8 @@ function pending_list = realtime_file_filter(odimh5_ddb_table,oldest_time,newest
 %pending_list: updated list of all processed ftp files
 
 %init pending_list
-pending_list = {};
+pending_ffn_list = {};
+pending_fn_list  = {};
 %read index files
 for i=1:length(radar_id_list)
     radar_id      = num2str(radar_id_list(i),'%02.0f');
@@ -306,7 +307,13 @@ for i=1:length(radar_id_list)
         tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
     end
     %append to list unprocessed files
-    pending_list = [pending_list;tmp_h5_ffn];
+    pending_ffn_list = [pending_ffn_list;tmp_h5_ffn];
+    tmp_h5_fn = {};
+    for j=1:length(tmp_h5_ffn)
+        [~,fn,ext] = fileparts(tmp_h5_ffn{j});
+        tmp_h5_fn = [tmp_h5_fn;[fn,ext]];
+    end
+    pending_fn_list = [pending_fn_list;tmp_h5_fn];
 end
 
 
@@ -343,7 +350,7 @@ tmp_tar_ffn = [tempdir,tar_fn];
 h5_fn       = [data_tag,'.storm.h5'];
 tmp_h5_ffn  = [tempdir,h5_fn];
 dst_tar_ffn = [data_path,tar_fn];
-scaled_llb  = round(vol_obj.llb*1000)';
+scaled_llb  = round(vol_obj.llb*geo_scale)';
 
 %delete h5 if exists
 if exist(tmp_h5_ffn,'file') == 2
@@ -390,23 +397,27 @@ if ~isempty(storm_obj)
     ddb_put_struct  = struct;
     for i=1:length(storm_obj)
         subset_id  = i;
-        cell_llb   = round(storm_obj(i).subset_latlonbox*1000);
-        cell_dcent = round(storm_obj(i).dbz_latloncent*1000);
-        cell_stats = round(storm_obj(i).stats*10);
+        storm_llb      = round(storm_obj(i).subset_latlonbox*geo_scale);
+        storm_dcent    = round(storm_obj(i).dbz_latloncent*geo_scale);
+        storm_edge_lat = round(storm_obj(i).subset_lat_edge*geo_scale);
+        storm_edge_lon = round(storm_obj(i).subset_lon_edge*geo_scale);
+        storm_stats    = round(storm_obj(i).stats*stats_scale);
         %append and write db
-        tmp_jstruct                   = struct;
-        tmp_jstruct.radar_id.N        = num2str(vol_obj.radar_id);
-        tmp_jstruct.subset_id.S       = [datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS'),'_',num2str(i,'%03.0f')];
-        tmp_jstruct.start_timestamp.S = datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS');
-        tmp_jstruct.track_id.N        = num2str(track_id);
-        tmp_jstruct.storm_latlonbox.S = num2str(cell_llb');
-        tmp_jstruct.storm_dbz_centlat.N = num2str(cell_dcent(1));
-        tmp_jstruct.storm_dbz_centlon.N = num2str(cell_dcent(2));
-        tmp_jstruct.h_grid.N          = num2str(h_grid);
-        tmp_jstruct.v_grid.N          = num2str(v_grid);
+        tmp_jstruct                     = struct;
+        tmp_jstruct.radar_id.N          = num2str(vol_obj.radar_id);
+        tmp_jstruct.subset_id.S         = [datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS'),'_',num2str(i,'%03.0f')];
+        tmp_jstruct.start_timestamp.S   = datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS');
+        tmp_jstruct.track_id.N          = num2str(track_id);
+        tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb');
+        tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat);
+        tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon);
+        tmp_jstruct.storm_dbz_centlat.N = num2str(storm_dcent(1));
+        tmp_jstruct.storm_dbz_centlon.N = num2str(storm_dcent(2));
+        tmp_jstruct.h_grid.N            = num2str(h_grid);
+        tmp_jstruct.v_grid.N            = num2str(v_grid);
         %append stats
-        for j=1:length(cell_stats)
-            tmp_jstruct.(storm_obj(i).stats_labels{j}).N = num2str(cell_stats(j));
+        for j=1:length(storm_stats)
+            tmp_jstruct.(storm_obj(i).stats_labels{j}).N = num2str(storm_stats(j));
         end
         %append to put struct
         [ddb_put_struct,tmp_sz] = addtostruct(ddb_put_struct,tmp_jstruct,['item',num2str(i)]);
@@ -425,7 +436,7 @@ if ~isempty(storm_obj)
         if vol_obj.vel_ni~=0
             data_struct.vel_vol = storm_obj(i).subset_vel;
         end
-        h5_data_write(h5_fn,tempdir,subset_id,data_struct);
+        h5_data_write(h5_fn,tempdir,subset_id,data_struct,r_scale);
     end
     %move h5 files to data_path
     if exist(tmp_h5_ffn,'file') == 2

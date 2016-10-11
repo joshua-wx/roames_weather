@@ -45,7 +45,7 @@ start_date = deblank(h5readatt(h5_ffn,['/dataset',num2str(1),'/what/'],'startdat
 start_time = deblank(h5readatt(h5_ffn,['/dataset',num2str(1),'/what/'],'starttime'));
 
 %collate time values
-start_timedate  = datenum([start_date,start_time],'yyyymmddHHMMSS');
+start_timedate  = datenum([start_date,start_time(1:4)],'yyyymmddHHMM');
 
 %cartesian grid setup
 x_vec = -h_range:h_grid:h_range;                              %m, X domain vector

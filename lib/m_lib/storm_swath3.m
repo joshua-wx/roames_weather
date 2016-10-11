@@ -1,4 +1,4 @@
-function swaths_nl=storm_swath3(init_ident,finl_ident,kml_dir,stm_id,region,start_td,stop_td,cur_vis)
+function swaths_nl=storm_swath3(init_jstruct,finl_jstruct,kml_dir,stm_id,region,start_td,stop_td,cur_vis)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
@@ -17,14 +17,14 @@ function swaths_nl=storm_swath3(init_ident,finl_ident,kml_dir,stm_id,region,star
 
 %load config file
 load('tmp_global_config.mat');
-swaths_nl='';
+swaths_nl = '';
 
 %swath coord
-poly_lat=[];
-poly_lon=[];
+poly_lat = [];
+poly_lon = [];
 
 %loop through each pair in the two ident dbs
-for i=1:length(init_ident)
+for i=1:length(init_jstruct)
     
     %extract init and final edge coord
     try

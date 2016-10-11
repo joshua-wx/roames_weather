@@ -32,7 +32,7 @@ for i=1:length(odimh5_jstruct)
     vol_start_td     = datenum(odimh5_jstruct(i).start_timestamp.S,ddb_tfmt);
     vol_vel_ni       = str2num(odimh5_jstruct(i).vel_ni.N);
     vol_sig_refl     = str2num(odimh5_jstruct(i).sig_refl_flag.N);
-    vol_latlonbox    = str2num(odimh5_jstruct(i).img_latlonbox.S)./1000; %offset
+    vol_latlonbox    = str2num(odimh5_jstruct(i).img_latlonbox.S)./geo_scale; %offset
     
     
     %set kml file tad
@@ -56,8 +56,8 @@ for i=1:length(odimh5_jstruct)
     %scan1_refl
     if options(1)==1
         %create kml for tilt1 image
-        kml_name       = ['scan1_refl_',data_tag];
-        png_ffn        = [data_path,data_tag,'.scan1_refl.png'];
+        kml_name       = [data_tag,'.scan1_refl'];
+        png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
         scan1_refl_kml = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan1_refl_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -65,8 +65,8 @@ for i=1:length(odimh5_jstruct)
     %scan2_refl
     if options(2)==1
         %create kml for tilt2 image
-        kml_name       = ['scan2_refl_',data_tag];
-        png_ffn        = [data_path,data_tag,'.scan2_refl.png'];
+        kml_name       = [data_tag,'.scan2_refl'];
+        png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
         scan2_refl_kml = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan2_refl_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -74,8 +74,8 @@ for i=1:length(odimh5_jstruct)
     %scan1_vel
     if options(3)==1 && vol_vel_ni~=0
         %create kml for tilt2 image
-        kml_name       = ['scan1_vel_',data_tag];
-        png_ffn        = [data_path,data_tag,'.scan1_vel_.png'];
+        kml_name       = [data_tag,'.scan1_vel'];
+        png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
         scan1_vel_kml  = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan1_vel_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -83,8 +83,8 @@ for i=1:length(odimh5_jstruct)
     %scan2_vel
     if options(4)==1 && vol_vel_ni~=0
         %create kml for tilt1 image
-        kml_name       = ['scan2_vel_',data_tag];
-        png_ffn        = [data_path,data_tag,'.scan2_vel_.png'];
+        kml_name       = [data_tag,'.scan2_vel'];
+        png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
         scan2_vel_kml  = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan2_vel_kml,[dest_dir,vol_data_path],png_ffn);
     end    
@@ -96,13 +96,13 @@ for i=1:length(odimh5_jstruct)
         %loop through storms from this volume
         for j=1:length(storm_idx)
             %init storm atts
-            subset_latlonbox  = str2num(storm_jstruct(storm_idx(j)).storm_latlonbox.S)./1000;
+            subset_latlonbox  = str2num(storm_jstruct(storm_idx(j)).storm_latlonbox.S)./geo_scale;
             subset_id         = storm_jstruct(storm_idx(j)).subset_id.S;
             subset_id_n       = str2num(subset_id(end-2:end));
             subset_tag        = [num2str(vol_radar_id,'%02.0f'),'_',datestr(vol_start_td,r_tfmt),'_',subset_id(end-2:end)];
             %load storm refl vol
             storm_data_struct = h5_data_read(h5_data_fn,data_path,subset_id_n);
-            storm_refl_vol    = double(storm_data_struct.refl_vol./10);
+            storm_refl_vol    = double(storm_data_struct.refl_vol./r_scale);
             %refl x section
             if options(5)==1
                 for k=1:length(xsec_levels)
@@ -125,7 +125,7 @@ for i=1:length(odimh5_jstruct)
             %doppler x section
             if options(6)==1 && vol_vel_ni~=0
                 %load doppler data
-                storm_vel_vol = double(storm_data_struct.vel_vol./10);
+                storm_vel_vol = double(storm_data_struct.vel_vol./r_scale);
                 for k=1:length(xsec_levels)
                     %extract layer and extract from volume
                     xsec_vel = flipud(storm_vel_vol(:,:,xsec_levels(k)));
@@ -166,17 +166,17 @@ for i=1:length(odimh5_jstruct)
             %storm_stats_chk
             if options(9)==1
                 %extract stats and latloncent vec
-                storm_max_tops   = str2num(storm_jstruct(storm_idx(j)).max_tops.N)./10;
-                storm_max_mesh   = str2num(storm_jstruct(storm_idx(j)).max_mesh.N)./10;
-                storm_cell_vil   = str2num(storm_jstruct(storm_idx(j)).cell_vil.N)./10;
-                storm_cell_vild  = roundn(storm_cell_vil/storm_max_tops*1000,-2);
-                storm_dbz_centlat = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlat.N)./1000;
-                storm_dbz_centlon = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlon.N)./1000;
+                storm_max_tops   = str2num(storm_jstruct(storm_idx(j)).max_tops.N)./stats_scale;
+                storm_max_mesh   = str2num(storm_jstruct(storm_idx(j)).max_mesh.N)./stats_scale;
+                storm_cell_vil   = str2num(storm_jstruct(storm_idx(j)).cell_vil.N)./stats_scale;
+                storm_cell_vild  = roundn(storm_cell_vil/storm_max_tops*geo_scale,-2);
+                storm_dbz_centlat = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlat.N)./geo_scale;
+                storm_dbz_centlon = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlon.N)./geo_scale;
                 %generate balloon stats kml and save
                 kml_str = ge_balloon_stats_placemark('',1,'../doc.kml#balloon_stats_style','',...
                     storm_cell_vild,round(storm_max_mesh),round(storm_max_tops),num2str(subset_id_n)...
                     ,storm_dbz_centlat,storm_dbz_centlon);
-                ge_kml_out([dest_dir,storm_data_path,'celldata_',subset_id],['celldata_',subset_id],kml_str);
+                ge_kml_out([dest_dir,storm_data_path,'celldata_',subset_tag],['celldata_',subset_tag],kml_str);
             end
         end
     end

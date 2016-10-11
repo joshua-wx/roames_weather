@@ -31,7 +31,7 @@ if ~isempty(odimh5_jstruct)
     %generate unique list of radar ids for targets
     vol_radar_id            = jstruct_to_mat([odimh5_jstruct.radar_id],'N');
     vol_start_td            = datenum(jstruct_to_mat([odimh5_jstruct.start_timestamp],'S'),ddb_tfmt);
-    vol_latlonbox           = str2num(odimh5_jstruct(1).img_latlonbox.S)./1000; %only need to get first entry, never changes!
+    vol_latlonbox           = str2num(odimh5_jstruct(1).img_latlonbox.S)./geo_scale; %only need to get first entry, never changes!
     unique_radar_id         = unique(vol_radar_id);
     
     %loop through uniq site numbers
@@ -70,17 +70,17 @@ if ~isempty(odimh5_jstruct)
             %generate nl kml
             scan_tag = [num2str(vol_radar_id(j)),'_',datestr(vol_start_td(j),r_tfmt)];
             if options(1)==1;
-                temp_a = ge_networklink(temp_a,['scan1_refl_',scan_tag],[vol_data_path,'scan1_refl_',scan_tag,'.kmz'],...
-                    0,0,'',scan_region,datestr(vol_start_td(j),r_tfmt),datestr(vol_stop_td(j),r_tfmt),1); end
+                temp_a = ge_networklink(temp_a,[scan_tag,'.scan1_refl'],[vol_data_path,scan_tag,'.scan1_refl.kmz'],...
+                    0,0,'',scan_region,datestr(vol_start_td(j),ge_tfmt),datestr(vol_stop_td(j),ge_tfmt),1); end
             if options(2)==1;
-                temp_b = ge_networklink(temp_b,['scan2_refl_',scan_tag],[vol_data_path,'scan2_refl_',scan_tag,'.kmz'],...
-                    0,0,'',scan_region,datestr(vol_start_td(j),r_tfmt),datestr(vol_stop_td(j),r_tfmt),1); end
+                temp_b = ge_networklink(temp_b,[scan_tag,'.scan2_refl'],[vol_data_path,scan_tag,'.scan2_refl.kmz'],...
+                    0,0,'',scan_region,datestr(vol_start_td(j),ge_tfmt),datestr(vol_stop_td(j),ge_tfmt),1); end
             if options(3)==1;
-                temp_c = ge_networklink(temp_c,['scan1_vel_',scan_tag],[vol_data_path,'scan1_vel_',scan_tag,'.kmz'],...
-                    0,0,'',scan_region,datestr(vol_start_td(j),r_tfmt),datestr(vol_stop_td(j),r_tfmt),1); end
+                temp_c = ge_networklink(temp_c,[scan_tag,'.scan1_vel'],[vol_data_path,scan_tag,'.scan1_vel.kmz'],...
+                    0,0,'',scan_region,datestr(vol_start_td(j),ge_tfmt),datestr(vol_stop_td(j),ge_tfmt),1); end
             if options(4)==1;
-                temp_d = ge_networklink(temp_d,['scan2_vel_',scan_tag],[vol_data_path,'scan2_vel_',scan_tag,'.kmz'],...
-                    0,0,'',scan_region,datestr(vol_start_td(j),r_tfmt),datestr(vol_stop_td(j),r_tfmt),1); end
+                temp_d = ge_networklink(temp_d,[scan_tag,'.scan2_vel'],[vol_data_path,scan_tag,'.scan2_vel.kmz'],...
+                    0,0,'',scan_region,datestr(vol_start_td(j),ge_tfmt),datestr(vol_stop_td(j),ge_tfmt),1); end
         end
         %place scans in a folder
         scan1_refl_nl = ge_folder(scan1_refl_nl,temp_a,'Scan 1 Refl','',1);
@@ -94,13 +94,13 @@ if ~isempty(odimh5_jstruct)
 
             %index of all ident entires for current radar
             storm_radar_id = jstruct_to_mat([storm_jstruct.radar_id],'N');
-            storm_idx      = find(storm_radar_id==vol_radar_id);
+            storm_idx      = find(storm_radar_id==cur_radar_id);
             storm_track_id = jstruct_to_mat([storm_jstruct.track_id],'N');
 
             %generate nl kml for all objects
             if ~isempty(storm_idx)
                 %generate kml for ident objects created in cloud_objects3
-                [refl_xsec_nl,vel_xsec_nl,out_iso_nl,in_iso_nl,stats_nl] = cell_nl_kml(storm_jstruct(ident_idx),vol_start_td,vol_stop_td,vol_mode_int,cur_radar_alt,options);
+                [refl_xsec_nl,vel_xsec_nl,out_iso_nl,in_iso_nl,stats_nl] = cell_nl_kml(storm_jstruct(storm_idx),vol_start_td,vol_stop_td,vol_mode_int,cur_radar_alt,options);
                 
                 %list unique simple if from ident_idx
                 
@@ -110,6 +110,11 @@ if ~isempty(odimh5_jstruct)
                 for j=1:length(uniq_track_id)
                     %load curr track
                     cur_track_storm_idx = storm_idx(ic==j);
+                    %skip track 0 (null track)
+                    if cur_track_storm_idx==0
+                        continue
+                    end
+                    %skip short tracks
                     if length(cur_track_storm_idx)<min_track_cells
                         continue
                     end
@@ -117,9 +122,7 @@ if ~isempty(odimh5_jstruct)
                     init_storm_idx = cur_track_storm_idx(1:end-1);
                     finl_storm_idx = cur_track_storm_idx(2:end);
                     %find uniq ident ind for the current track
-                    stm_track_id  = num2str(uniq_track_id(j));
-                    %skip track layers if number of uniq cells is less than
-                    %min_track_cells
+                    cur_track_id   = num2str(uniq_track_id(j));
 
 
                     %                     %generate kml for cell layers
@@ -130,19 +133,18 @@ if ~isempty(odimh5_jstruct)
                     %                     end
                     %                     t_cell_nl=[t_refl_xsec_nl,t_vel_xsec_nl,t_out_iso_nl,t_in_iso_nl,t_stats_nl];
 
+                    %path kml and nl
                     t_path_nl = '';
-%                     %path kml and nl
-%                     if options(10)==1
-%                         t_path_nl=storm_path(ident2kml(init_ident_ind),ident2kml(finl_ident_ind),kml_dir,stm_track_id,scan_region,oldest_time,newest_time,1);
-%                         path_nl=[path_nl,t_path_nl];
-%                     end
-% 
-%                     t_swath_nl='';
-%                     %swath kml and nl
-%                     if options(11)==1
-%                         t_swath_nl=storm_swath3(ident2kml(init_ident_ind),ident2kml(finl_ident_ind),kml_dir,stm_track_id,scan_region,oldest_time,newest_time,1);
-%                         swath_nl=[swath_nl,t_swath_nl];
-%                     end
+                    if options(10)==1
+                        t_path_nl=storm_path(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
+                        path_nl=[path_nl,t_path_nl];
+                    end
+                    %swath kml and nl
+                    t_swath_nl='';
+                    if options(11)==1
+                        t_swath_nl=storm_swath3(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
+                        swath_nl=[swath_nl,t_swath_nl];
+                    end
 % 
 %                     t_nowcast_nl='';
 %                     t_nowcast_graph_nl='';
@@ -184,12 +186,12 @@ if ~isempty(odimh5_jstruct)
         %append
         site_nl = [scan1_refl_nl,scan1_vel_nl,scan2_refl_nl,scan2_vel_nl,refl_xsec_nl,vel_xsec_nl,in_iso_nl,out_iso_nl,path_nl,swath_nl,nowcast_nl,nowcast_graph_nl,stats_nl];%,tracks_nl];
         %save into master kml
-        master_kml = ge_folder(master_kml,site_nl,[num2str(vol_radar_id,'%02.0f'),' ',vol_radar_name],'',1);
+        master_kml = ge_folder(master_kml,site_nl,[num2str(cur_radar_id,'%02.0f'),' ',cur_radar_name],'',1);
         
     end
     
     %output master kml nl to layer_links
-    ge_kml_out([dest_dir,'layers_links'],'layers_links',master_kml);
+    ge_kml_out([dest_root,'layers_links'],'layers_links',master_kml);
 end
 
 
@@ -234,8 +236,8 @@ for i=1:length(storm_jstruct)
     
     %load storm atts
     storm_radar_id  = str2num(storm_jstruct(i).radar_id.N);
-    storm_latlonbox = str2num(storm_jstruct(i).storm_latlonbox.S);
-    storm_start_td  = datenum(storm_jstruct(i).start_timestam.S,ddb_tfmt);
+    storm_latlonbox = str2num(storm_jstruct(i).storm_latlonbox.S)./geo_scale;
+    storm_start_td  = datenum(storm_jstruct(i).start_timestamp.S,ddb_tfmt);
     storm_id        = storm_jstruct(i).subset_id.S;
     storm_tag       = [num2str(storm_radar_id,'%02.0f'),'_',datestr(storm_start_td,r_tfmt),'_',storm_id(end-2:end)];
 
@@ -265,7 +267,7 @@ for i=1:length(storm_jstruct)
     if options(5) == 1
         for k=1:length(xsec_levels)
             t_refl_xsec_nl{k} = ge_networklink(t_refl_xsec_nl{k},['refl_xsec_',num2str(xsec_levels(k)),'_',storm_tag],...
-                [vol_data_path,'refl_xsec_',num2str(xsec_levels(k)),'_',storm_tag,'.kmz'],0,0,'',subset_region_G,...
+                [storm_data_path,'refl_xsec_',num2str(xsec_levels(k)),'_',storm_tag,'.kmz'],0,0,'',subset_region_G,...
                 datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
         end
     end
@@ -273,27 +275,27 @@ for i=1:length(storm_jstruct)
     if options(6) == 1
         for k=1:length(xsec_levels)
             t_vel_xsec_nl{k} = ge_networklink(t_vel_xsec_nl{k},['vel_xsec_',num2str(xsec_levels(k)),'_',storm_tag],...
-                [vol_data_path,'vel_xsec_',num2str(xsec_levels(k)),'_',storm_tag,'.kmz'],0,0,'',subset_region_G,...
+                [storm_data_path,'vel_xsec_',num2str(xsec_levels(k)),'_',storm_tag,'.kmz'],0,0,'',subset_region_G,...
                 datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
         end
     end
     %inneriso
     if options(7) == 1
-        inneriso_h_nl = ge_networklink(inneriso_h_nl,['inneriso_H_',storm_tag],[vol_data_path,'inneriso_H_',storm_tag,'.kmz'],...
+        inneriso_h_nl = ge_networklink(inneriso_h_nl,['inneriso_H_',storm_tag],[storm_data_path,'inneriso_H_',storm_tag,'.kmz'],...
             0,0,'',subset_region_H,datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
-        inneriso_l_nl = ge_networklink(inneriso_l_nl,['inneriso_L_',storm_tag],[vol_data_path,'inneriso_L_',storm_tag,'.kmz'],...
+        inneriso_l_nl = ge_networklink(inneriso_l_nl,['inneriso_L_',storm_tag],[storm_data_path,'inneriso_L_',storm_tag,'.kmz'],...
             0,0,'',subset_region_L,datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
     end
     %outeriso
     if options(8) == 1
-        outeriso_h_nl = ge_networklink(outeriso_h_nl,['outeriso_H_',storm_tag],[vol_data_path,'outeriso_H_',storm_tag,'.kmz'],...
+        outeriso_h_nl = ge_networklink(outeriso_h_nl,['outeriso_H_',storm_tag],[storm_data_path,'outeriso_H_',storm_tag,'.kmz'],...
             0,0,'',subset_region_H,datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
-        outeriso_l_nl = ge_networklink(outeriso_l_nl,['outeriso_L_',storm_tag],[vol_data_path,'outeriso_L_',storm_tag,'.kmz'],...
+        outeriso_l_nl = ge_networklink(outeriso_l_nl,['outeriso_L_',storm_tag],[storm_data_path,'outeriso_L_',storm_tag,'.kmz'],...
             0,0,'',subset_region_L,datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
     end
     %cellstats
     if options(9) == 1
-        stats_nl=ge_networklink(stats_nl,['celldata_',storm_tag],[vol_data_path,'celldata_',storm_id(end-2:end),'.kml'],...
+        stats_nl=ge_networklink(stats_nl,['celldata_',storm_tag],[storm_data_path,'celldata_',storm_tag,'.kml'],...
             0,0,'',subset_region_G,datestr(tmp_start_td,ge_tfmt),datestr(tmp_stop_td,ge_tfmt),1);
     end
 end

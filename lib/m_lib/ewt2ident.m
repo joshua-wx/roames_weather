@@ -5,7 +5,8 @@ load('tmp/global.config.mat');
 
 %create blank ident_obj
 ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
-    'dbz_latloncent',[],'subset_ijbox',[],'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
+    'dbz_latloncent',[],'subset_latlonbox',[],'subset_ijbox',[],'subset_lat_edge',[],...
+    'subset_lon_edge',[],'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
     'MESH_grid',[],'POSH_grid',[],'max_dbz_grid',[],'vil_grid',[],'stats_labels',{});
 
 %extract z vec
@@ -23,17 +24,20 @@ for i=1:length(extended_basin_stats)
     ext_region_mask = ewtBasinExtend==i;
     
     %extract bounding box
-    bb=extended_basin_stats(i).BoundingBox;
+    bb = extended_basin_stats(i).BoundingBox;
     %round upper and lower limits on bounding towards +-inf
-    lower_b=floor([bb(2),bb(1)])-1; lower_b(lower_b<=0)=1;
-    upper_b=ceil([bb(2)+bb(4),bb(1)+bb(3)])+1;
+    lower_b = floor([bb(2),bb(1)])-1; lower_b(lower_b<=0)=1;
+    upper_b = ceil([bb(2)+bb(4),bb(1)+bb(3)])+1;
     %limit upper bounds to length of dimensions
     if upper_b(1)>length(intp_obj.lat_vec); upper_b(1)=length(intp_obj.lat_vec); end
     if upper_b(2)>length(intp_obj.lon_vec); upper_b(2)=length(intp_obj.lon_vec); end
     %create pixel list
-    i_subset=lower_b(1):upper_b(1);
-    j_subset=lower_b(2):upper_b(2);
+    i_subset = lower_b(1):upper_b(1);
+    j_subset = lower_b(2):upper_b(2);
 
+    storm_mask      = ext_region_mask(i_subset,j_subset);
+    storm_edge_mask = bwboundaries(storm_mask,4); storm_edge_mask = storm_edge_mask{1};
+    
     %subset subset_refl to ext_region_mask bounding region and smooth
     subset_refl     = refl_vol(i_subset,j_subset,:);
     if ~isempty(vel_vol)
@@ -43,7 +47,7 @@ for i=1:length(extended_basin_stats)
     end
     
     %create masks
-    ss_region_mask  = repmat(ext_region_mask(i_subset,j_subset),[1,1,size(refl_vol,3)]);
+    ss_region_mask  = repmat(storm_mask,[1,1,size(refl_vol,3)]);
     
     %set outside region to min_dbz
     subset_refl(~ss_region_mask) = min_dbz;
@@ -104,10 +108,10 @@ for i=1:length(extended_basin_stats)
     dbz_latloncent  = [intp_obj.lat_vec(dbz_cent(2)),intp_obj.lon_vec(dbz_cent(1))];
     
     %calculate geometry
-    subset_lat_vec  = intp_obj.lat_vec(i_subset);
-    subset_lon_vec  = intp_obj.lon_vec(j_subset);
-    %subset_lat_edge = intp_obj.lat_vec(region_edge(:,1));
-    %subset_lon_edge = intp_obj.lon_vec(region_edge(:,2));
+    subset_lat_vec   = intp_obj.lat_vec(i_subset);
+    subset_lon_vec   = intp_obj.lon_vec(j_subset);
+    subset_lat_edge  = intp_obj.lat_vec(storm_edge_mask(:,1));
+    subset_lon_edge  = intp_obj.lon_vec(storm_edge_mask(:,2));
     subset_latlonbox = [max(subset_lat_vec);min(subset_lat_vec);max(subset_lon_vec);min(subset_lon_vec)];
     subset_ijbox     = [min(i_subset),max(i_subset),min(j_subset),max(j_subset)];
 
@@ -123,6 +127,8 @@ for i=1:length(extended_basin_stats)
     ident_obj(i).subset_id        = i;
     ident_obj(i).dbz_latloncent   = dbz_latloncent;
     ident_obj(i).subset_latlonbox = subset_latlonbox;
+    ident_obj(i).subset_lat_edge  = subset_lat_edge;
+    ident_obj(i).subset_lon_edge  = subset_lon_edge;
     ident_obj(i).subset_ijbox     = subset_ijbox;
     ident_obj(i).stats            = stats;
     ident_obj(i).stats_labels     = stats_labels;

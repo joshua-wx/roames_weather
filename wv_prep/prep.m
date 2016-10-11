@@ -14,6 +14,10 @@ if ~isdeployed
     unix('touch tmp/kill_prep');
 end
 
+if exist('tmp','file')~=7
+    mkdir('tmp');
+end
+
 addpath('etc/');
 addpath('tmp/');
 
@@ -38,7 +42,7 @@ else
 end
 
 kill_timer         = tic;
-kill_wait          = 60*60; %kill time in seconds
+kill_wait          = 60*60*2; %kill time in seconds
 fetch_h5_fn        = {};
 
 
@@ -133,7 +137,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     %filter using h5 archive , only for init loop run (otherwise
     %prev_fetch_hf_fn is sufficent)
-    if isempty(prev_fetch_h5_fn)
+   if isempty(prev_fetch_h5_fn)
         index_timer  = tic;
         filt_volumes = {};
         filt_h5_fn   = {};
@@ -146,7 +150,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
             %pull index from dynamodb
             jstruct_out = ddb_get_item(odimh5_ddb_table,...
                 'radar_id','N',num2str(test_r_id,'%02.0f'),...
-                'start_timestamp','S',datestr(test_datetime,'yyyy-mm-ddTHH:MM:SS'),'');
+                'start_timestamp','S',[datestr(test_datetime,'yyyy-mm-ddTHH:MM'),':00'],'');
             if isempty(jstruct_out)
                 filt_h5_fn   = [filt_h5_fn;test_h5_fn];
                 filt_volumes = [filt_volumes;test_volumes];
@@ -156,11 +160,11 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
             end
         end
         disp(['index filter took  ',num2str(toc(index_timer)),' seconds for ',num2str(length(new_datetime)),' volumes'])
-    else
+   else
         filt_r_id    = new_r_id;
         filt_h5_fn   = new_h5_fn;
         filt_volumes = new_volumes;
-     end
+    end
     
     %check files exist in tempdir mirror
     if isempty(filt_h5_fn)
@@ -295,14 +299,13 @@ broken_dest     = [arch_path,'broken_vols/',num2str(radar_id,'%02.0f'),'/'];
 broken_dt       = datenum(file_list{1}(10:21),'yyyymmddHHMM');
 broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(broken_dt,'yyyymmdd'),'_',datestr(broken_dt,'HHMMSS'),'.rapic'];
 %temp h5
-tmp_h5_ffn = [tempdir,'tmp.h5'];
+tmp_h5_ffn = [tempname,'.h5'];
 if exist(tmp_h5_ffn,'file') == 2
     delete(tmp_h5_ffn)
 end
 
 %cat scans into temp rapic volume 
-tmp_rapic_ffn = [tempdir,'ftp_cat.rapic'];
-if exist(tmp_rapic_ffn,'file') == 2; delete(tmp_rapic_ffn); end;
+tmp_rapic_ffn = [tempname,'.rapic'];
 cmd = ['cat ',cell2mat(dled_files'),' > ',tmp_rapic_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
@@ -326,7 +329,7 @@ else
     %extract h5 start date number 
     h5_start_date = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','startdate'));
     h5_start_time = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','starttime'));
-    h5_start_dt   = datenum([h5_start_date,h5_start_time],'yyyymmddHHMMSS');
+    h5_start_dt   = datenum([h5_start_date,h5_start_time(1:4)],'yyyymmddHHMM');
     h5_dir        = dir(tmp_h5_ffn);
     h5_size       = round(h5_dir.bytes/1000);
 end
@@ -347,7 +350,7 @@ ddb_struct.h5_size.N            = num2str(h5_size);
 ddb_struct.h5_ffn.S             = h5_ffn;
 ddb_struct.sig_refl_flag.N      = '0';
 
-ddb_put_item(ddb_struct,odimh5_ddb_table)
+ddb_put_item(ddb_struct,ddb_table)
 
 
 %remove tmp rapic file
@@ -392,7 +395,7 @@ prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
 if strcmp(target_path(1:2),'s3')
     %s3 cmd
-    cmd = [prefix_cmd,'aws s3 cp ',in_ffn,' ',target_path,out_fn]
+    cmd = [prefix_cmd,'aws s3 cp ',in_ffn,' ',target_path,out_fn];
     [sout,eout]        = unix(cmd);
     if sout ~= 0
         msg = [cmd,' returned ',eout]
