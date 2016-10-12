@@ -18,41 +18,43 @@ ddb_table      = 'wxradar_odimh5_index';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
 s3_bucket      = 's3://roames-wxradar-archive/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id)];
+year_list      = [1997:2016];
 
 %ensure temp directory exists
 mkdir('tmp')
 
 % BUILD INDEX
 %run an aws ls -r
-display(['s3 ls for radar_id: ',num2str(radar_id)])
-cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,' --recursive'];
-[sout,eout] = unix(cmd);
-%read text
-C           = textscan(eout,'%*s %*s %u %s');
-h5_name     = C{2};
-h5_size     = C{1};
+for i=1:length(year_list)
+    display(['s3 ls for radar_id: ',num2str(radar_id),'/',num2str(year_list(i)),'/'])
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/',' --recursive'];
+    [sout,eout] = unix(cmd);
+    %read text
+    C           = textscan(eout,'%*s %*s %u %s');
+    h5_name     = C{2};
+    h5_size     = C{1};
 
-%add to archive
-display('indexing s3 file list')
-ddb_tmp_struct  = struct;
-for k=1:length(h5_name)
-    %skip if not a h5 file
-    if ~strcmp(h5_name{k}(end-1:end),'h5')
-        continue
-    end
-    %add to ddb struct
-    h5_ffn                  = [s3_bucket,h5_name{k}];
-    [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,h5_ffn,h5_size(k));
-    %write to ddb
-    if tmp_sz==25 || k == length(h5_name)
-        display(['write to ddb ',h5_name{k}]);
-        ddb_batch_write(ddb_tmp_struct,ddb_table,0);
-        %clear ddb_tmp_struct
-        ddb_tmp_struct  = struct;
-        %display('written_to ddb')
+    %add to archive
+    display('indexing s3 file list')
+    ddb_tmp_struct  = struct;
+    for k=1:length(h5_name)
+        %skip if not a h5 file
+        if ~strcmp(h5_name{k}(end-1:end),'h5')
+            continue
+        end
+        %add to ddb struct
+        h5_ffn                  = [s3_bucket,h5_name{k}];
+        [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,h5_ffn,h5_size(k));
+        %write to ddb
+        if tmp_sz==25 || k == length(h5_name)
+            display(['write to ddb ',h5_name{k}]);
+            ddb_batch_write(ddb_tmp_struct,ddb_table,0);
+            %clear ddb_tmp_struct
+            ddb_tmp_struct  = struct;
+            %display('written_to ddb')
+        end
     end
 end
-
 display('complete')
         
         

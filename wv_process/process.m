@@ -224,7 +224,7 @@ while exist('tmp/kill_process','file')==2
             %Kill function
             if toc(kill_timer)>kill_wait
                 hist_oldest_restart = date_list(d);
-                save('temp_process_vars.mat','pending_h5_fn_list','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+                save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
                 %update user
                 disp(['@@@@@@@@@ wv_process restarted at ',datestr(now)])
                 %restart
@@ -263,7 +263,7 @@ catch err
     %save vars
     display(err)
     hist_oldest_restart = date_list(d);
-    save('temp_process_vars.mat','pending_h5_fn_list','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+    save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
 end
 
@@ -283,14 +283,17 @@ function [pending_ffn_list,pending_fn_list] = realtime_file_filter(odimh5_ddb_ta
 %OUTPUT
 %pending_list: updated list of all processed ftp files
 
+load('tmp/global.config.mat')
+load('tmp/interp_cmaps.mat')
+
 %init pending_list
 pending_ffn_list = {};
 pending_fn_list  = {};
 %read index files
 for i=1:length(radar_id_list)
     radar_id      = num2str(radar_id_list(i),'%02.0f');
-    start_datestr = datestr(oldest_time,'yyyy-mm-ddTHH:MM:SS');
-    stop_datestr  = datestr(newest_time,'yyyy-mm-ddTHH:MM:SS');
+    start_datestr = datestr(oldest_time,ddb_tfmt);
+    stop_datestr  = datestr(newest_time,ddb_tfmt);
     %run a query for a radar_id, between for time and no processed
     %(sig_refl)
     disp(['ddb query: ',start_datestr,' ',radar_id])
@@ -338,7 +341,7 @@ radar_id  = vol_obj.radar_id;
 data_path = [dest_root,num2str(radar_id,'%02.0f'),...
     '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
-data_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,'yyyymmdd_HHMMSS')];
+data_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
 %create local data path
 if ~strcmp(dest_root(1:2),'s3')
     mkdir(data_path)
@@ -361,7 +364,7 @@ end
 %get-item
 jstruct = ddb_get_item(odimh5_ddb_table,...
     'radar_id','N',num2str(radar_id,'%02.0f'),...
-    'start_timestamp','S',datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS'),'');
+    'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
 %update jstruct
 jstruct.Item.sig_refl_flag.N  = num2str(vol_obj.sig_refl);
 jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
@@ -405,9 +408,10 @@ if ~isempty(storm_obj)
         %append and write db
         tmp_jstruct                     = struct;
         tmp_jstruct.radar_id.N          = num2str(vol_obj.radar_id);
-        tmp_jstruct.subset_id.S         = [datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS'),'_',num2str(i,'%03.0f')];
-        tmp_jstruct.start_timestamp.S   = datestr(vol_obj.start_timedate,'yyyy-mm-ddTHH:MM:SS');
+        tmp_jstruct.subset_id.S         = [datestr(vol_obj.start_timedate,ddb_tfmt),'_',num2str(i,'%03.0f')];
+        tmp_jstruct.start_timestamp.S   = datestr(vol_obj.start_timedate,ddb_tfmt);
         tmp_jstruct.track_id.N          = num2str(track_id);
+        tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb');
         tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat);
         tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon);

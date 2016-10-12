@@ -16,7 +16,8 @@ function swaths_nl=storm_swath3(init_jstruct,finl_jstruct,kml_dir,stm_id,region,
 %nl_out: network link to the storm swath kml file
 
 %load config file
-load('tmp_global_config.mat');
+load('tmp/global.config.mat');
+load('tmp/kml.config.mat');
 swaths_nl = '';
 
 %swath coord
@@ -27,40 +28,36 @@ poly_lon = [];
 for i=1:length(init_jstruct)
     
     %extract init and final edge coord
-    try
-    init_lat_edge_coord=init_ident(i).subset_lat_edge;
-    init_lon_edge_coord=init_ident(i).subset_lon_edge;
-    finl_lat_edge_coord=finl_ident(i).subset_lat_edge;
-    finl_lon_edge_coord=finl_ident(i).subset_lon_edge;
-    catch
-        keyboard
-    end
+    init_lat_edge_coord = str2num(init_jstruct(i).storm_edge_lat.S)./geo_scale;
+    init_lon_edge_coord = str2num(init_jstruct(i).storm_edge_lon.S)./geo_scale;
+    finl_lat_edge_coord = str2num(finl_jstruct(i).storm_edge_lat.S)./geo_scale;
+    finl_lon_edge_coord = str2num(finl_jstruct(i).storm_edge_lon.S)./geo_scale;
     
     %collate
-    lat_list=roundn([init_lat_edge_coord,finl_lat_edge_coord],-4);
-    lon_list=roundn([init_lon_edge_coord,finl_lon_edge_coord],-4);
+    lat_list = roundn([init_lat_edge_coord,finl_lat_edge_coord],-4);
+    lon_list  =roundn([init_lon_edge_coord,finl_lon_edge_coord],-4);
     %compute convexhull
     try
-        K = convhull(lon_list,lat_list);
-        hull_lat=lat_list(K);
-        hull_lon=lon_list(K);
+        K        = convhull(lon_list,lat_list);
+        hull_lat = lat_list(K);
+        hull_lon = lon_list(K);
     catch
         %points are collinear
-        hull_lat=[min(lat_list),max(lat_list)];
-        hull_lon=[min(lon_list),max(lon_list)];
+        hull_lat = [min(lat_list),max(lat_list)];
+        hull_lon = [min(lon_list),max(lon_list)];
     end
     
     %convert to clockwise coord order
     [hull_lon, hull_lat] = poly2cw(hull_lon, hull_lat);
     
     %collate convex hull swaths
-    [poly_lon,poly_lat]=polybool('union',poly_lon,poly_lat,hull_lon,hull_lat);
+    [poly_lon,poly_lat]  = polybool('union',poly_lon,poly_lat,hull_lon,hull_lat);
 end
 
 %select the colour based on the number of elements in the path
-swath_color_id=length(init_ident);
-if swath_color_id>30
-    swath_color_id=30;
+swath_color_id = length(init_jstruct);
+if swath_color_id > 30
+    swath_color_id = 30;
 end
 
 close all
@@ -68,11 +65,11 @@ close all
 [poly_lon, poly_lat] = poly2ccw(poly_lon, poly_lat);
 
 %to prevent an untraced error
-ind=find(poly_lat==0 | isnan(poly_lat));
-poly_lon(ind)=[]; poly_lat(ind)=[];
+ind = find(poly_lat==0 | isnan(poly_lat));
+poly_lon(ind) = []; poly_lat(ind)=[];
 
 %generate kml, write to file and create networklinks for the tracks data
-swath_tag=['stm_swath_',stm_id];
-swath_kml=ge_poly_placemark('',['../doc.kml#swath_',num2str(swath_color_id),'_style'],swath_tag,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    
-ge_kmz_out(swath_tag,swath_kml,[kml_dir,track_data_path],'');
-swaths_nl=ge_networklink('',swath_tag,[track_data_path,swath_tag,'.kmz'],0,0,'',region,datestr(start_td,S),datestr(stop_td,S),cur_vis);
+swath_tag = ['stm_swath_',stm_id];
+swath_kml = ge_poly_placemark('',['../doc.kml#swath_',num2str(swath_color_id),'_style'],swath_tag,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    
+ge_kmz_out(swath_tag,swath_kml,[kml_dir,storm_data_path],'');
+swaths_nl = ge_networklink('',swath_tag,[storm_data_path,swath_tag,'.kmz'],0,0,'',region,datestr(start_td,ge_tfmt),datestr(stop_td,ge_tfmt),cur_vis);

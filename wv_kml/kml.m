@@ -49,8 +49,8 @@ if strcmp(radar_id_list,'all')
 end
 
 % Calculate time limits from time options
-oldest_time = datenum(hist_oldest,'yyyy_mm_ddTHH:MM');
-newest_time = datenum(hist_newest,'yyyy_mm_ddTHH:MM');
+oldest_time = datenum(hist_oldest,ddb_tfmt);
+newest_time = datenum(hist_newest,ddb_tfmt);
 
 %build paths
 if local_src_flag==1
@@ -73,11 +73,11 @@ for i=1:length(radar_id_list);
     %init query vars
     radar_id        = radar_id_list(i);
     radar_id_str    = num2str(radar_id,'%02.0f');
-    oldest_time_str = datestr(oldest_time,'yyyy-mm-ddTHH:MM:SS');
-    newest_time_str = datestr(newest_time,'yyyy-mm-ddTHH:MM:SS');
+    oldest_time_str = datestr(oldest_time,ddb_tfmt);
+    newest_time_str = datestr(newest_time,ddb_tfmt);
     odimh5_atts     = 'radar_id,start_timestamp,sig_refl_flag,img_latlonbox,tilt1,tilt2,vel_ni';
     odimh5_n_atts   = 7; %change to suit odimh5_atts
-    storm_atts      = 'radar_id,start_timestamp,subset_id,track_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,max_tops,max_mesh,cell_vil';
+    storm_atts      = 'radar_id,start_timestamp,subset_id,track_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,orient,maj_axis,min_axis,max_tops,max_mesh,cell_vil';
     %query databases
     odim_jstruct  = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
     storm_jstruct = ddb_query('radar_id',radar_id_str,'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
@@ -90,10 +90,10 @@ for i=1:length(radar_id_list);
     odim_jstruct = [odim_jstruct{:}];
     %download data files
     start_timestamp_str = jstruct_to_mat([odim_jstruct.start_timestamp],'S');
-    start_timestamp     = datenum(start_timestamp_str,'yyyy-mm-ddTHH:MM:SS');
+    start_timestamp     = datenum(start_timestamp_str,ddb_tfmt);
     for j=1:length(start_timestamp)
         date_vec        = datevec(start_timestamp(j));
-        data_fn         = [radar_id_str,'_',datestr(start_timestamp(j),'yyyymmdd_HHMMSS'),'.wv.tar'];
+        data_fn         = [radar_id_str,'_',datestr(start_timestamp(j),r_tfmt),'.wv.tar'];
         storm_arch_path = [src_root,radar_id_str,'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/',data_fn];
         file_cp(storm_arch_path,download_path,0);
         untar([download_path,data_fn],download_path);

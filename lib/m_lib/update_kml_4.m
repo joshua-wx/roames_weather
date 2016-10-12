@@ -108,19 +108,19 @@ if ~isempty(odimh5_jstruct)
                 
                 %loop through each track for cur radar id
                 for j=1:length(uniq_track_id)
-                    %load curr track
-                    cur_track_storm_idx = storm_idx(ic==j);
                     %skip track 0 (null track)
-                    if cur_track_storm_idx==0
+                    if uniq_track_id(j)==0
                         continue
                     end
+                    %load curr track
+                    cur_track_idx = storm_idx(ic==j);
                     %skip short tracks
-                    if length(cur_track_storm_idx)<min_track_cells
+                    if length(cur_track_idx)<min_track_cells
                         continue
                     end
                     %find index for ident2kml for init and finl entries
-                    init_storm_idx = cur_track_storm_idx(1:end-1);
-                    finl_storm_idx = cur_track_storm_idx(2:end);
+                    init_storm_idx = cur_track_idx(1:end-1);
+                    finl_storm_idx = cur_track_idx(2:end);
                     %find uniq ident ind for the current track
                     cur_track_id   = num2str(uniq_track_id(j));
 
@@ -136,25 +136,25 @@ if ~isempty(odimh5_jstruct)
                     %path kml and nl
                     t_path_nl = '';
                     if options(10)==1
-                        t_path_nl=storm_path(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
-                        path_nl=[path_nl,t_path_nl];
+                        t_path_nl = storm_path(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
+                        path_nl   = [path_nl,t_path_nl];
                     end
                     %swath kml and nl
-                    t_swath_nl='';
+                    t_swath_nl = '';
                     if options(11)==1
-                        t_swath_nl=storm_swath3(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
-                        swath_nl=[swath_nl,t_swath_nl];
+                        t_swath_nl = storm_swath3(storm_jstruct(init_storm_idx),storm_jstruct(finl_storm_idx),dest_root,cur_track_id,scan_region,oldest_time,newest_time,1);
+                        swath_nl   = [swath_nl,t_swath_nl];
                     end
-% 
-%                     t_nowcast_nl='';
-%                     t_nowcast_graph_nl='';
-%                     %generate forecast if requires and number of uniq cells
-%                     %exceeds min_fcst_cells
-%                     if options(12)==1
-%                         [t_nowcast_nl,t_nowcast_graph_nl]=storm_forecast2(cur_track_ident_ind,ident2kml,kml_dir,scan_region,oldest_time,newest_time,1,cur_r_id);
-%                         nowcast_nl=[nowcast_nl,t_nowcast_nl];
-%                         nowcast_graph_nl=[nowcast_graph_nl,t_nowcast_graph_nl];
-%                    end
+ 
+                     t_nowcast_nl       = '';
+                     t_nowcast_graph_nl = '';
+                     %generate forecast if requires and number of uniq cells
+                     %exceeds min_fcst_cells
+                     if options(12)==1
+                         [t_nowcast_nl,t_nowcast_graph_nl] = storm_forecast2(cur_track_idx,storm_jstruct,dest_root,scan_region,oldest_time,newest_time,1,cur_radar_id);
+                         nowcast_nl                        = [nowcast_nl,t_nowcast_nl];
+                         nowcast_graph_nl                  = [nowcast_graph_nl,t_nowcast_graph_nl];
+                     end
 
                     %collate all track layer into a folder for this track
                     %!!! THIS DOUBLES TRACK LAYERS

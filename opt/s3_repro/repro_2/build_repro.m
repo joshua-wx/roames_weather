@@ -19,6 +19,6 @@ tar(tar_fn,{'run_repro_2.sh','repro_2','config','run_repro'})
 display('scp')
 %machine 1 for type 2
 ec2_ip      = '52.65.212.240';
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
-[sout,eout] = unix(['scp -i /home/meso/roames_vpn/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_1/'])
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_2/'])
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/s3_repro/instance_3/'])

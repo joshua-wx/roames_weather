@@ -20,10 +20,10 @@ load('tmp/global.config.mat');
 load('tmp/kml.config.mat');
 %generate the starting and ending coords of the line string segments
 
-start_lat_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlat],'N')./1000;
-start_lon_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlon],'N')./1000;
-end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlat],'N')./1000;
-end_lon_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlon],'N')./1000;
+start_lat_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlat],'N')./geo_scale;
+start_lon_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlon],'N')./geo_scale;
+end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlat],'N')./geo_scale;
+end_lon_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlon],'N')./geo_scale;
 
 %select the colour based on the number of elements in the path
 path_color_id = length(init_jstruct);

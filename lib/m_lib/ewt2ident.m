@@ -110,8 +110,8 @@ for i=1:length(extended_basin_stats)
     %calculate geometry
     subset_lat_vec   = intp_obj.lat_vec(i_subset);
     subset_lon_vec   = intp_obj.lon_vec(j_subset);
-    subset_lat_edge  = intp_obj.lat_vec(storm_edge_mask(:,1));
-    subset_lon_edge  = intp_obj.lon_vec(storm_edge_mask(:,2));
+    subset_lat_edge  = subset_lat_vec(storm_edge_mask(:,1));
+    subset_lon_edge  = subset_lon_vec(storm_edge_mask(:,2));
     subset_latlonbox = [max(subset_lat_vec);min(subset_lat_vec);max(subset_lon_vec);min(subset_lon_vec)];
     subset_ijbox     = [min(i_subset),max(i_subset),min(j_subset),max(j_subset)];
 

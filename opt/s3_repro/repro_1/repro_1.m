@@ -15,6 +15,8 @@ dnum_stop  = datenum(date_stop,'yyyymmdd');
 
 s3_in = [s3_in,s3_year,'/vol/'];
 
+mkdir('tmp')
+
 if exist(restart_vars_fn,'file') ~= 2
     %generate file listing
     cmd          = [prefix_cmd,'aws s3 ls ',s3_in]
@@ -73,7 +75,7 @@ for j=1:length(rapic_list)
     r_id_str = rapic_list{j}(10:11);
     r_id     = str2num(r_id_str);
     r_date = datenum(rapic_list{j}(13:20),'yyyymmdd');
-    if r_id~=str2num(r_id_start)
+    if r_id<str2num(r_id_start)
         msg = ['skipping ',rapic_list{j},' r_id not than r_id_start']
         %write_log(local_log_fn,'file filter',msg);
         continue
@@ -151,7 +153,7 @@ for j=1:length(rapic_list)
         if exist(h5_ffn,'file') ~= 2
             write_log(local_log_fn,'odimh5 conversion failure',eout)
             broken_file(rapic_ffn,[s3_bvol,r_id_str,'/'])
-            delete(rapic_ffn)
+            %delete(rapic_ffn)
             continue
         end
         %create archive_path
@@ -164,17 +166,18 @@ for j=1:length(rapic_list)
         %             [sout,eout]     = unix(cmd);
         %file does not exist
         %             if sout == 1
-        cmd             = [prefix_cmd,'aws s3 cp ',h5_ffn,' ',s3_h5_path,h5_fn]
+        cmd             = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',s3_h5_path,h5_fn,' >> log.mv 2>&1 &']
         [sout,eout]     = unix(cmd);
-        if sout ~= 0
-            msg = [cmd,' returned ',eout];
-            write_log(s3_log_fn,'final cp to s3',msg)
-            delete(rapic_ffn)
-            delete(h5_ffn)
-        else
-            delete(rapic_ffn)
-            delete(h5_ffn)
-        end
+%         if sout ~= 0
+%             msg = [cmd,' returned ',eout];
+%             write_log(s3_log_fn,'final cp to s3',msg)
+%             delete(rapic_ffn)
+%             delete(h5_ffn)
+%         else
+%             delete(rapic_ffn)
+%             delete(h5_ffn)
+%         end
+        delete(rapic_ffn)
         %             %compare file sizes
         %             elseif sout == 0
         %                 C = textscan(eout,'%*s %*s %f %s');
@@ -207,9 +210,9 @@ fclose(log_fid);
 function broken_file(ffn,target_s3_path)
 prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
-cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_s3_path]
+cmd = [prefix_cmd,'aws s3 mv ',ffn,' ',target_s3_path,' >> log.mv 2>&1 &']
 [sout,eout]        = unix(cmd);
-if sout ~= 0
-    msg = [cmd,' returned ',eout];
-    write_log(s3_log_fn,'broken vol cp to s3',msg)
-end
+% if sout ~= 0
+%     msg = [cmd,' returned ',eout];
+%     write_log(s3_log_fn,'broken vol cp to s3',msg)
+% end

@@ -4,11 +4,13 @@ function repro_2
 %processes for only one year
 
 prefix_cmd       = 'export LD_LIBRARY_PATH=/usr/lib; ';
-restart_vars_fn  = 'restart_vars_1.mat';
+restart_vars_fn  = 'restart_vars.mat';
 config_fn        = 'config';
 %read config
 read_config(config_fn,[config_fn,'.mat']);
 load([config_fn,'.mat']);
+
+mkdir('tmp')
 
 s3_in = [s3_in,s3_year];
 
@@ -125,24 +127,15 @@ for j=1:length(rapic_list)
         if exist(h5_ffn,'file') ~= 2
             write_log(local_log_fn,'odimh5 conversion failure',eout)
             broken_file(rapic_ffn,[s3_bvol,r_id_str,'/'])
-            delete(rapic_ffn)
             continue
         end
         %create archive_path
         date_vec   = datevec(h5_tag(1:8),'yyyymmdd');
         s3_h5_path = [s3_out,r_id_str,'/',num2str(date_vec(1)),'/',...
             num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
-        cmd             = [prefix_cmd,'aws s3 cp ',h5_ffn,' ',s3_h5_path,h5_fn]
+        cmd             = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',s3_h5_path,h5_fn,' >> tmp/log.mv 2>&1 &']
         [sout,eout]     = unix(cmd);
-        if sout ~= 0
-            msg = [cmd,' returned ',eout];
-            write_log(s3_log_fn,'final cp to s3',msg)
-            delete(rapic_ffn)
-            delete(h5_ffn)
-        else
-            delete(rapic_ffn)
-            delete(h5_ffn)
-        end
+        delete(rapic_ffn)
     end
 end
 delete(restart_vars_fn)
@@ -159,9 +152,6 @@ fclose(log_fid);
 function broken_file(ffn,target_s3_path)
 prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
-cmd = [prefix_cmd,'aws s3 cp ',ffn,' ',target_s3_path]
+cmd = [prefix_cmd,'aws s3 mv ',ffn,' ',target_s3_path,' >> tmp/log.mv 2>&1 &']
 [sout,eout]        = unix(cmd);
-if sout ~= 0
-    msg = [cmd,' returned ',eout];
-    write_log(s3_log_fn,'broken vol cp to s3',msg)
-end
+
