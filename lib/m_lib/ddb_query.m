@@ -16,7 +16,7 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb query --table-name ',ddb_t
     '--expression-attribute-values ''',exp_json,'''',' ',...
     '--projection-expression "',p_exp,'"'];
 [sout,eout]       = unix([cmd,' | tee tmp/eout.json']);
-if sout~=0
+if sout~=0 || isempty(eout)
     log_cmd_write('tmp/log.ddb','',cmd,eout)
     jstruct = '';
     return

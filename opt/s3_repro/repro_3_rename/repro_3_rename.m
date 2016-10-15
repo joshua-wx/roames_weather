@@ -17,6 +17,8 @@ load([config_fn,'.mat']);
 read_site_info('site_info.txt');
 load('tmp/site_info.txt.mat');
 
+mkdir('tmp')
+
 %convert dates
 dnum_start = datenum(date_start,'yyyymmdd');
 dnum_stop  = datenum(date_stop,'yyyymmdd');
@@ -53,12 +55,13 @@ for i=1:length(site_id_list)
         end
         new_tag    = [num2str(radar_id,'%02.0f'),'_',datestr(h5_date,'yyyymmdd'),'_',datestr(h5_date,'HHMMSS'),'.h5'];
         new_ffn    = [h5_path,new_tag];
-        cmd        = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn]
+        cmd        = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &']
+        pause(0.3)
         [sout,eout] = unix(cmd);
-        if sout~= 0
-            msg = [cmd,' returned ',eout];
-            write_log('log.mv','file rename',msg)
-        end
+%         if sout~= 0
+%             msg = [cmd,' returned ',eout];
+%             write_log('log.mv','file rename',msg)
+%         end
     end
 end
 

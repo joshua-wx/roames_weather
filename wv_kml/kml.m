@@ -76,18 +76,22 @@ for i=1:length(radar_id_list);
     oldest_time_str = datestr(oldest_time,ddb_tfmt);
     newest_time_str = datestr(newest_time,ddb_tfmt);
     odimh5_atts     = 'radar_id,start_timestamp,sig_refl_flag,img_latlonbox,tilt1,tilt2,vel_ni';
-    odimh5_n_atts   = 7; %change to suit odimh5_atts
+    odimh5_atts_n   = 7; %change to suit odimh5_atts
     storm_atts      = 'radar_id,start_timestamp,subset_id,track_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,orient,maj_axis,min_axis,max_tops,max_mesh,cell_vil';
+    storm_atts_n    = 15;
     %query databases
     odim_jstruct  = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
     storm_jstruct = ddb_query('radar_id',radar_id_str,'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
-    %removed unprocessed odimh5 entries
-    for i=1:length(odim_jstruct)
-        if length(fieldnames(odim_jstruct{i})) ~= odimh5_n_atts
-            odim_jstruct{i}=[];
-        end
+    
+    %removed unprocessed odimh5 entries if returned as cell
+    if iscell(odim_jstruct)
+        display('odim_jstruct returned as cell')
+        odim_jstruct = clean_jstruct(odim_jstruct,odimh5_atts_n);
     end
-    odim_jstruct = [odim_jstruct{:}];
+    if iscell(storm_jstruct)
+        display('storm_jstruct returned as cell')
+        storm_jstruct = clean_jstruct(storm_jstruct,storm_atts_n);
+    end    
     %download data files
     start_timestamp_str = jstruct_to_mat([odim_jstruct.start_timestamp],'S');
     start_timestamp     = datenum(start_timestamp_str,ddb_tfmt);

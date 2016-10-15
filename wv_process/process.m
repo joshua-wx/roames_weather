@@ -137,7 +137,7 @@ while exist('tmp/kill_process','file')==2
         else
             radar_id = radar_id_list(1); %only has one entry for climatology processing
             date_vec = datevec(date_list(d));
-            s3_path  = [src_root,num2str(radar_id),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
+            s3_path  = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
             %update user
             disp(['Climatology processing downloading files from ',s3_path]);
             file_cp(s3_path,download_path,1)
@@ -207,8 +207,13 @@ while exist('tmp/kill_process','file')==2
             %run tracking algorithm if sig_refl has been detected
             if vol_obj.sig_refl==1 && ~isempty(prc_obj)
                 %tracking
-                wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
+                updated_storm_jstruct = wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
+                %generate nowcast json on s3 for realtime data
+                if realtime_flag == 1
+                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj.radar_id,vol_obj.start_timedate);
+                end
             end
+            
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
@@ -261,6 +266,7 @@ while exist('tmp/kill_process','file')==2
 end
 catch err
     %save vars
+    keyboard
     display(err)
     hist_oldest_restart = date_list(d);
     save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
@@ -366,6 +372,11 @@ jstruct = ddb_get_item(odimh5_ddb_table,...
     'radar_id','N',num2str(radar_id,'%02.0f'),...
     'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
 %update jstruct
+if isempty(jstruct)
+    display('entry missing from odimh5 ddb')
+    log_cmd_write('tmp/odimh5_ddb_missing.log',tar_fn,'entry missing from odimh5 ddb','');
+    return
+end
 jstruct.Item.sig_refl_flag.N  = num2str(vol_obj.sig_refl);
 jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
 jstruct.Item.tilt2.N          = num2str(vol_obj.tilt2);
@@ -397,6 +408,19 @@ end
 %skip if storm_obj is empty
 if ~isempty(storm_obj)
     track_id        = 0; %default for no track
+    %delete storm ddb entries for this volume if they already exist
+    if init_sig_relf_flag == 1 %since indicates volumes was previous processed for storms
+        storm_atts      = 'radar_id,subset_id';
+        oldest_time_str = datestr(vol_obj.start_timedate,ddb_tfmt);
+        newest_time_str = datestr(addtodate(vol_obj.start_timedate,1,'second'),ddb_tfmt); %duffer time for between function
+        delete_jstruct  = ddb_query('radar_id',num2str(radar_id,'%02.0f'),'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+        for i=1:length(delete_jstruct)
+            ddb_rm_item(delete_jstruct(i),storm_ddb_table);
+        end
+        %run a query for radar_id and time_start
+        %pass to delete
+    end
+    %init struct
     ddb_put_struct  = struct;
     for i=1:length(storm_obj)
         subset_id  = i;

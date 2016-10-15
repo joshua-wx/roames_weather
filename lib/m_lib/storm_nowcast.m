@@ -1,0 +1,151 @@
+function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct)
+%WHAT
+%for the inputted track index list 'track_idx', nowcast elipsses are produced from the end
+%cells using the historical data.
+
+%INPUT
+%track_idx: index of cells from a single track
+%storm_jstruct: storm database
+%kml_dir: path to kml directory
+%region: region for kml generation
+%start_td: kml start time
+%stop_td: kml stop time
+%cur_vis: kml vis
+
+%OUTPUT
+%fsct_lat_polys: cell, where each entry is a polygon
+%fcst_lon_polys: cell, where each entry is a polygon
+%trck_vil:  vil for track
+%trck_top:  tops for track
+%trck_mesh: mesh for track
+%trck_dt:   dt for track
+
+
+%% 
+%load config file
+load('tmp/global.config.mat');
+
+%init vars
+fcst_lat_polys = {};
+fcst_lon_polys = {};
+fcst_dt        = [];
+trck_vil       = [];
+trck_top       = [];
+trck_mesh      = [];
+trck_dt        = [];
+intensity      = [];
+end_cell_idx   = track_idx(end);
+
+%extract end time of track and database
+jstruct_dt       = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+end_jstruct_dt   = max(jstruct_dt);
+end_cell_dt      = jstruct_dt(end_cell_idx);
+
+%if track not at end of database, skip
+if end_jstruct_dt~=end_cell_dt
+    return
+end
+
+%% extract track
+
+%extract geometry of end cell
+try
+dbz_centlat    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlat.N)./geo_scale;
+dbz_centlon    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlon.N)./geo_scale;
+catch
+    keyboard
+end
+end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N)./stats_scale;
+end_orient_x   = cosd(end_orient);
+end_orient_y   = -sind(end_orient);
+end_orient_n   = rad2deg(atan2(end_orient_x,end_orient_y));
+end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N)./stats_scale;
+end_maj_axis   = km2deg(end_maj_axis*h_grid/1000)/2;
+end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N)./stats_scale;
+end_min_axis   = km2deg(end_min_axis*h_grid/1000)/2;
+
+%project track from end_cell_idx(i)
+[proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = project_storm_nowcast(end_cell_idx,storm_jstruct);
+
+
+%set the intensity trend parameter using the boundary condition of
+%+-20%/hr of the grid VILD
+if vil_dt > 2
+    intensity = 'S'; %strengthening
+elseif vil_dt < 2
+    intensity = 'W'; %weakening
+else
+    intensity = 'N'; %no change
+end
+
+%generate end cell ellipse
+end_ecc                     = axes2ecc(end_maj_axis,end_min_axis);
+end_ellipse                 = [end_maj_axis,end_ecc];
+[end_ellp_lat,end_ellp_lon] = ellipse1(dbz_centlat,dbz_centlon,end_ellipse,end_orient_n);
+ellp_list                   = {[end_ellp_lat,end_ellp_lon]};
+fcst_dt                     = [end_cell_dt];
+%% generate forecast cell ellipse
+for j=1:n_fcst_steps
+    %forcast time steps
+    fcst_time    = (fcst_step*j); %in minutes
+    fcst_dt      = [fcst_dt,addtodate(end_cell_dt,fcst_time,'minute')];
+    %increase axis nowcast_growth
+    axis_scaling = axis_scaling*nowcast_growth;
+    %evaluate forecast polynomials at forecast time
+    f_arc        = proj_arc*fcst_time;
+    %offset centroid
+    [fcst_lat_cent,fcst_lon_cent] = reckon(dbz_centlat,dbz_centlon,f_arc,proj_azi);
+    %scale ellipse geometry
+    fcst_maj_axis = end_maj_axis*axis_scaling;
+    fcst_min_axis = end_min_axis*axis_scaling;
+    fcst_ecc      = axes2ecc(fcst_maj_axis,fcst_min_axis);
+    ellipse       = [fcst_maj_axis,fcst_ecc];
+    %generate forecast ellise
+    [fcst_ellp_lat,fcst_ellp_lon] = ellipse1(fcst_lat_cent,fcst_lon_cent,ellipse,end_orient_n);
+    if sum(isnan(fcst_ellp_lat))>0
+        keyboard
+    end
+    %collate forecast ellipses
+    ellp_list=[ellp_list;[fcst_ellp_lat,fcst_ellp_lon]];
+end
+
+%% loop through forecast ellipses and merge pairs to produce swath
+fcst_lat_polys = cell(length(n_fcst_steps),1);
+fcst_lon_polys = cell(length(n_fcst_steps),1);
+for j=2:n_fcst_steps+1 %offset from start
+    %extract ellipse j and j-1 from dataset
+    cell1_lat = ellp_list{j-1}(:,1);
+    cell1_lon = ellp_list{j-1}(:,2);
+    cell2_lat = ellp_list{j}(:,1);
+    cell2_lon = ellp_list{j}(:,2);
+    %generate convex hull around both ellipses
+    lat_list  = [cell1_lat;cell2_lat];
+    lon_list  = [cell1_lon;cell2_lon];
+    
+    K = convhull(lon_list,lat_list);
+    
+    conv_lat_list = lat_list(K);
+    conv_lon_list = lon_list(K);
+    %convert to clockwise coord order
+    [conv_lon_list, conv_lat_list] = poly2cw(conv_lon_list, conv_lat_list);
+    [cell1_lon, cell1_lat]         = poly2cw(cell1_lon, cell1_lat);
+    %if not at first pair (first pair stay as convex hull)
+    if j~=2
+        % exclusive region of convecx hull and cell j-1 coord (takes a
+        % concave hull out of the region)
+        [fcst_lon_list,fcst_lat_list] = polybool('xor',cell1_lon,cell1_lat,conv_lon_list,conv_lat_list);
+    else
+        %keep convex hull
+        fcst_lon_list = conv_lon_list;
+        fcst_lat_list = conv_lat_list;
+    end
+    
+    %to prevent an untraced error
+    ind = find(fcst_lat_list==0 | isnan(fcst_lat_list));
+    fcst_lon_list(ind) = [];
+    fcst_lat_list(ind) = [];
+    
+    %collate and output to cell
+    fcst_lat_polys{j-1} = fcst_lat_list;
+    fcst_lon_polys{j-1} = fcst_lon_list;
+end

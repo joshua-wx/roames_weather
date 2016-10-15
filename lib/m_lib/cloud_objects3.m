@@ -36,7 +36,7 @@ for i=1:length(odimh5_jstruct)
     
     
     %set kml file tad
-    data_tag = [num2str(vol_radar_id),'_',datestr(vol_start_td,r_tfmt)];
+    data_tag = [num2str(vol_radar_id,'%02.0f'),'_',datestr(vol_start_td,r_tfmt)];
     
     %CREATE mapping coordinates vectors for radar site. needed for
     %isosurface generation
@@ -169,7 +169,7 @@ for i=1:length(odimh5_jstruct)
                 storm_max_tops   = str2num(storm_jstruct(storm_idx(j)).max_tops.N)./stats_scale;
                 storm_max_mesh   = str2num(storm_jstruct(storm_idx(j)).max_mesh.N)./stats_scale;
                 storm_cell_vil   = str2num(storm_jstruct(storm_idx(j)).cell_vil.N)./stats_scale;
-                storm_cell_vild  = roundn(storm_cell_vil/storm_max_tops*geo_scale,-2);
+                storm_cell_vild  = roundn(storm_cell_vil/storm_max_tops*1000,-2);
                 storm_dbz_centlat = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlat.N)./geo_scale;
                 storm_dbz_centlon = str2num(storm_jstruct(storm_idx(j)).storm_dbz_centlon.N)./geo_scale;
                 %generate balloon stats kml and save

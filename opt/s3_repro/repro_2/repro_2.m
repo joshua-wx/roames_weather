@@ -40,7 +40,7 @@ end
 kill_timer = tic;
 kill_wait  = 60*60; %kill time in seconds
 
-for j=1:length(rapic_list)
+for j=1:length()
     %update pending list
     pending_rapic_list = rapic_list(j:end);
     %Kill function

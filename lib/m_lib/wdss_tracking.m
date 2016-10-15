@@ -1,4 +1,4 @@
-function wdss_tracking(tn_dt,tn_radar_id)
+function storm_jstruct = wdss_tracking(tn_dt,tn_radar_id)
 %WHAT: For the curr dt and curr radar id, the assocaited cells in
 %ident are checks using nn and forecasting methods for temporal and spatial
 %association with other cells in ident. Tracks are compiled using ident id
@@ -13,7 +13,7 @@ function wdss_tracking(tn_dt,tn_radar_id)
 %tn_radar_id: radar ids of tn cells
 
 %OUTPUT:
-%updated track_db (saved to file)
+%storm_jstruct (with updated track ids
 
 %load vars
 load('tmp/global.config.mat');
@@ -25,19 +25,22 @@ tn_date_start_str = datestr(tn_date_start,'yyyy-mm-ddTHH:MM:SS');
 tn_date_stop      = addtodate(tn_date_start+1,-1,'second');
 tn_date_stop_str  = datestr(tn_date_stop,'yyyy-mm-ddTHH:MM:SS');
 odimh5_p_exp      = 'start_timestamp';
-storm_p_exp       = 'subset_id,start_timestamp,track_id,storm_dbz_centlat,storm_dbz_centlon,area,cell_vil';
-
+storm_p_exp       = 'subset_id,start_timestamp,track_id,storm_dbz_centlat,storm_dbz_centlon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+storm_p_exp_n     = 12;
 %create correct archive folder
 odimh5_jstruct         = ddb_query('radar_id',tn_radar_id_str,'start_timestamp',tn_date_start_str,tn_date_stop_str,odimh5_p_exp,odimh5_ddb_table);
 if isempty(odimh5_jstruct)
     return %no data is present
 end
-
 odimh5_start_timestamp = datenum(jstruct_to_mat([odimh5_jstruct.start_timestamp],'S'),'yyyy-mm-ddTHH:MM:SS');
 %extract storm items for the current day
-storm_jstruct         = ddb_query('radar_id',tn_radar_id_str,'subset_id',tn_date_start_str,tn_date_stop_str,storm_p_exp,storm_ddb_table);
+storm_jstruct          = ddb_query('radar_id',tn_radar_id_str,'subset_id',tn_date_start_str,tn_date_stop_str,storm_p_exp,storm_ddb_table);
 if isempty(storm_jstruct)
     return %no data is present
+end
+if iscell(storm_jstruct)
+    display('storm_jstruct returned as cell')
+    storm_jstruct = clean_jstruct(storm_jstruct,storm_p_exp_n);
 end
 
 storm_subset_id       = jstruct_to_mat([storm_jstruct.subset_id],'S');
@@ -121,13 +124,13 @@ for i=1:length(tn1_storm_ind)
     
     %case (1): tn1 has a simple track
     if ismember(tn1_storm_ind(i),tn1_storm_ind_with_tracks)
-        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm(tn1_storm_ind(i),tn1_storm_ind(i),tn_dt,min_track_len,mode_scan_freq,storm_db);
+        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm_wdss_tracking(tn1_storm_ind(i),tn1_storm_ind(i),tn_dt,min_track_len,mode_scan_freq,storm_db);
     %case (2): a minimum of "min_tracks" from other cells have a track
     elseif length(tn1_storm_ind_with_tracks) >= min_other_track_cells
-        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm(tn1_storm_ind(i),tn1_storm_ind_with_tracks,tn_dt,min_track_len,mode_scan_freq,storm_db);
+        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm_wdss_tracking(tn1_storm_ind(i),tn1_storm_ind_with_tracks,tn_dt,min_track_len,mode_scan_freq,storm_db);
     %case (3): use tn1 centroid and very large search area!  
     else
-        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm(tn1_storm_ind(i),[],[],[],mode_scan_freq,storm_db);
+        [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = project_storm_wdss_tracking(tn1_storm_ind(i),[],[],[],mode_scan_freq,storm_db);
     end
     
     %collate
@@ -295,7 +298,10 @@ end
 for i=1:length(updated_storm_ind)
     tmp_subset_id = storm_db.subset_id{updated_storm_ind(i)};
     tmp_track_id  = num2str(storm_db.track_id(updated_storm_ind(i)));
+    %update ddb
     ddb_update('radar_id','N',tn_radar_id_str,'subset_id','S',tmp_subset_id,'track_id','N',tmp_track_id,storm_ddb_table);
+    %update jstruct for nowcasting
+    storm_jstruct(updated_storm_ind(i)).track_id.N = tmp_track_id;
 end
 
 function cost_score=cost_function(tn_storm_ind,tn1_storm_ind,tn1_proj_lat,tn1_proj_lon,storm_db)

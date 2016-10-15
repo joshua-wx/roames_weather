@@ -18,6 +18,7 @@ end
 %read data group
 group_name   = num2str(group_number);
 group_h5data = h5info(h5_ffn,['/',group_name]);
+
 group_h5data = group_h5data.Datasets;
 data_struct  = [];
 for i = 1:length(group_h5data)
