@@ -188,10 +188,8 @@ while exist('tmp/kill_process','file')==2
                 %extract sounding level data
                 if realtime_flag == 1
                     %extract radar lat lon
-                    r_ind = find(site_id_list==radar_id);
-                    r_lat = site_lat_list(r_ind); r_lon = site_lon_list(r_ind);
                     %retrieve current GFS temperature data for above radar site
-                    [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,r_lat,r_lon);
+                    [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,vol_obj.r_lat,vol_obj.r_lon);
                 else
                     %load era-interim fzlvl data from ddb
                     [nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
@@ -210,10 +208,16 @@ while exist('tmp/kill_process','file')==2
                 updated_storm_jstruct = wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
                 %generate nowcast json on s3 for realtime data
                 if realtime_flag == 1
-                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj.radar_id,vol_obj.start_timedate);
+                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj);
+                     storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,vol_obj);
                 end
+            else
+                %remove nowcast files is no prc_objects exist anymore
+                nowcast_root = [dest_root,num2str(radar_id,'%02.0f'),'/nowcast.'];
+                file_rm([nowcast_root,'json'],0)
+                file_rm([nowcast_root,'wtk'],0)
+                file_rm([nowcast_root,'svg'],0)
             end
-            
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
@@ -259,18 +263,16 @@ while exist('tmp/kill_process','file')==2
     if realtime_flag==0
         delete('tmp/kill_process')
         break
-    else
-        pause(10)
     end
     
 end
 catch err
     %save vars
-    keyboard
     display(err)
     hist_oldest_restart = date_list(d);
     save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    rethrow(err)
 end
 
 %soft exit display
@@ -377,6 +379,7 @@ if isempty(jstruct)
     log_cmd_write('tmp/odimh5_ddb_missing.log',tar_fn,'entry missing from odimh5 ddb','');
     return
 end
+init_sig_relf_flag            = jstruct.Item.sig_refl_flag.N;
 jstruct.Item.sig_refl_flag.N  = num2str(vol_obj.sig_refl);
 jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
 jstruct.Item.tilt2.N          = num2str(vol_obj.tilt2);

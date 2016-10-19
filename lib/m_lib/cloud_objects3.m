@@ -20,10 +20,6 @@ load('tmp/global.config.mat')
 load('tmp/site_info.txt.mat')
 load('tmp/kml.config.mat')
 
-%init storm atts
-storm_radar_id = jstruct_to_mat([storm_jstruct.radar_id],'N');
-storm_start_td = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-
 %loop through each intp_obj
 for i=1:length(odimh5_jstruct)
     
@@ -58,6 +54,7 @@ for i=1:length(odimh5_jstruct)
         %create kml for tilt1 image
         kml_name       = [data_tag,'.scan1_refl'];
         png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
+        resize_png(png_ffn,4);
         scan1_refl_kml = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan1_refl_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -67,6 +64,7 @@ for i=1:length(odimh5_jstruct)
         %create kml for tilt2 image
         kml_name       = [data_tag,'.scan2_refl'];
         png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
+        resize_png(png_ffn,4);
         scan2_refl_kml = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan2_refl_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -76,6 +74,7 @@ for i=1:length(odimh5_jstruct)
         %create kml for tilt2 image
         kml_name       = [data_tag,'.scan1_vel'];
         png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
+        resize_png(png_ffn,4);
         scan1_vel_kml  = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan1_vel_kml,[dest_dir,vol_data_path],png_ffn);
     end
@@ -85,11 +84,15 @@ for i=1:length(odimh5_jstruct)
         %create kml for tilt1 image
         kml_name       = [data_tag,'.scan2_vel'];
         png_ffn        = [pwd,'/',data_path,kml_name,'.png'];
+        resize_png(png_ffn,4);
         scan2_vel_kml  = ge_groundoverlay('',kml_name,[kml_name,'.png'],vol_latlonbox,'','','clamped','',1);
         ge_kmz_out(kml_name,scan2_vel_kml,[dest_dir,vol_data_path],png_ffn);
     end    
     %before attempting to produce other kml layers, check for sig refl
-    if vol_sig_refl==1
+    if vol_sig_refl==1 && ~isempty(storm_jstruct)
+        %init storm atts
+        storm_radar_id = jstruct_to_mat([storm_jstruct.radar_id],'N');
+        storm_start_td = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
         %find ident objects belong to the current intp scan
         storm_idx   = find(storm_start_td==vol_start_td & storm_radar_id==vol_radar_id);
         h5_data_fn  = [data_tag,'.storm.h5'];

@@ -1,4 +1,4 @@
-function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct)
+function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct,target_dt)
 %WHAT
 %for the inputted track index list 'track_idx', nowcast elipsses are produced from the end
 %cells using the historical data.
@@ -34,27 +34,34 @@ trck_top       = [];
 trck_mesh      = [];
 trck_dt        = [];
 intensity      = [];
-end_cell_idx   = track_idx(end);
 
 %extract end time of track and database
 jstruct_dt       = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-end_jstruct_dt   = max(jstruct_dt);
-end_cell_dt      = jstruct_dt(end_cell_idx);
+track_dt         = jstruct_dt(track_idx);
+track_dt_mask    = track_dt <= target_dt;
 
-%if track not at end of database, skip
-if end_jstruct_dt~=end_cell_dt
+%no tracks to process
+if sum(track_dt_mask) < min_track_cells
     return
 end
+
+%extract track
+filt_track_idx   = track_idx(track_dt_mask);
+end_cell_idx     = filt_track_idx(end);
+end_cell_dt      = jstruct_dt(end_cell_idx);
+
+%skip if end of filt track is not target_dt
+if end_cell_dt ~= target_dt
+    return
+end
+
+
 
 %% extract track
 
 %extract geometry of end cell
-try
 dbz_centlat    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlat.N)./geo_scale;
 dbz_centlon    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlon.N)./geo_scale;
-catch
-    keyboard
-end
 end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N)./stats_scale;
 end_orient_x   = cosd(end_orient);
 end_orient_y   = -sind(end_orient);
@@ -70,9 +77,9 @@ end_min_axis   = km2deg(end_min_axis*h_grid/1000)/2;
 
 %set the intensity trend parameter using the boundary condition of
 %+-20%/hr of the grid VILD
-if vil_dt > 2
+if vil_dt > 0.5
     intensity = 'S'; %strengthening
-elseif vil_dt < 2
+elseif vil_dt < -0.5
     intensity = 'W'; %weakening
 else
     intensity = 'N'; %no change
@@ -102,9 +109,6 @@ for j=1:n_fcst_steps
     ellipse       = [fcst_maj_axis,fcst_ecc];
     %generate forecast ellise
     [fcst_ellp_lat,fcst_ellp_lon] = ellipse1(fcst_lat_cent,fcst_lon_cent,ellipse,end_orient_n);
-    if sum(isnan(fcst_ellp_lat))>0
-        keyboard
-    end
     %collate forecast ellipses
     ellp_list=[ellp_list;[fcst_ellp_lat,fcst_ellp_lon]];
 end

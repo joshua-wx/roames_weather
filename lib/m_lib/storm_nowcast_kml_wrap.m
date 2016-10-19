@@ -27,8 +27,8 @@ fcst_nl       = '';
 fcst_graph_nl = '';
 
 end_cell_idx     = track_idx(end);
-
-[fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct);
+timestamp        = datenum(storm_jstruct(end_cell_idx).start_timestamp.S,ddb_tfmt);
+[fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct,timestamp);
 
 if isempty(fcst_dt)
     return

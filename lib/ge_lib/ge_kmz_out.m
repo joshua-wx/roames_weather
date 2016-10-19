@@ -37,12 +37,12 @@ if isempty(cappi_path)
 else
     if iscell(cappi_path)
         zip([tempdir,kmzfilename],{[tempdir,kmlfilename],cappi_path{:}});
-        for i=1:length(cappi_path)
-            delete(cappi_path{i});
-        end
+%         for i=1:length(cappi_path)
+%             delete(cappi_path{i});
+%         end
     else
         zip([tempdir,kmzfilename],{[tempdir,kmlfilename],cappi_path});
-        delete(cappi_path);
+%        delete(cappi_path);
     end
     delete([tempdir,kmlfilename]);
 end

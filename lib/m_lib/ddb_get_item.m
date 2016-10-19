@@ -25,8 +25,8 @@ end
 [sout,eout]                        = unix([cmd,' | tee tmp/eout.json']);
 %catch errors and convert out json to struct
 if sout ==0 && ~isempty(eout)
-    jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
-    %jstruct_out = json_read('tmp/eout.json');
+    %jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
+    jstruct_out = json_read('tmp/eout.json');
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else

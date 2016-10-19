@@ -68,7 +68,7 @@ if ~isempty(odimh5_jstruct)
         temp_a = ''; temp_b = ''; temp_c = ''; temp_d = '';
         for j=1:length(odimh5_jstruct)
             %generate nl kml
-            scan_tag = [num2str(vol_radar_id(j)),'_',datestr(vol_start_td(j),r_tfmt)];
+            scan_tag = [num2str(vol_radar_id(j),'%02.0f'),'_',datestr(vol_start_td(j),r_tfmt)];
             if options(1)==1;
                 temp_a = ge_networklink(temp_a,[scan_tag,'.scan1_refl'],[vol_data_path,scan_tag,'.scan1_refl.kmz'],...
                     0,0,'',scan_region,datestr(vol_start_td(j),ge_tfmt),datestr(vol_stop_td(j),ge_tfmt),1); end

@@ -1,4 +1,4 @@
-function storm_nowcast_json_wrap(dest_root,storm_jstruct,radar_id,last_timestamp)
+function storm_nowcast_json_wrap(dest_root,storm_jstruct,vol_obj)
 
 %(track_idx,storm_jstruct,kml_dir,region,start_td,stop_td,cur_vis,radar_id)
 
@@ -26,7 +26,9 @@ load('tmp/global.config.mat');
 load('tmp/process.config.mat');
 
 %blank nl strings
-jstruct  = '';
+jstruct        = '';
+radar_id       = vol_obj.radar_id;
+timestamp      = vol_obj.start_timedate;
 
 %list tracks
 track_id               = jstruct_to_mat([storm_jstruct.track_id],'N');
@@ -41,13 +43,13 @@ for i=1:length(unqiue_track_id)
     end
     %extract cell idxs in track
     cur_track_idx = find(ic==i);
-    [fsct_lat_polys,fcst_lon_polys,fcst_dt,~,~,~,~,intensity] = storm_nowcast(cur_track_idx,storm_jstruct);
+    [fcst_lat_polys,fcst_lon_polys,fcst_dt,~,~,~,~,intensity] = storm_nowcast(cur_track_idx,storm_jstruct,timestamp);
     %if track not at end of database, skip
-    if isempty(fsct_lat_polys)
+    if isempty(fcst_lat_polys)
         continue
     end
     %write to well known text
-    tmp_jstruct = nowcast_json(radar_id,last_timestamp,cur_track_id,fcst_dt,fsct_lat_polys,fcst_lon_polys,intensity);
+    tmp_jstruct = nowcast_json(radar_id,timestamp,cur_track_id,fcst_dt,fcst_lat_polys,fcst_lon_polys,intensity);
     %collate
     if isempty(jstruct)
         jstruct = tmp_jstruct;

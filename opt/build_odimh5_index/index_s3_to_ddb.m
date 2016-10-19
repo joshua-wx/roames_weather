@@ -18,7 +18,7 @@ ddb_table      = 'wxradar_odimh5_index';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
 s3_bucket      = 's3://roames-wxradar-archive/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f')];
-year_list      = [2009:2009];
+year_list      = [2015:2015];
 
 %ensure temp directory exists
 mkdir('tmp')
@@ -27,7 +27,7 @@ mkdir('tmp')
 %run an aws ls -r
 for i=1:length(year_list)
     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),'/',num2str(year_list(i)),'/'])
-    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/02/07/',' --recursive'];
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/12/15/',' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
     C           = textscan(eout,'%*s %*s %u %s');

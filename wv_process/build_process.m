@@ -23,12 +23,12 @@ tar_fn = [build_path,'process.tar'];
 tar(tar_fn,{'run_process.sh','process','run','etc/','bin/'})
 
 display('scp')
-%machine realtime
-ec2_ip      = '52.65.218.97';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/wv_process/real/'])
-%machine historical
-ec2_ip      = '52.63.216.144';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/wv_process/hist/'])
+%historical
+ec2_ip      = '54.66.145.59';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/wv_process/hist/'])
+%realtime
+ec2_ip      = '52.65.223.29';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/wv_process/real/'])
 
 delete('/home/meso/Dropbox/dev/wv/wv_process/etc/global.config')
 delete('/home/meso/Dropbox/dev/wv/wv_process/etc/site_info.txt')

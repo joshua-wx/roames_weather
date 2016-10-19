@@ -1,0 +1,566 @@
+201501020341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034100215] pass: 12 of 15,invalid character encountered in ray encoding
+201501020351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [035100215] pass: 01 of 15,scan data overflow (ascii abs)
+201501020501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050100215] pass: 06 of 15,scan data overflow (too many rays)
+201501050101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [010100515] pass: 08 of 15,invalid character encountered in ray encoding
+201501081751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [175100815] pass: 04 of 15,invalid character encountered in ray encoding
+201501101851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [185101015] pass: 09 of 15,invalid ascii ray header
+201501120441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044101215] pass: 02 of 15,scan data overflow (too many rays)
+201501122031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [203101215] pass: 02 of 15,scan data overflow (ascii abs)
+201501140531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053101415] pass: 10 of 15,invalid character encountered in ray encoding
+201501152321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [232101515] pass: 07 of 15,invalid ascii ray header
+201501190501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050101915] pass: 07 of 15,invalid character encountered in ray encoding
+201501210151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015102115] pass: 01 of 15,invalid character encountered in ray encoding
+201501222051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [205102215] pass: 08 of 15,scan data overflow (ascii abs)
+201501222351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [235102215] pass: 12 of 15,scan data overflow (ascii abs)
+201501230051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [005102315] pass: 06 of 15,invalid character encountered in ray encoding
+201501230101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [010102315] pass: 10 of 15,scan data overflow (ascii abs)
+201501230531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053102315] pass: 05 of 15,scan data overflow (ascii abs)
+201501230811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [081102315] pass: 07 of 15,scan data overflow (ascii abs)
+201501251111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111102515] pass: 05 of 15,scan data overflow (ascii abs)
+201501270341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034102715] pass: 13 of 15,invalid ascii ray header
+201501280241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [024102815] pass: 12 of 15,invalid ascii ray header
+201501310801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [080103115] pass: 07 of 15,invalid character encountered in ray encoding
+201502041431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143103515] pass: 01 of 15,invalid character encountered in ray encoding
+201502170331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [033104815] pass: 06 of 15,invalid ascii ray header
+201502190431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043105015] pass: 02 of 15,scan data overflow (ascii delta)
+201502190651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065105015] pass: 05 of 15,scan data overflow (ascii abs)
+201502190701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [070105015] pass: 15 of 15,scan data overflow (ascii abs)
+201502190721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072105015] pass: 13 of 15,scan data overflow (ascii abs)
+201502191111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111105015] pass: 02 of 15,scan data overflow (ascii delta)
+201502191121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [112105015] pass: 04 of 15,scan data overflow (ascii abs)
+201502191131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [113105015] pass: 02 of 15,scan data overflow (ascii rle)
+201502191201Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [120105015] pass: 04 of 15,invalid character encountered in ray encoding
+201502191431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143105015] pass: 02 of 15,invalid character encountered in ray encoding
+201502191751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [175105015] pass: 07 of 15,scan data overflow (ascii abs)
+201502192241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224105015] pass: 06 of 15,scan data overflow (ascii abs)
+201502201931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [193105115] pass: 12 of 15,scan data overflow (ascii abs)
+201502261921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [192105715] pass: 12 of 15,scan data overflow (ascii abs)
+201503050511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051106415] pass: 08 of 15,invalid character encountered in ray encoding
+201503050521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052106415] pass: 13 of 15,invalid character encountered in ray encoding
+201503161701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [170107515] pass: 06 of 15,invalid ascii ray header
+201503172241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224107615] pass: 03 of 15,invalid character encountered in ray encoding
+201503180011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [001107715] pass: 03 of 15,invalid character encountered in ray encoding
+201503191101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110107815] pass: 03 of 15,invalid ascii ray header
+201503191811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [181107815] pass: 04 of 15,scan data overflow (too many rays)
+201503210751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075108015] pass: 03 of 15,scan data overflow (ascii abs)
+201503211031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103108015] pass: 12 of 15,scan data overflow (ascii abs)
+201503222301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [230108115] pass: 04 of 15,invalid character encountered in ray encoding
+201503251021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102108415] pass: 08 of 15,scan data overflow (ascii abs)
+201503251631Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [163108415] pass: 12 of 15,invalid character encountered in ray encoding
+201503260821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [082108515] pass: 01 of 15,scan data overflow (ascii abs)
+201503310831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [083109015] pass: 08 of 15,invalid character encountered in ray encoding
+201503311921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [192109015] pass: 02 of 15,invalid character encountered in ray encoding
+201503311951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [195109015] pass: 01 of 15,invalid character encountered in ray encoding
+201504030151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015109315] pass: 14 of 15,invalid character encountered in ray encoding
+201504040741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [074109415] pass: 14 of 15,invalid character encountered in ray encoding
+201504041141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114109415] pass: 08 of 15,scan data overflow (ascii abs)
+201504060932Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [093109615] pass: 02 of 15,scan data overflow (ascii abs)
+201504061101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110109615] pass: 08 of 15,invalid character encountered in ray encoding
+201504070301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030109715] pass: 05 of 15,invalid character encountered in ray encoding
+201504071541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [154109715] pass: 03 of 15,invalid ascii ray header
+201504091411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [141109915] pass: 04 of 15,invalid character encountered in ray encoding
+201504181351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [135110815] pass: 06 of 15,invalid character encountered in ray encoding
+201504200531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053111015] pass: 07 of 15,scan data overflow (ascii abs)
+201504200711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071111015] pass: 11 of 15,scan data overflow (ascii abs)
+201504200851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085111015] pass: 03 of 15,scan data overflow (ascii abs)
+201504251951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [195111515] pass: 13 of 15,scan data overflow (ascii abs)
+201504290611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061111915] pass: 02 of 15,scan data overflow (ascii delta)
+201504291511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [151111915] pass: 12 of 15,scan data overflow (ascii rle)
+201504291941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [194111915] pass: 07 of 15,scan data overflow (ascii abs)
+201504292231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [223111915] pass: 14 of 15,scan data overflow (ascii abs)
+201504300111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011112015] pass: 09 of 15,scan data overflow (ascii abs)
+201504300751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075112015] pass: 12 of 15,scan data overflow (ascii abs)
+201504300911Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [091112015] pass: 06 of 15,scan data overflow (ascii abs)
+201504301231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [123112015] pass: 08 of 15,scan data overflow (ascii abs)
+201504301251Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [125112015] pass: 09 of 15,scan data overflow (ascii abs)
+201504301401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [140112015] pass: 14 of 15,scan data overflow (ascii abs)
+201504301521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [152112015] pass: 11 of 15,scan data overflow (ascii abs)
+201504301721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [172112015] pass: 07 of 15,scan data overflow (ascii abs)
+201504302011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [201112015] pass: 04 of 15,scan data overflow (ascii abs)
+201504302241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224112015] pass: 03 of 15,scan data overflow (ascii delta)
+201505010011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [001112115] pass: 05 of 15,scan data overflow (ascii abs)
+201505010111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011112115] pass: 04 of 15,scan data overflow (ascii abs)
+201505010331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [033112115] pass: 11 of 15,scan data overflow (ascii abs)
+201505010521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052112115] pass: 07 of 15,scan data overflow (ascii abs)
+201505010541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054112115] pass: 04 of 15,scan data overflow (ascii abs)
+201505010811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [081112115] pass: 03 of 15,scan data overflow (ascii abs)
+201505010851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085112115] pass: 04 of 15,invalid character encountered in ray encoding
+201505010921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092112115] pass: 10 of 15,scan data overflow (ascii abs)
+201505011031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103112115] pass: 07 of 15,invalid character encountered in ray encoding
+201505011141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114112115] pass: 01 of 15,scan data overflow (ascii abs)
+201505061501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [150112615] pass: 13 of 15,invalid character encountered in ray encoding
+201505061621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [162112615] pass: 07 of 15,scan data overflow (too many rays)
+201505091331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [133112915] pass: 08 of 15,scan data overflow (too many rays)
+201505091441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [144112915] pass: 06 of 15,invalid character encountered in ray encoding
+201505141641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [164113415] pass: 05 of 15,invalid character encountered in ray encoding
+201505141941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [194113415] pass: 11 of 15,invalid character encountered in ray encoding
+201505141952Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [195113415] pass: 06 of 15,invalid character encountered in ray encoding
+201505142141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [214113415] pass: 11 of 15,invalid ascii ray header
+201505142211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [221113415] pass: 07 of 15,invalid character encountered in ray encoding
+201505150241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [024113515] pass: 01 of 15,invalid character encountered in ray encoding
+201505150531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053113515] pass: 02 of 15,scan data overflow (too many rays)
+201505150541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054113515] pass: 07 of 15,invalid ascii ray header
+201505150551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [055113515] pass: 02 of 15,invalid character encountered in ray encoding
+201505150601Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [060113515] pass: 04 of 15,invalid character encountered in ray encoding
+201505150631Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [063113515] pass: 13 of 15,invalid character encountered in ray encoding
+201505150641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [064113515] pass: 01 of 15,invalid character encountered in ray encoding
+201505150651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065113515] pass: 02 of 15,invalid character encountered in ray encoding
+201505150711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071113515] pass: 04 of 15,invalid ascii ray header
+201505150721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072113515] pass: 01 of 15,scan data overflow (too many rays)
+201505152041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [204113515] pass: 12 of 15,corrupt scan detected (3)
+201505152131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [213113515] pass: 02 of 15,invalid character encountered in ray encoding
+201505152221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [222113515] pass: 02 of 15,invalid character encountered in ray encoding
+201505160221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [022113615] pass: 02 of 15,invalid character encountered in ray encoding
+201505160231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [023113615] pass: 09 of 15,invalid character encountered in ray encoding
+201505160251Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [025113615] pass: 05 of 15,invalid character encountered in ray encoding
+201505160421Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [042113615] pass: 01 of 15,invalid character encountered in ray encoding
+201505160431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043113615] pass: 01 of 15,scan data overflow (ascii delta)
+201505160441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044113615] pass: 01 of 15,invalid character encountered in ray encoding
+201505160451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [045113615] pass: 07 of 15,scan data overflow (too many rays)
+201505160501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050113615] pass: 01 of 15,invalid character encountered in ray encoding
+201505160521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052113615] pass: 01 of 15,invalid character encountered in ray encoding
+201505160531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053113615] pass: 10 of 15,scan data overflow (ascii rle)
+201505160611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061113615] pass: 02 of 15,invalid ascii ray header
+201505160621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062113615] pass: 09 of 15,invalid character encountered in ray encoding
+201505170851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085113715] pass: 03 of 15,invalid character encountered in ray encoding
+201505170901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [090113715] pass: 04 of 15,invalid character encountered in ray encoding
+201505170911Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [091113715] pass: 01 of 15,invalid character encountered in ray encoding
+201505170941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [094113715] pass: 07 of 15,invalid character encountered in ray encoding
+201505171011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101113715] pass: 08 of 15,invalid character encountered in ray encoding
+201505171021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102113715] pass: 11 of 15,invalid character encountered in ray encoding
+201505171041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [104113715] pass: 02 of 15,invalid character encountered in ray encoding
+201505171141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114113715] pass: 14 of 15,invalid character encountered in ray encoding
+201505171331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [133113715] pass: 06 of 15,invalid character encountered in ray encoding
+201505171421Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [142113715] pass: 01 of 15,invalid character encountered in ray encoding
+201505220601Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [060114215] pass: 05 of 15,invalid character encountered in ray encoding
+201505311121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [112115115] pass: 06 of 15,scan data overflow (ascii abs)
+201506010641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [064115215] pass: 09 of 15,invalid character encountered in ray encoding
+201506010701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [070115215] pass: 13 of 15,invalid character encountered in ray encoding
+201506010721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072115215] pass: 10 of 15,invalid character encountered in ray encoding
+201506010732Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [073115215] pass: 10 of 15,invalid character encountered in ray encoding
+201506011252Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [125215215] pass: 08 of 15,invalid ascii ray header
+201506051221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [122115615] pass: 12 of 15,invalid character encountered in ray encoding
+201506081331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [133115915] pass: 03 of 15,scan data overflow (ascii abs)
+201506090111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011116015] pass: 10 of 15,invalid character encountered in ray encoding
+201506091931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [193116015] pass: 01 of 15,scan data overflow (too many rays)
+201506170301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030116815] pass: 06 of 15,scan data overflow (ascii abs)
+201506170401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [040116815] pass: 11 of 15,scan data overflow (ascii abs)
+201506252021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [202117615] pass: 11 of 15,invalid character encountered in ray encoding
+201506270501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050117815] pass: 04 of 15,invalid character encountered in ray encoding
+201506270511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051117815] pass: 01 of 15,scan data overflow (ascii rle)
+201506300001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [000118115] pass: 01 of 15,scan data overflow (ascii delta)
+201507061351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [135118715] pass: 03 of 15,scan data overflow (ascii abs)
+201507091501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [150119015] pass: 11 of 15,scan data overflow (ascii rle)
+201507100011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [001119115] pass: 03 of 15,invalid character encountered in ray encoding
+201507211241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124120215] pass: 06 of 15,invalid character encountered in ray encoding
+201507312131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [213121215] pass: 02 of 15,scan data overflow (ascii delta)
+201508112331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [233122315] pass: 05 of 15,invalid character encountered in ray encoding
+201508120321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [032122415] pass: 03 of 15,scan data overflow (ascii rle)
+201508131401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [140122515] pass: 11 of 15,invalid character encountered in ray encoding
+201508152221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [222122715] pass: 07 of 15,invalid character encountered in ray encoding
+201508160931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [093122815] pass: 06 of 15,invalid character encountered in ray encoding
+201508161041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [104122815] pass: 04 of 15,invalid character encountered in ray encoding
+201508171221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [122122915] pass: 14 of 15,scan data overflow (ascii rle)
+201508171501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [150122915] pass: 10 of 15,corrupt scan detected (3)
+201508171731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [173122915] pass: 02 of 15,invalid character encountered in ray encoding
+201508171851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [185122915] pass: 10 of 15,invalid character encountered in ray encoding
+201508172121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [212122915] pass: 05 of 15,invalid character encountered in ray encoding
+201508182231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [223123015] pass: 02 of 15,invalid character encountered in ray encoding
+201508182301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [230123015] pass: 02 of 15,invalid ascii ray header
+201508190001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [000123115] pass: 01 of 15,invalid character encountered in ray encoding
+201508190621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062123115] pass: 02 of 15,invalid character encountered in ray encoding
+201508211901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [190123315] pass: 05 of 15,invalid character encountered in ray encoding
+201508212231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [223123315] pass: 01 of 15,invalid character encountered in ray encoding
+201508220611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061123415] pass: 01 of 15,invalid character encountered in ray encoding
+201508220621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062123415] pass: 02 of 15,invalid ascii ray header
+201508220623Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062123415] pass: 05 of 15,invalid character encountered in ray encoding
+201508220711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071123415] pass: 02 of 15,invalid character encountered in ray encoding
+201508220721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072123415] pass: 10 of 15,invalid character encountered in ray encoding
+201508222301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [230123415] pass: 14 of 15,invalid ascii ray header
+201508240301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030123615] pass: 02 of 15,invalid character encountered in ray encoding
+201508241011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101123615] pass: 06 of 15,invalid character encountered in ray encoding
+201508241431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143123615] pass: 04 of 15,invalid ascii ray header
+201508241451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [145123615] pass: 12 of 15,invalid character encountered in ray encoding
+201508241641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [164123615] pass: 07 of 15,scan data overflow (too many rays)
+201508242041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [204123615] pass: 10 of 15,invalid character encountered in ray encoding
+201508290721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072124115] pass: 08 of 15,scan data overflow (ascii abs)
+201508291331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [133124115] pass: 06 of 15,scan data overflow (ascii abs)
+201509021551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [155124515] pass: 07 of 15,scan data overflow (ascii abs)
+201509030021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [002124615] pass: 03 of 15,invalid character encountered in ray encoding
+201509082111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [211125115] pass: 07 of 15,invalid character encountered in ray encoding
+201509090721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072125215] pass: 04 of 15,invalid ascii ray header
+201509090931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [093125215] pass: 02 of 15,invalid character encountered in ray encoding
+201509101501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [150125315] pass: 03 of 15,invalid character encountered in ray encoding
+201509161831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [183125915] pass: 06 of 15,scan data overflow (ascii abs)
+201509170951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [095126015] pass: 02 of 15,corrupt scan detected (3)
+201509211021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102126415] pass: 04 of 15,scan data overflow (ascii abs)
+201509220831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [083126515] pass: 12 of 15,scan data overflow (ascii abs)
+201510161031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103128915] pass: 10 of 15,scan data overflow (too many rays)
+201510180531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053129115] pass: 02 of 15,invalid ascii ray header
+201510211801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [180129415] pass: 13 of 15,scan data overflow (ascii abs)
+201510220651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065129515] pass: 03 of 15,corrupt scan detected (3)
+201510221111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111129515] pass: 02 of 15,scan data overflow (ascii abs)
+201510230431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043129615] pass: 01 of 15,invalid ascii ray header
+201510240121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [012129715] pass: 05 of 15,invalid character encountered in ray encoding
+201510242301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [230129715] pass: 04 of 15,scan data overflow (ascii rle)
+201510242341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [234129715] pass: 02 of 15,invalid character encountered in ray encoding
+201510250711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071129815] pass: 01 of 15,invalid ascii ray header
+201510261011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101129915] pass: 07 of 15,invalid character encountered in ray encoding
+201510261441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [144129915] pass: 04 of 15,scan data overflow (too many rays)
+201510270431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043130015] pass: 02 of 15,invalid character encountered in ray encoding
+201510270711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071130015] pass: 15 of 15,invalid character encountered in ray encoding
+201510280231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [023130115] pass: 01 of 15,scan data overflow (too many rays)
+201510280241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [024130115] pass: 11 of 15,invalid ascii ray header
+201510280611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061130115] pass: 02 of 15,scan data overflow (ascii rle)
+201510281151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [115130115] pass: 04 of 15,scan data overflow (ascii abs)
+201510281201Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [120130115] pass: 11 of 15,invalid character encountered in ray encoding
+201510281211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [121130115] pass: 13 of 15,invalid character encountered in ray encoding
+201510282041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [204130115] pass: 02 of 15,invalid character encountered in ray encoding
+201510282051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [205130115] pass: 03 of 15,invalid character encountered in ray encoding
+201510282101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [210130115] pass: 06 of 15,invalid character encountered in ray encoding
+201510290131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [013130215] pass: 01 of 15,invalid ascii ray header
+201510290451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [045130215] pass: 03 of 15,scan data overflow (ascii rle)
+201510290543Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054130215] pass: 10 of 15,invalid character encountered in ray encoding
+201510291031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103130215] pass: 01 of 15,scan data overflow (too many rays)
+201510291831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [183130215] pass: 10 of 15,invalid character encountered in ray encoding
+201510291931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [193130215] pass: 02 of 15,invalid ascii ray header
+201510300551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [055130315] pass: 03 of 15,invalid character encountered in ray encoding
+201510300611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061130315] pass: 14 of 15,invalid character encountered in ray encoding
+201510300841Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [084130315] pass: 06 of 15,invalid character encountered in ray encoding
+201510300911Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [091130315] pass: 04 of 15,invalid character encountered in ray encoding
+201510300921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092130315] pass: 09 of 15,invalid character encountered in ray encoding
+201510300943Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [094130315] pass: 07 of 15,invalid character encountered in ray encoding
+201510300951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [095130315] pass: 01 of 15,invalid character encountered in ray encoding
+201510301001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [100130315] pass: 03 of 15,invalid character encountered in ray encoding
+201510301011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101130315] pass: 01 of 15,invalid ascii ray header
+201510301021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102130315] pass: 02 of 15,scan data overflow (too many rays)
+201510301111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111130315] pass: 02 of 15,corrupt scan detected (3)
+201510301131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [113130315] pass: 05 of 15,invalid ascii ray header
+201510301311Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [131130315] pass: 01 of 15,invalid character encountered in ray encoding
+201510301421Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [142130315] pass: 01 of 15,scan data overflow (too many rays)
+201510311241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124130415] pass: 02 of 15,scan data overflow (ascii abs)
+201511010641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [064130515] pass: 03 of 15,invalid character encountered in ray encoding
+201511010701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [070130515] pass: 01 of 15,invalid character encountered in ray encoding
+201511010721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072130515] pass: 04 of 15,invalid ascii ray header
+201511010731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [073130515] pass: 04 of 15,invalid character encountered in ray encoding
+201511040211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [021130815] pass: 02 of 15,scan data overflow (too many rays)
+201511040531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053130815] pass: 07 of 15,invalid character encountered in ray encoding
+201511041231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [123130815] pass: 01 of 15,scan data overflow (ascii rle)
+201511041241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124130815] pass: 14 of 15,invalid character encountered in ray encoding
+201511041311Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [131130815] pass: 01 of 15,invalid character encountered in ray encoding
+201511050851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085130915] pass: 13 of 15,scan data overflow (ascii delta)
+201511051051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [105130915] pass: 14 of 15,scan data overflow (ascii abs)
+201511051141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114130915] pass: 02 of 15,invalid character encountered in ray encoding
+201511051241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124130915] pass: 02 of 15,invalid character encountered in ray encoding
+201511051321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [132130915] pass: 07 of 15,scan data overflow (ascii abs)
+201511051831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [183130915] pass: 02 of 15,invalid character encountered in ray encoding
+201511060341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034131015] pass: 10 of 15,invalid character encountered in ray encoding
+201511061101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110131015] pass: 04 of 15,scan data overflow (ascii rle)
+201511061351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [135131015] pass: 03 of 15,scan data overflow (too many rays)
+201511070821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [082131115] pass: 02 of 15,invalid character encountered in ray encoding
+201511070851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085131115] pass: 02 of 15,invalid character encountered in ray encoding
+201511070901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [090131115] pass: 01 of 15,invalid character encountered in ray encoding
+201511080151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015131215] pass: 02 of 15,scan data overflow (ascii rle)
+201511081621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [162131215] pass: 02 of 15,invalid character encountered in ray encoding
+201511090041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [004131315] pass: 02 of 15,invalid character encountered in ray encoding
+201511100641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [064131415] pass: 07 of 15,invalid character encountered in ray encoding
+201511120411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [041131615] pass: 01 of 15,invalid character encountered in ray encoding
+201511120441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044131615] pass: 04 of 15,scan data overflow (ascii rle)
+201511120621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062131615] pass: 02 of 15,scan data overflow (ascii delta)
+201511122331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [233131615] pass: 06 of 15,invalid ascii ray header
+201511130401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [040131715] pass: 04 of 15,scan data overflow (ascii abs)
+201511140501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050131815] pass: 11 of 15,invalid character encountered in ray encoding
+201511140851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085131815] pass: 03 of 15,scan data overflow (ascii abs)
+201511160711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071132015] pass: 01 of 15,invalid character encountered in ray encoding
+201511180151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015132215] pass: 14 of 15,scan data overflow (too many rays)
+201511180921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092132215] pass: 01 of 15,invalid character encountered in ray encoding
+201511182331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [233132215] pass: 02 of 15,invalid character encountered in ray encoding
+201511190051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [005132315] pass: 02 of 15,invalid character encountered in ray encoding
+201511190131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [013132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511190321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [032132315] pass: 14 of 15,invalid character encountered in ray encoding
+201511190441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044132315] pass: 02 of 15,invalid character encountered in ray encoding
+201511190451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [045132315] pass: 02 of 15,invalid character encountered in ray encoding
+201511190501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050132315] pass: 02 of 15,invalid character encountered in ray encoding
+201511190511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511190551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [055132315] pass: 02 of 15,scan data overflow (ascii abs)
+201511190601Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [060132315] pass: 04 of 15,invalid character encountered in ray encoding
+201511190641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [064132315] pass: 14 of 15,invalid ascii ray header
+201511190731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [073132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511190741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [074132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511190831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [083132315] pass: 05 of 15,invalid character encountered in ray encoding
+201511190841Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [084132315] pass: 11 of 15,invalid character encountered in ray encoding
+201511190851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085132315] pass: 11 of 15,invalid character encountered in ray encoding
+201511190901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [090132315] pass: 13 of 15,invalid character encountered in ray encoding
+201511190911Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [091132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511190921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092132315] pass: 01 of 15,scan data overflow (too many rays)
+201511191011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511191021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102132315] pass: 04 of 15,scan data overflow (too many rays)
+201511191641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [164132315] pass: 02 of 15,invalid ascii ray header
+201511191651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [165132315] pass: 06 of 15,invalid character encountered in ray encoding
+201511191701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [170132315] pass: 05 of 15,scan data overflow (ascii rle)
+201511191821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [182132315] pass: 02 of 15,invalid character encountered in ray encoding
+201511192001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [200132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511192031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [203132315] pass: 01 of 15,invalid character encountered in ray encoding
+201511192041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [204132315] pass: 06 of 15,invalid character encountered in ray encoding
+201511192101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [210132315] pass: 10 of 15,invalid character encountered in ray encoding
+201511192141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [214132315] pass: 04 of 15,invalid character encountered in ray encoding
+201511192153Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [215132315] pass: 06 of 15,invalid ascii ray header
+201511200541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054132415] pass: 10 of 15,invalid character encountered in ray encoding
+201511201821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [182132415] pass: 08 of 15,invalid character encountered in ray encoding
+201511212101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [210132515] pass: 01 of 15,invalid character encountered in ray encoding
+201511230321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [032132715] pass: 05 of 15,invalid character encountered in ray encoding
+201511230921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092132715] pass: 01 of 15,scan data overflow (too many rays)
+201511231001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [100132715] pass: 03 of 15,scan data overflow (too many rays)
+201511231041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [104132715] pass: 02 of 15,invalid character encountered in ray encoding
+201511231051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [105132715] pass: 10 of 15,invalid character encountered in ray encoding
+201511231111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111132715] pass: 01 of 15,invalid character encountered in ray encoding
+201511231151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [115132715] pass: 13 of 15,invalid character encountered in ray encoding
+201511231224Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [122132715] pass: 10 of 15,invalid character encountered in ray encoding
+201511231241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124132715] pass: 02 of 15,invalid ascii ray header
+201511231251Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [125132715] pass: 03 of 15,scan data overflow (ascii rle)
+201511231431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143132715] pass: 01 of 15,scan data overflow (too many rays)
+201511231531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [153132715] pass: 04 of 15,invalid character encountered in ray encoding
+201511231611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [161132715] pass: 05 of 15,invalid character encountered in ray encoding
+201511231641Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [164132715] pass: 10 of 15,corrupt scan detected (3)
+201511231711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [171132715] pass: 06 of 15,invalid character encountered in ray encoding
+201511231741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [174132715] pass: 13 of 15,invalid character encountered in ray encoding
+201511231841Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [184132715] pass: 01 of 15,scan data overflow (ascii rle)
+201511231931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [193132715] pass: 02 of 15,invalid character encountered in ray encoding
+201511261151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [115133015] pass: 04 of 15,scan data overflow (ascii abs)
+201511261231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [123133015] pass: 02 of 15,invalid character encountered in ray encoding
+201511261241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [124133015] pass: 01 of 15,scan data overflow (ascii rle)
+201511261311Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [131133015] pass: 01 of 15,invalid character encountered in ray encoding
+201511261401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [140133015] pass: 01 of 15,invalid character encountered in ray encoding
+201511261411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [141133015] pass: 01 of 15,invalid character encountered in ray encoding
+201511270441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044133115] pass: 03 of 15,scan data overflow (ascii rle)
+201511270511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051133115] pass: 02 of 15,scan data overflow (ascii rle)
+201511270531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053133115] pass: 02 of 15,invalid character encountered in ray encoding
+201511270541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054133115] pass: 03 of 15,invalid character encountered in ray encoding
+201511270551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [055133115] pass: 04 of 15,invalid character encountered in ray encoding
+201511272331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [233133115] pass: 03 of 15,invalid ascii ray header
+201511272341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [234133115],missing mandatory header IMGFMT
+201511272351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [235133115] pass: 01 of 15,invalid character encountered in ray encoding
+201511280001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [000133215] pass: 01 of 15,invalid character encountered in ray encoding
+201511280011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [001133215] pass: 03 of 15,invalid character encountered in ray encoding
+201511280021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [002133215] pass: 07 of 15,invalid character encountered in ray encoding
+201511280031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [003133215] pass: 03 of 15,invalid character encountered in ray encoding
+201511280041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [004133215] pass: 02 of 15,invalid character encountered in ray encoding
+201511280112Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011133215] pass: 04 of 15,invalid character encountered in ray encoding
+201511280121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [012133215] pass: 01 of 15,invalid character encountered in ray encoding
+201511280221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [022133215] pass: 01 of 15,invalid character encountered in ray encoding
+201511280232Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [023133215] pass: 05 of 15,invalid character encountered in ray encoding
+201511280241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [024133215] pass: 04 of 15,invalid character encountered in ray encoding
+201511280301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030133215] pass: 13 of 15,invalid character encountered in ray encoding
+201511280441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044133215] pass: 03 of 15,invalid character encountered in ray encoding
+201511280511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051133215] pass: 01 of 15,invalid ascii ray header
+201511280531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053133215] pass: 06 of 15,invalid character encountered in ray encoding
+201511280541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054133215] pass: 03 of 15,invalid character encountered in ray encoding
+201511280551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [055133215] pass: 06 of 15,invalid character encountered in ray encoding
+201511280601Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [060133215] pass: 02 of 15,invalid character encountered in ray encoding
+201511280711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071133215] pass: 04 of 15,invalid character encountered in ray encoding
+201511280721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072133215] pass: 11 of 15,invalid character encountered in ray encoding
+201511280751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075133215] pass: 06 of 15,invalid ascii ray header
+201511280921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092133215] pass: 06 of 15,scan data overflow (ascii abs)
+201511281201Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [120133215] pass: 02 of 15,scan data overflow (ascii rle)
+201511281211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [121133215] pass: 01 of 15,invalid character encountered in ray encoding
+201511281311Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [131133215] pass: 01 of 15,scan data overflow (ascii rle)
+201511281551Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [155133215] pass: 01 of 15,invalid character encountered in ray encoding
+201511281701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [170133215] pass: 09 of 15,invalid character encountered in ray encoding
+201511290631Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [063133315] pass: 14 of 15,scan data overflow (ascii abs)
+201511290651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065133315] pass: 05 of 15,invalid character encountered in ray encoding
+201511290653Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065133315] pass: 06 of 15,invalid character encountered in ray encoding
+201511290751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075133315] pass: 01 of 15,invalid character encountered in ray encoding
+201511290801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [080133315] pass: 02 of 15,scan data overflow (ascii abs)
+201511290821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [082133315] pass: 11 of 15,invalid character encountered in ray encoding
+201511290831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [083133315] pass: 07 of 15,invalid character encountered in ray encoding
+201511290843Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [084133315] pass: 05 of 15,invalid character encountered in ray encoding
+201511290911Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [091133315] pass: 01 of 15,scan data overflow (ascii rle)
+201511290923Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092133315] pass: 10 of 15,scan data overflow (too many rays)
+201511291011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101133315] pass: 01 of 15,invalid character encountered in ray encoding
+201511291105Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110133315] pass: 12 of 15,invalid character encountered in ray encoding
+201511291151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [115133315] pass: 01 of 15,scan data overflow (too many rays)
+201511291211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [121133315] pass: 10 of 15,invalid character encountered in ray encoding
+201511291221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [122133315] pass: 01 of 15,scan data overflow (ascii rle)
+201511291351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [135133315] pass: 01 of 15,invalid ascii ray header
+201511291411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [141133315] pass: 08 of 15,invalid character encountered in ray encoding
+201511301451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [145133415] pass: 01 of 15,scan data overflow (too many rays)
+201511301501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [150133415] pass: 01 of 15,invalid character encountered in ray encoding
+201512020101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [010133615] pass: 01 of 15,scan data overflow (ascii rle)
+201512020141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [014133615] pass: 06 of 15,scan data overflow (ascii abs)
+201512020231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [023133615] pass: 06 of 15,scan data overflow (ascii abs)
+201512020331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [033133615] pass: 09 of 15,scan data overflow (ascii abs)
+201512020621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062133615] pass: 01 of 15,invalid character encountered in ray encoding
+201512070731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [073134115] pass: 09 of 15,invalid character encountered in ray encoding
+201512070741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [074134115] pass: 02 of 15,invalid character encountered in ray encoding
+201512100421Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [042134415] pass: 07 of 15,invalid character encountered in ray encoding
+201512100751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075134415] pass: 04 of 15,invalid character encountered in ray encoding
+201512100852Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085134415] pass: 03 of 15,scan data overflow (too many rays)
+201512111701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [170134515] pass: 06 of 15,scan data overflow (too many rays)
+201512112131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [213134515] pass: 09 of 15,scan data overflow (ascii abs)
+201512112241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224134515] pass: 03 of 15,scan data overflow (ascii delta)
+201512112331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [233134515] pass: 04 of 15,scan data overflow (too many rays)
+201512120141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [014134615] pass: 05 of 15,scan data overflow (ascii abs)
+201512120441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044134615] pass: 03 of 15,invalid character encountered in ray encoding
+201512120941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [094134615] pass: 11 of 15,scan data overflow (too many rays)
+201512130711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071134715] pass: 06 of 15,invalid character encountered in ray encoding
+201512140151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015134815] pass: 01 of 15,scan data overflow (too many rays)
+201512152311Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [231134915] pass: 07 of 15,scan data overflow (ascii abs)
+201512160111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011135015] pass: 06 of 15,invalid ascii ray header
+201512170401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [040135115] pass: 05 of 15,invalid character encountered in ray encoding
+201512171531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [153135115] pass: 05 of 15,scan data overflow (ascii abs)
+201512200531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053135415] pass: 02 of 15,scan data overflow (too many rays)
+201512231411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [141135715] pass: 08 of 15,scan data overflow (too many rays)
+201512231711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [171135715] pass: 02 of 15,scan data overflow (too many rays)
+201512261711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [171136015] pass: 01 of 15,scan data overflow (ascii abs)
+201512261731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [173136015] pass: 08 of 15,scan data overflow (ascii abs)
+201512270751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075136115] pass: 04 of 15,invalid ascii ray header
+201601030221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [022100316] pass: 02 of 15,invalid character encountered in ray encoding
+201601031321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [132100316] pass: 06 of 15,scan data overflow (ascii abs)
+201601041031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103100416] pass: 07 of 15,scan data overflow (ascii abs)
+201601041721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [172100416] pass: 05 of 15,invalid character encountered in ray encoding
+201601041741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [174100416] pass: 13 of 15,invalid character encountered in ray encoding
+201601041801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [180100416] pass: 01 of 15,invalid character encountered in ray encoding
+201601050301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030100516] pass: 09 of 15,scan data overflow (ascii abs)
+201601050401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [040100516] pass: 13 of 15,scan data overflow (ascii abs)
+201601050651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065100516] pass: 02 of 15,invalid character encountered in ray encoding
+201601050901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [090100516] pass: 01 of 15,invalid character encountered in ray encoding
+201601050903Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [090100516] pass: 06 of 15,invalid character encountered in ray encoding
+201601051151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [115100516] pass: 02 of 15,scan data overflow (ascii abs)
+201601052341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [234100516] pass: 03 of 15,scan data overflow (ascii rle)
+201601071901Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [190100716] pass: 10 of 15,invalid character encountered in ray encoding
+201601071902Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [190100716] pass: 10 of 15,invalid character encountered in ray encoding
+201601080121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [012100816] pass: 01 of 15,invalid character encountered in ray encoding
+201601091621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [162100916] pass: 04 of 15,invalid ascii ray header
+201601120701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [070101216] pass: 08 of 15,invalid character encountered in ray encoding
+201601121031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103101216] pass: 03 of 15,scan data overflow (ascii abs)
+201601121051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [105101216] pass: 14 of 15,invalid character encountered in ray encoding
+201601122041Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [204101216] pass: 12 of 15,invalid character encountered in ray encoding
+201601122051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [205101216] pass: 02 of 15,invalid character encountered in ray encoding
+201601122101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [210101216] pass: 03 of 15,invalid character encountered in ray encoding
+201601122121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [212101216] pass: 01 of 15,invalid character encountered in ray encoding
+201601122131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [213101216] pass: 04 of 15,invalid character encountered in ray encoding
+201601122151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [215101216] pass: 07 of 15,invalid character encountered in ray encoding
+201601122241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224101216] pass: 06 of 15,invalid character encountered in ray encoding
+201601130021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [002101316] pass: 03 of 15,invalid character encountered in ray encoding
+201601130121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [012101316] pass: 01 of 15,invalid character encountered in ray encoding
+201601130301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030101316] pass: 02 of 15,invalid character encountered in ray encoding
+201601130521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052101316] pass: 02 of 15,scan data overflow (ascii delta)
+201601130541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [054101316] pass: 03 of 15,invalid character encountered in ray encoding
+201601130601Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [060101316] pass: 02 of 15,invalid character encountered in ray encoding
+201601130621Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [062101316] pass: 05 of 15,scan data overflow (ascii rle)
+201601130651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065101316] pass: 14 of 15,invalid character encountered in ray encoding
+201601130731Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [073101316] pass: 13 of 15,invalid character encountered in ray encoding
+201601130801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [080101316] pass: 03 of 15,invalid character encountered in ray encoding
+201601130841Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [084101316] pass: 06 of 15,invalid character encountered in ray encoding
+201601131001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [100101316] pass: 08 of 15,scan data overflow (ascii rle)
+201601131141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114101316] pass: 01 of 15,invalid character encountered in ray encoding
+201601210651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065102116] pass: 08 of 15,invalid character encountered in ray encoding
+201601221741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [174102216] pass: 07 of 15,invalid character encountered in ray encoding
+201601222251Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [225102216] pass: 02 of 15,invalid character encountered in ray encoding
+201601251031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103102516] pass: 03 of 15,scan data overflow (ascii delta)
+201601251121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [112102516] pass: 13 of 15,invalid character encountered in ray encoding
+201601290341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034102916] pass: 07 of 15,invalid character encountered in ray encoding
+201601290351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [035102916] pass: 03 of 15,scan data overflow (too many rays)
+201601290512Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051102916] pass: 03 of 15,scan data overflow (ascii abs)
+201601300742Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [074103016] pass: 03 of 15,scan data overflow (ascii rle)
+201601300931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [093103016] pass: 05 of 15,scan data overflow (ascii abs)
+201601301111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111103016] pass: 06 of 15,scan data overflow (ascii abs)
+201601301221Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [122103016] pass: 01 of 15,scan data overflow (ascii abs)
+201601301231Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [123103016] pass: 01 of 15,invalid character encountered in ray encoding
+201602011441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [144103216] pass: 08 of 15,invalid character encountered in ray encoding
+201602011811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [181103216] pass: 01 of 15,invalid character encountered in ray encoding
+201602020301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030103316] pass: 06 of 15,invalid character encountered in ray encoding
+201602020711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071103316] pass: 12 of 15,scan data overflow (too many rays)
+201602020941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [094103316] pass: 15 of 15,scan data overflow (ascii abs)
+201602021051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [105103316] pass: 14 of 15,scan data overflow (ascii abs)
+201602021121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [112103316] pass: 01 of 15,scan data overflow (ascii rle)
+201602021941Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [194103316] pass: 15 of 15,invalid character encountered in ray encoding
+201602040521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052103516] pass: 03 of 15,invalid character encountered in ray encoding
+201602052151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [215103616] pass: 10 of 15,invalid character encountered in ray encoding
+201602060351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [035103716] pass: 07 of 15,invalid character encountered in ray encoding
+201602060611Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [061103716] pass: 01 of 15,scan data overflow (ascii delta)
+201602060811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [081103716] pass: 08 of 15,scan data overflow (ascii abs)
+201602130401Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [040104416] pass: 02 of 15,scan data overflow (ascii rle)
+201602130431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043104416] pass: 01 of 15,scan data overflow (ascii rle)
+201602130451Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [045104416] pass: 11 of 15,scan data overflow (too many rays)
+201602141421Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [142104516] pass: 01 of 15,invalid character encountered in ray encoding
+201602141521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [152104516] pass: 01 of 15,scan data overflow (too many rays)
+201602152031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [203104616] pass: 03 of 15,invalid character encountered in ray encoding
+201602170111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [011104816] pass: 06 of 15,invalid character encountered in ray encoding
+201602170121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [012104816] pass: 01 of 15,invalid character encountered in ray encoding
+201602190921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [092105016] pass: 02 of 15,scan data overflow (ascii abs)
+201602190951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [095105016] pass: 01 of 15,invalid character encountered in ray encoding
+201602191001Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [100105016] pass: 11 of 15,scan data overflow (ascii abs)
+201602191011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [101105016] pass: 01 of 15,invalid character encountered in ray encoding
+201602191051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [105105016] pass: 04 of 15,scan data overflow (ascii abs)
+201602191211Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [121105016] pass: 03 of 15,corrupt scan detected (3)
+201603010631Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [063106116] pass: 11 of 15,invalid character encountered in ray encoding
+201603080201Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [020106816] pass: 09 of 15,scan data overflow (ascii rle)
+201603080411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [041106816] pass: 01 of 15,invalid character encountered in ray encoding
+201603100511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051107016] pass: 12 of 15,invalid character encountered in ray encoding
+201501020341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034100215] pass: 12 of 15,invalid character encountered in ray encoding
+201501020351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [035100215] pass: 01 of 15,scan data overflow (ascii abs)
+201501020501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050100215] pass: 06 of 15,scan data overflow (too many rays)
+201501050101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [010100515] pass: 08 of 15,invalid character encountered in ray encoding
+201501081751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [175100815] pass: 04 of 15,invalid character encountered in ray encoding
+201501101851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [185101015] pass: 09 of 15,invalid ascii ray header
+201501120441Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [044101215] pass: 02 of 15,scan data overflow (too many rays)
+201501122031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [203101215] pass: 02 of 15,scan data overflow (ascii abs)
+201501140531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053101415] pass: 10 of 15,invalid character encountered in ray encoding
+201501152321Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [232101515] pass: 07 of 15,invalid ascii ray header
+201501190501Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [050101915] pass: 07 of 15,invalid character encountered in ray encoding
+201501210151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015102115] pass: 01 of 15,invalid character encountered in ray encoding
+201501222051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [205102215] pass: 08 of 15,scan data overflow (ascii abs)
+201501222351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [235102215] pass: 12 of 15,scan data overflow (ascii abs)
+201501230051Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [005102315] pass: 06 of 15,invalid character encountered in ray encoding
+201501230101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [010102315] pass: 10 of 15,scan data overflow (ascii abs)
+201501230531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053102315] pass: 05 of 15,scan data overflow (ascii abs)
+201501230811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [081102315] pass: 07 of 15,scan data overflow (ascii abs)
+201501251111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111102515] pass: 05 of 15,scan data overflow (ascii abs)
+201501270341Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [034102715] pass: 13 of 15,invalid ascii ray header
+201501280241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [024102815] pass: 12 of 15,invalid ascii ray header
+201501310801Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [080103115] pass: 07 of 15,invalid character encountered in ray encoding
+201502041431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143103515] pass: 01 of 15,invalid character encountered in ray encoding
+201502170331Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [033104815] pass: 06 of 15,invalid ascii ray header
+201502190431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [043105015] pass: 02 of 15,scan data overflow (ascii delta)
+201502190651Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [065105015] pass: 05 of 15,scan data overflow (ascii abs)
+201502190701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [070105015] pass: 15 of 15,scan data overflow (ascii abs)
+201502190721Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [072105015] pass: 13 of 15,scan data overflow (ascii abs)
+201502191111Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [111105015] pass: 02 of 15,scan data overflow (ascii delta)
+201502191121Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [112105015] pass: 04 of 15,scan data overflow (ascii abs)
+201502191131Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [113105015] pass: 02 of 15,scan data overflow (ascii rle)
+201502191201Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [120105015] pass: 04 of 15,invalid character encountered in ray encoding
+201502191431Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [143105015] pass: 02 of 15,invalid character encountered in ray encoding
+201502191751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [175105015] pass: 07 of 15,scan data overflow (ascii abs)
+201502192241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224105015] pass: 06 of 15,scan data overflow (ascii abs)
+201502201931Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [193105115] pass: 12 of 15,scan data overflow (ascii abs)
+201502261921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [192105715] pass: 12 of 15,scan data overflow (ascii abs)
+201503050511Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [051106415] pass: 08 of 15,invalid character encountered in ray encoding
+201503050521Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [052106415] pass: 13 of 15,invalid character encountered in ray encoding
+201503161701Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [170107515] pass: 06 of 15,invalid ascii ray header
+201503172241Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [224107615] pass: 03 of 15,invalid character encountered in ray encoding
+201503180011Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [001107715] pass: 03 of 15,invalid character encountered in ray encoding
+201503191101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110107815] pass: 03 of 15,invalid ascii ray header
+201503191811Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [181107815] pass: 04 of 15,scan data overflow (too many rays)
+201503210751Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [075108015] pass: 03 of 15,scan data overflow (ascii abs)
+201503211031Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [103108015] pass: 12 of 15,scan data overflow (ascii abs)
+201503222301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [230108115] pass: 04 of 15,invalid character encountered in ray encoding
+201503251021Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [102108415] pass: 08 of 15,scan data overflow (ascii abs)
+201503251631Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [163108415] pass: 12 of 15,invalid character encountered in ray encoding
+201503260821Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [082108515] pass: 01 of 15,scan data overflow (ascii abs)
+201503310831Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [083109015] pass: 08 of 15,invalid character encountered in ray encoding
+201503311921Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [192109015] pass: 02 of 15,invalid character encountered in ray encoding
+201503311951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [195109015] pass: 01 of 15,invalid character encountered in ray encoding
+201504030151Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [015109315] pass: 14 of 15,invalid character encountered in ray encoding
+201504040741Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [074109415] pass: 14 of 15,invalid character encountered in ray encoding
+201504041141Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [114109415] pass: 08 of 15,scan data overflow (ascii abs)
+201504060932Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [093109615] pass: 02 of 15,scan data overflow (ascii abs)
+201504061101Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [110109615] pass: 08 of 15,invalid character encountered in ray encoding
+201504070301Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [030109715] pass: 05 of 15,invalid character encountered in ray encoding
+201504071541Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [154109715] pass: 03 of 15,invalid ascii ray header
+201504091411Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [141109915] pass: 04 of 15,invalid character encountered in ray encoding
+201504181351Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [135110815] pass: 06 of 15,invalid character encountered in ray encoding
+201504200531Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [053111015] pass: 07 of 15,scan data overflow (ascii abs)
+201504200711Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [071111015] pass: 11 of 15,scan data overflow (ascii abs)
+201504200851Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [085111015] pass: 03 of 15,scan data overflow (ascii abs)
+201504251951Marburg.rapic,fatal exception: failed to decode scan stnid: 50 name: Marburg  product: VOLUMETRIC [195111515] pass: 13 of 15,scan data overflow (ascii abs)

@@ -22,8 +22,8 @@ if sout~=0 || isempty(eout)
     return
 end
 %convert json to struct
-jstruct     = loadjson('tmp/eout.json','SimplifyCell',1,'FastArrayParser',1);
-%jstruct    = json_read('tmp/eout.json');
+%jstruct    = loadjson('tmp/eout.json','SimplifyCell',1,'FastArrayParser',1);
+jstruct    = json_read('tmp/eout.json');
 if ~isempty(jstruct)
     jstruct = jstruct.Items;
 end
