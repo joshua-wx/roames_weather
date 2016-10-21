@@ -9,6 +9,7 @@ function prep
 %move to dynamodb for remote?)
 
 if ~isdeployed
+    addpath('/home/meso/Dropbox/dev/wv/etc');
     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
     unix('touch tmp/kill_prep');
@@ -22,10 +23,15 @@ addpath('etc/');
 addpath('tmp/');
 
 
-%load global config file
-config_input_path = 'config';
+%load ftp config file
+config_input_path = 'prep.config';
 read_config(config_input_path);
 load(['tmp/',config_input_path,'.mat'])
+
+% Load global config files
+global_config_fn = 'global.config';
+read_config(global_config_fn);
+load(['tmp/',global_config_fn,'.mat']);
 
 %init local mirror folder
 local_mirror_path = [tempdir,'rapic_mirror'];
@@ -48,8 +54,8 @@ fetch_h5_fn        = {};
 
 while exist('tmp/kill_prep','file')==2 %run loop while script termination control still exists
     %be nice to server
-    disp('pausing for 10s')
-    pause(10)
+    disp('pausing for 2s')
+    pause(2)
     
     %Kill function
     if toc(kill_timer)>kill_wait
@@ -178,7 +184,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,odimh5_ddb_table);
+        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,staging_ddb_table);
         disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
@@ -342,15 +348,21 @@ h5_ffn           = [archive_dest,h5_fn];
 %move to required directory
 file_mv(tmp_h5_ffn,h5_ffn);
 
-%write to dynamo db
+%write to staging dynamo db
+data_id                         = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd'),'_',datestr(h5_start_dt,'HHMMSS')];
 ddb_struct                      = struct;
-ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
-ddb_struct.start_timestamp.S    = datestr(h5_start_dt,'yyyy-mm-ddTHH:MM:SS');
-ddb_struct.h5_size.N            = num2str(h5_size);
+ddb_struct.data_type.S          = 'odimh5';
+ddb_struct.data_id.S            = data_id;
 ddb_struct.h5_ffn.S             = h5_ffn;
-ddb_struct.sig_refl_flag.N      = '0';
-
 ddb_put_item(ddb_struct,ddb_table)
+% ddb_struct                      = struct;
+% ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
+% ddb_struct.start_timestamp.S    = datestr(h5_start_dt,'yyyy-mm-ddTHH:MM:SS');
+% ddb_struct.h5_size.N            = num2str(h5_size);
+% ddb_struct.h5_ffn.S             = h5_ffn;
+% ddb_struct.sig_refl_flag.N      = '0';
+% 
+% ddb_put_item(ddb_struct,ddb_table)
 
 
 %remove tmp rapic file

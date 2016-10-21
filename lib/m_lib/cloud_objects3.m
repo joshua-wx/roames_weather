@@ -104,7 +104,12 @@ for i=1:length(odimh5_jstruct)
             subset_id_n       = str2num(subset_id(end-2:end));
             subset_tag        = [num2str(vol_radar_id,'%02.0f'),'_',datestr(vol_start_td,r_tfmt),'_',subset_id(end-2:end)];
             %load storm refl vol
-            storm_data_struct = h5_data_read(h5_data_fn,data_path,subset_id_n);
+            try
+                storm_data_struct = h5_data_read(h5_data_fn,data_path,subset_id_n);
+            catch
+                display(['skipped ',subset_id])
+                continue
+            end
             storm_refl_vol    = double(storm_data_struct.refl_vol./r_scale);
             %refl x section
             if options(5)==1

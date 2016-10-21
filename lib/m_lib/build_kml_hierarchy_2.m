@@ -1,4 +1,4 @@
-function build_kml_hierarchy_2(force_del,root,site_no_selection)
+function build_kml_hierarchy(force_del,root,site_no_selection)
 %WHAT
 %Performs the following tasks to prepare for the execution of the
 %ge_update_heirarchy script

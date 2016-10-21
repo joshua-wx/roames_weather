@@ -4,7 +4,7 @@ function broken_vol_stat
 %and lists the error codes, grouping by most common error.
 
 %init vars
-radar_id       = 50;
+radar_id       = 54;
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/broken_vols/';
 s3_bucket      = 's3://roames-wxradar-archive/';

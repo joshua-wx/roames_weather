@@ -16,7 +16,7 @@ process_config_fn = 'process.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
-download_path     = [tmp_config_path,'h5_download/'];
+download_path     = [tempdir,'h5_download/'];
 
 if exist(tmp_config_path,'file') ~= 7
     mkdir(tmp_config_path)
@@ -122,17 +122,16 @@ while exist('tmp/kill_process','file')==2
         
         %fetch files
         if realtime_flag == 1
-            %realtime odimh5 file fetch
-            newest_time = date_list(d);
-            oldest_time = addtodate(date_list(d),realtime_offset,'hour');
             %Produce a list of filenames to process
-            [fetch_h5_ffn_list,fetch_h5_fn_list]  = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag);
+            oldest_time                           = addtodate(date_list,realtime_offset,'hour');
+            newest_time                           = date_list;
+            [fetch_h5_ffn_list,fetch_h5_fn_list]  = realtime_file_filter(staging_ddb_table,oldest_time,newest_time,radar_id_list);
             new_index                             = ~ismember(fetch_h5_fn_list,complete_h5_fn_list);
             fetch_h5_ffn_list                     = fetch_h5_ffn_list(new_index);
             %update user
             disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
             for i=1:length(fetch_h5_ffn_list)
-                file_cp(fetch_h5_ffn_list{i},download_path,0)
+                file_cp(fetch_h5_ffn_list{i},download_path,0,1)
             end
         else
             radar_id = radar_id_list(1); %only has one entry for climatology processing
@@ -140,9 +139,10 @@ while exist('tmp/kill_process','file')==2
             s3_path  = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
             %update user
             disp(['Climatology processing downloading files from ',s3_path]);
-            file_cp(s3_path,download_path,1)
+            file_cp(s3_path,download_path,1,1)
         end
-        
+        %wait for aws process to finish
+        wait_aws_finish
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
         pending_h5_fn_list = {download_path_dir.name};
@@ -252,7 +252,7 @@ while exist('tmp/kill_process','file')==2
     end
     
     %Update user and clear pending list
-    disp([10,'Processing complete',10])
+    disp(['Processing complete at ',datestr(now),10])
     
     %rotate ddb, cp_file, and qa logs to 200kB
     unix(['tail -c 200kB  etc/log.qa > etc/log.qa']);
@@ -264,6 +264,8 @@ while exist('tmp/kill_process','file')==2
         delete('tmp/kill_process')
         break
     end
+    
+    pause(2)
     
 end
 catch err
@@ -279,7 +281,7 @@ end
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 %profile off
 %profile viewer
-function [pending_ffn_list,pending_fn_list] = realtime_file_filter(odimh5_ddb_table,oldest_time,newest_time,radar_id_list,realtime_flag)
+function [pending_ffn_list,pending_fn_list] = realtime_file_filter(ddb_table,oldest_time,newest_time,radar_id_list)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -291,41 +293,57 @@ function [pending_ffn_list,pending_fn_list] = realtime_file_filter(odimh5_ddb_ta
 %OUTPUT
 %pending_list: updated list of all processed ftp files
 
-load('tmp/global.config.mat')
-load('tmp/interp_cmaps.mat')
-
 %init pending_list
 pending_ffn_list = {};
 pending_fn_list  = {};
-%read index files
-for i=1:length(radar_id_list)
-    radar_id      = num2str(radar_id_list(i),'%02.0f');
-    start_datestr = datestr(oldest_time,ddb_tfmt);
-    stop_datestr  = datestr(newest_time,ddb_tfmt);
-    %run a query for a radar_id, between for time and no processed
-    %(sig_refl)
-    disp(['ddb query: ',start_datestr,' ',radar_id])
-    p_exp   = 'h5_ffn,sig_refl_flag'; %attributes to return
-    jstruct = ddb_query('radar_id',radar_id,'start_timestamp',start_datestr,stop_datestr,p_exp,odimh5_ddb_table);
-    if isempty(jstruct)
-        continue
+%read staging index
+p_exp            = 'data_type,data_id,h5_ffn'; %attributes to return
+jstruct          = ddb_query_part('data_type','odimh5','S',p_exp,ddb_table);
+pending_ffn_list = jstruct_to_mat([jstruct.h5_ffn],'S');
+for j=1:length(pending_ffn_list)
+    [~,fn,ext] = fileparts(pending_ffn_list{j});
+    tmp_radar_id    = str2num(fn(1:2));
+    tmp_timestamp   = datenum(fn(4:end),'yyyymmdd_HHMMSS');
+    %filter
+    if any(ismember(tmp_radar_id,radar_id_list)) && tmp_timestamp>=oldest_time && tmp_timestamp<=newest_time
+        pending_fn_list = [pending_fn_list;[fn,ext]];
+        pending_ffn_list = [pending_ffn_list;pending_ffn_list{j}];
+        %clean ddb table
+        delete_struct           = struct;
+        delete_struct.data_id   = jstruct(j).data_id;
+        delete_struct.data_type = jstruct(j).data_type;
+        ddb_rm_item(delete_struct,ddb_table);  
     end
-    %convert jstruct fields to arrays
-    tmp_sig_refl_flag = jstruct_to_mat([jstruct.sig_refl_flag],'N');
-    tmp_h5_ffn        = jstruct_to_mat([jstruct.h5_ffn],'S');
-    %filter for realtime
-    if realtime_flag==1
-        tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
-    end
-    %append to list unprocessed files
-    pending_ffn_list = [pending_ffn_list;tmp_h5_ffn];
-    tmp_h5_fn = {};
-    for j=1:length(tmp_h5_ffn)
-        [~,fn,ext] = fileparts(tmp_h5_ffn{j});
-        tmp_h5_fn = [tmp_h5_fn;[fn,ext]];
-    end
-    pending_fn_list = [pending_fn_list;tmp_h5_fn];
 end
+
+% for i=1:length(radar_id_list)
+%     radar_id      = num2str(radar_id_list(i),'%02.0f');
+%     start_datestr = datestr(oldest_time,ddb_tfmt);
+%     stop_datestr  = datestr(newest_time,ddb_tfmt);
+%     %run a query for a radar_id, between for time and no processed
+%     %(sig_refl)
+%     disp(['ddb query: ',start_datestr,' ',radar_id])
+%     p_exp   = 'ffn'; %attributes to return
+%     jstruct = ddb_query('radar_id',radar_id,'start_timestamp',start_datestr,stop_datestr,p_exp,odimh5_ddb_table);
+%     if isempty(jstruct)
+%         continue
+%     end
+%     %convert jstruct fields to arrays
+%     tmp_sig_refl_flag = jstruct_to_mat([jstruct.sig_refl_flag],'N');
+%     tmp_h5_ffn        = jstruct_to_mat([jstruct.h5_ffn],'S');
+%     %filter for realtime
+%     if realtime_flag==1
+%         tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
+%     end
+%     %append to list unprocessed files
+%     pending_ffn_list = [pending_ffn_list;tmp_h5_ffn];
+%     tmp_h5_fn = {};
+%     for j=1:length(tmp_h5_ffn)
+%         [~,fn,ext] = fileparts(tmp_h5_ffn{j});
+%         tmp_h5_fn = [tmp_h5_fn;[fn,ext]];
+%     end
+%     pending_fn_list = [pending_fn_list;tmp_h5_fn];
+% end
 
 
 
@@ -373,13 +391,16 @@ end
 jstruct = ddb_get_item(odimh5_ddb_table,...
     'radar_id','N',num2str(radar_id,'%02.0f'),...
     'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
-%update jstruct
-if isempty(jstruct)
-    display('entry missing from odimh5 ddb')
-    log_cmd_write('tmp/odimh5_ddb_missing.log',tar_fn,'entry missing from odimh5 ddb','');
-    return
+%update init_sig_relf_flag
+if ~isempty(jstruct)
+    init_sig_relf_flag = jstruct.Item.sig_refl_flag.N;
+else
+    init_sig_relf_flag = 0;
+    jstruct            = struct;
 end
-init_sig_relf_flag            = jstruct.Item.sig_refl_flag.N;
+
+jstruct.Item.radar_id.N       = num2str(radar_id,'%02.0f');
+jstruct.Item.start_timestamp.S= datestr(vol_obj.start_timedate,ddb_tfmt);
 jstruct.Item.sig_refl_flag.N  = num2str(vol_obj.sig_refl);
 jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
 jstruct.Item.tilt2.N          = num2str(vol_obj.tilt2);
