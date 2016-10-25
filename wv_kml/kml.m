@@ -16,10 +16,7 @@ site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
 complete_h5_dt    = [];
 complete_h5_rid   = [];
-download_path     = [tempdir,'h5_download/'];
-if exist(download_path,'file')~=7
-    mkdir(download_path)
-end
+object_struct     = [];
 
 % Add folders to path and read config files
 addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
@@ -60,6 +57,18 @@ else
     dest_root = s3_dest_root;
 end
 
+%create path as required
+if exist(download_path,'file')~=7;
+    mkdir(download_path);
+end
+if local_dest_flag==1
+    if exist(dest_root,'file')~=7;  mkdir(dest_root); end
+    if exist([dest_root,overlays_path],'file')~=7;  mkdir([dest_root,overlays_path]); end
+    if exist([dest_root,scan_obj_path],'file')~=7;  mkdir([dest_root,scan_obj_path]); end
+    if exist([dest_root,track_obj_path],'file')~=7; mkdir([dest_root,track_obj_path]); end
+    if exist([dest_root,cell_obj_path],'file')~=7;  mkdir([dest_root,cell_obj_path]); end
+end
+
 %build root kml
 build_kml_root(dest_root,radar_id_list)
 
@@ -81,75 +90,101 @@ while true
     oldest_time_str = datestr(oldest_time,ddb_tfmt);
     newest_time_str = datestr(newest_time,ddb_tfmt);
     
+    %% download realtime data
     %empty download path
     delete([download_path,'*'])
     vol_updated   = 0;
     odim_jstruct  = '';
     download_list = {};
-    %check index for new files and download
-    for i=1:length(radar_id_list);
-        
-        %init query vars
-        radar_id        = radar_id_list(i);
-        radar_id_str    = num2str(radar_id,'%02.0f');
-        oldest_time_str = datestr(oldest_time,ddb_tfmt);
-        newest_time_str = datestr(newest_time,ddb_tfmt);
-        odimh5_atts     = 'radar_id,start_timestamp,sig_refl_flag,img_latlonbox,tilt1,tilt2,vel_ni';
-        odimh5_atts_n   = 7; %change to suit odimh5_atts
-        %query databases
-        display(['ddb query for radar ',radar_id_str])
-        tic
-        tmp_odim_jstruct  = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
-        toc
-        %continue to next radar_id if empty
+    %read staging index
+    [download_ffn_list,download_fn_list] = staging_ddb_filter(staging_ddb_table,oldest_time,newest_time,radar_id_list,'storm');
+    for j=1:length(download_fn_list)
+        tmp_radar_id   = str2num(download_fn_list{j}(1:2));
+        tmp_time_stamp = datenum(download_fn_list{j}(4:end-3),'yyyymmdd_HHMMSS'); 
+        if any(tmp_time_stamp == complete_h5_dt & tmp_radar_id == complete_h5_rid)
+            %skip file download, already processed
+            continue
+        else
+            %add to index
+            complete_h5_dt  = [complete_h5_dt;tmp_time_stamp];
+            complete_h5_rid = [complete_h5_rid;tmp_radar_id];
+            vol_updated     = vol_updated+1;
+        end
+        %download data file and untar into download_path
+        display(['s3 cp of ',download_fn_list{j}])
+        file_cp(download_ffn_list{j},download_path,0,1);
+        download_list   = [download_list;download_fn_list{j}];
+    end 
+    %wait for aws processes to finish
+    wait_aws_finish
+    %untar files and create radar_id list
+    radar_id_list = [];
+    for i=1:length(download_list)
+        radar_id_list = [radar_id_list;str2num(download_list{i}(1:2))];
+        untar([download_path,download_list{i}],download_path)
+    end
+    
+    %% process volumes to kml objects
+    uniq_radar_id_list = unique(radar_id_list);
+    for i=1:length(uniq_radar_id_list)
+        radar_id      = uniq_radar_id_list(i);
+        tmp_fn_list   = download_list(radar_id_list==radar_id);
+        object_struct = storms_to_kml(object_struct,radar_id,oldest_time,newest_time,tmp_fn_list,dest_root,options);
+    end
+    %% clean object_struct
+    
+    %% generate kml nl layers
+    
+    %% query odimh5 and storm ddb for required storm ids
+    odimh5_atts       = 'radar_id,start_timestamp,sig_refl_flag,img_latlonbox,tilt1,tilt2,vel_ni';
+odimh5_atts_n     = 7; %change to suit odimh5_atts
+storm_atts        = 'subset_id,start_timestamp,track_id,storm_dbz_centlat,storm_dbz_centlon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+storm_atts_n      = 12; %change to suit odimh5_atts
+
+
+    uniq_radar_id_list = unique(radar_id_list);
+    odim_jstruct  = [];
+    storm_jstruct = [];
+    for i=1:length(uniq_radar_id_list)
+        radar_id_str    = num2str(uniq_radar_id_list(i));
+        %odimh5 ddb
+        display(['query ',odimh5_ddb_table,' for ',radar_id_str])
+        tmp_odim_jstruct = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
         if isempty(tmp_odim_jstruct)
             continue
         end
-        %removed unprocessed odimh5 entries if returned as cell
         if iscell(tmp_odim_jstruct)
             display('unprocessed objects removed from odim_jstruct')
             tmp_odim_jstruct = clean_jstruct(tmp_odim_jstruct,odimh5_atts_n);
         end
-        
-        %download storm data files for each timestamp
-        start_timestamp_str = jstruct_to_mat([tmp_odim_jstruct.start_timestamp],'S');
-        start_timestamp     = datenum(start_timestamp_str,ddb_tfmt);
-        for j=1:length(start_timestamp)
-            if any(start_timestamp(j) == complete_h5_dt & radar_id == complete_h5_rid)
-                %skip file download, already processed
+        %storm ddb
+        sig_refl_flag = jstruct_to_mat([tmp_odim_jstruct.sig_refl_flag],'N');
+        if any(sig_refl_flag)
+            display(['query ',storm_ddb_table,' for ',radar_id_str])
+            tmp_storm_jstruct = ddb_query('radar_id',radar_id_str,'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+            if isempty(tmp_odim_jstruct)
                 continue
-            else
-                %add to index
-                complete_h5_dt  = [complete_h5_dt;start_timestamp(j)];
-                complete_h5_rid = [complete_h5_rid;radar_id];
-                vol_updated     = vol_updated+1;
             end
-            %download data file and untar into download_path
-            date_vec        = datevec(start_timestamp(j));
-            data_fn         = [radar_id_str,'_',datestr(start_timestamp(j),r_tfmt),'.wv.tar'];
-            storm_arch_path = [src_root,radar_id_str,'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/',data_fn];
-            display(['s3 cp of ',data_fn])
-            file_cp(storm_arch_path,download_path,0,1);
-            download_list   = [download_list;data_fn];
-        end
-        
-        %append odim_jstruct
-        if isempty(odim_jstruct)
-            odim_jstruct  = tmp_odim_jstruct;
+            if iscell(tmp_storm_jstruct)
+                display('unprocessed objects removed from storm_jstruct')
+                tmp_storm_jstruct = clean_jstruct(tmp_storm_jstruct,odimh5_atts_n);
+            end
         else
-            odim_jstruct  = [odim_jstruct,tmp_odim_jstruct];
+            tmp_storm_jstruct = [];
         end
+        %append
+        odim_jstruct  = [odim_jstruct,tmp_odim_jstruct];
+        storm_jstruct = [storm_jstruct,tmp_storm_jstruct];
     end
-    %wait for aws processes to finish
-    wait_aws_finish
+        
+    %todo:
+    %pass jstructs to objects scripts. These files loop through listing and
+    %create new kml objects
+    %need a way of keeping kml object lists and cleaning them with time
+    %cell array of time + list of file objects? pretty easy
     
-    %untar files
-    for i=1:length(download_list)
-        untar([download_path,download_list{i}])
-    end
-
-    %generate scan objects
-    %kml_scan_objects(download_path,odim_jstruct,dest_root,options);
+    %generate ppi objects
+    %kml_ppi_objects(download_path,odim_jstruct,dest_root,options);
     
     %generate track objects
     %kml_track_objects(download_path,odim_jstruct,storm_jstruct,dest_root,options);

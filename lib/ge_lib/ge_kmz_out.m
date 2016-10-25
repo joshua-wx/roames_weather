@@ -1,4 +1,4 @@
-function ge_kmz_out(kmzfilename,kml_str,destination_folder,cappi_path)
+function kmz_dest_ffn = ge_kmz_out(kmzfilename,kml_str,destination_folder,cappi_path)
 %HELP
 %Writes doc.kml containing kml_str to tempdir, then zips and
 %renames the extension to kmz and moves it to the destination folder.
@@ -37,15 +37,12 @@ if isempty(cappi_path)
 else
     if iscell(cappi_path)
         zip([tempdir,kmzfilename],{[tempdir,kmlfilename],cappi_path{:}});
-%         for i=1:length(cappi_path)
-%             delete(cappi_path{i});
-%         end
     else
         zip([tempdir,kmzfilename],{[tempdir,kmlfilename],cappi_path});
-%        delete(cappi_path);
     end
     delete([tempdir,kmlfilename]);
 end
-    
-movefile([tempdir,kmzfilename,'.zip'],[destination_folder,kmzfilename]);
-
+%move to dest
+kmz_src_ffn  = [tempdir,kmzfilename,'.zip'];
+kmz_dest_ffn = [destination_folder,kmzfilename];
+file_mv(kmz_src_ffn,kmz_dest_ffn);

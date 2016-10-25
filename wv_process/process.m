@@ -125,7 +125,7 @@ while exist('tmp/kill_process','file')==2
             %Produce a list of filenames to process
             oldest_time                           = addtodate(date_list,realtime_offset,'hour');
             newest_time                           = date_list;
-            [fetch_h5_ffn_list,fetch_h5_fn_list]  = realtime_file_filter(staging_ddb_table,oldest_time,newest_time,radar_id_list);
+            [fetch_h5_ffn_list,fetch_h5_fn_list]  = staging_ddb_filter(staging_ddb_table,oldest_time,newest_time,radar_id_list,'odimh5');
             new_index                             = ~ismember(fetch_h5_fn_list,complete_h5_fn_list);
             fetch_h5_ffn_list                     = fetch_h5_ffn_list(new_index);
             %update user
@@ -200,7 +200,7 @@ while exist('tmp/kill_process','file')==2
                 prc_obj = {};
             end
             
-            update_archive(dest_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table)
+            update_archive(dest_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag)
 
             %run tracking algorithm if sig_refl has been detected
             if vol_obj.sig_refl==1 && ~isempty(prc_obj)
@@ -222,8 +222,8 @@ while exist('tmp/kill_process','file')==2
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt   = [complete_h5_dt;start_dt];
-                clean_idx        = complete_h5_dt < oldest_time;
+                complete_h5_dt      = [complete_h5_dt;start_dt];
+                clean_idx           = complete_h5_dt < oldest_time;
                 complete_h5_fn_list(clean_idx) = [];
                 complete_h5_dt(clean_idx)   = [];
             end
@@ -281,73 +281,8 @@ end
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 %profile off
 %profile viewer
-function [pending_ffn_list,pending_fn_list] = realtime_file_filter(ddb_table,oldest_time,newest_time,radar_id_list)
-%WHAT: filters files in scr_dir using the time and site no criteria.
 
-%INPUT
-%src_dir (see wv_process input)
-%oldest_time: oldest time to crop files to (in datenum)
-%newest_time: newest time to crop files to (in datenum)
-%radar_id_list: site ids of selected radar sites
-
-%OUTPUT
-%pending_list: updated list of all processed ftp files
-
-%init pending_list
-pending_ffn_list = {};
-pending_fn_list  = {};
-%read staging index
-p_exp            = 'data_type,data_id,h5_ffn'; %attributes to return
-jstruct          = ddb_query_part('data_type','odimh5','S',p_exp,ddb_table);
-pending_ffn_list = jstruct_to_mat([jstruct.h5_ffn],'S');
-for j=1:length(pending_ffn_list)
-    [~,fn,ext] = fileparts(pending_ffn_list{j});
-    tmp_radar_id    = str2num(fn(1:2));
-    tmp_timestamp   = datenum(fn(4:end),'yyyymmdd_HHMMSS');
-    %filter
-    if any(ismember(tmp_radar_id,radar_id_list)) && tmp_timestamp>=oldest_time && tmp_timestamp<=newest_time
-        pending_fn_list = [pending_fn_list;[fn,ext]];
-        pending_ffn_list = [pending_ffn_list;pending_ffn_list{j}];
-        %clean ddb table
-        delete_struct           = struct;
-        delete_struct.data_id   = jstruct(j).data_id;
-        delete_struct.data_type = jstruct(j).data_type;
-        ddb_rm_item(delete_struct,ddb_table);  
-    end
-end
-
-% for i=1:length(radar_id_list)
-%     radar_id      = num2str(radar_id_list(i),'%02.0f');
-%     start_datestr = datestr(oldest_time,ddb_tfmt);
-%     stop_datestr  = datestr(newest_time,ddb_tfmt);
-%     %run a query for a radar_id, between for time and no processed
-%     %(sig_refl)
-%     disp(['ddb query: ',start_datestr,' ',radar_id])
-%     p_exp   = 'ffn'; %attributes to return
-%     jstruct = ddb_query('radar_id',radar_id,'start_timestamp',start_datestr,stop_datestr,p_exp,odimh5_ddb_table);
-%     if isempty(jstruct)
-%         continue
-%     end
-%     %convert jstruct fields to arrays
-%     tmp_sig_refl_flag = jstruct_to_mat([jstruct.sig_refl_flag],'N');
-%     tmp_h5_ffn        = jstruct_to_mat([jstruct.h5_ffn],'S');
-%     %filter for realtime
-%     if realtime_flag==1
-%         tmp_h5_ffn = tmp_h5_ffn(tmp_sig_refl_flag==0);
-%     end
-%     %append to list unprocessed files
-%     pending_ffn_list = [pending_ffn_list;tmp_h5_ffn];
-%     tmp_h5_fn = {};
-%     for j=1:length(tmp_h5_ffn)
-%         [~,fn,ext] = fileparts(tmp_h5_ffn{j});
-%         tmp_h5_fn = [tmp_h5_fn;[fn,ext]];
-%     end
-%     pending_fn_list = [pending_fn_list;tmp_h5_fn];
-% end
-
-
-
-function update_archive(dest_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table)
+function update_archive(dest_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
@@ -406,7 +341,7 @@ jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
 jstruct.Item.tilt2.N          = num2str(vol_obj.tilt2);
 jstruct.Item.vel_ni.N         = num2str(vol_obj.vel_ni);
 jstruct.Item.img_latlonbox.S  = num2str(scaled_llb);
-%write back to ddb
+%write to odimh5 ddb
 ddb_put_item(jstruct.Item,odimh5_ddb_table);
 %convert refl images to png
 refl_transp  = ones(length(interp_refl_cmap),1); refl_transp(1) = 0;
@@ -494,6 +429,7 @@ if ~isempty(storm_obj)
     if exist(tmp_h5_ffn,'file') == 2
         tar_ffn_list = [tar_ffn_list;h5_fn];
     end
+    
 end
 
 %tar data and move to s3
@@ -509,6 +445,15 @@ cmd         = ['tar -C ',tempdir,' -cvf ',tmp_tar_ffn,' -T etc/tar_ffn_list.txt'
 file_mv(tmp_tar_ffn,dst_tar_ffn);
 for i=1:length(tar_ffn_list)
     delete([tempdir,tar_ffn_list{i}]);
+end
+%add new entry to staging ddb for realtime processing
+if realtime_flag == 1
+    data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
+    ddb_staging                      = struct;
+    ddb_staging.data_type.S          = 'storm';
+    ddb_staging.data_id.S            = data_id;
+    ddb_staging.h5_ffn.S             = dst_tar_ffn;
+    ddb_put_item(ddb_staging,staging_ddb_table)
 end
 
 

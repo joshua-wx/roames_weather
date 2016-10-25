@@ -28,5 +28,5 @@ out=['<NetworkLink>',10,...
         '</Link>',10,...
      '</NetworkLink>',10];
     
-kml_str=[out,kml_str];
+kml_str=[kml_str,out];
     
