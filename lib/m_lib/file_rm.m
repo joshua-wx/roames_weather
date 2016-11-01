@@ -13,9 +13,9 @@ if strcmp(delete_ffn(1:2),'s3')
     cmd         = [prefix_cmd,'aws s3 rm --quiet ',recur_str,delete_ffn,' >> tmp/log.rm 2>&1 &'];
     [sout,eout] = unix(cmd);
 else
-    if exists(delete_ffn,'file')==2
+    if exist(delete_ffn,'file')==2
         delete(delete_ffn)
-    elseif exists(delete_ffn,'file')==7
+    elseif exist(delete_ffn,'file')==7
         rmdir(delete_ffn,'s')
     end
 end

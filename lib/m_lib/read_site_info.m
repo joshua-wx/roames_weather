@@ -9,7 +9,7 @@ try
     %set variables
     site_id_list     = site_info{1};
     site_s_name_list = site_info{2};
-    site_lat_list    = cell2mat(site_info(3));
+    site_lat_list    = -cell2mat(site_info(3));
     site_lon_list    = cell2mat(site_info(4));
     site_elv_list    = cell2mat(site_info(5));
     site_centroid    = [site_lat_list,site_lon_list,site_elv_list];

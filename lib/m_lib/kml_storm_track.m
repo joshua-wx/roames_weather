@@ -1,4 +1,4 @@
-function nl_out=storm_path(init_jstruct,finl_jstruct,kml_dir,stm_id,region,start_td,stop_td,cur_vis)
+function track_kml = kml_storm_track(track_kml,track_jstruct,track_id)
 %WHAT: Generates a storm track kml file using the inputted init and finl
 %ident pair.
 
@@ -20,6 +20,9 @@ load('tmp/global.config.mat');
 load('tmp/kml.config.mat');
 %generate the starting and ending coords of the line string segments
 
+init_jstruct = track_jstruct(1:end-1);
+finl_jstruct = track_jstruct(2:end);
+
 start_lat_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlat],'N')./geo_scale;
 start_lon_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlon],'N')./geo_scale;
 end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlat],'N')./geo_scale;
@@ -32,7 +35,7 @@ if path_color_id > max_vis_trck_length
 end
 
 %generate kml, write to file and create networklinks for the tracks data
-path_tag     = ['stm_path_',stm_id];
-cellpath_kml = ge_line_string('',1,'line string',['../doc.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);
-ge_kmz_out(path_tag,cellpath_kml,[kml_dir,storm_data_path],'');
-nl_out       = ge_networklink('',path_tag,[storm_data_path,path_tag,'.kmz'],0,0,'',region,datestr(start_td,ge_tfmt),datestr(stop_td,ge_tfmt),cur_vis);
+name        = ['track_id_',num2str(track_id)];
+tmp_kml     = ge_line_string('',1,name,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);
+%append to kml
+track_kml   = ge_folder(track_kml,tmp_kml,name,'',1);

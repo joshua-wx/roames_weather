@@ -25,6 +25,7 @@ end
 % setup kill time (restart program to prevent memory fragmentation)
 kill_wait  = 60*60*2; %kill time in seconds
 kill_timer = tic; %create timer object
+unix('touch tmp/kill_process');
 
 % Add folders to path and read config files
 if ~isdeployed
@@ -40,10 +41,6 @@ else
     addpath('etc')
     addpath('tmp')
     %never include mex file paths in addpath when compiled!!!!!!!!!!!
-end
-
-if exist('tmp','file')~=7
-    mkdir('tmp')
 end
 
 % load process_config
@@ -125,7 +122,7 @@ while exist('tmp/kill_process','file')==2
             %Produce a list of filenames to process
             oldest_time                           = addtodate(date_list,realtime_offset,'hour');
             newest_time                           = date_list;
-            [fetch_h5_ffn_list,fetch_h5_fn_list]  = staging_ddb_filter(staging_ddb_table,oldest_time,newest_time,radar_id_list,'odimh5');
+            [fetch_h5_ffn_list,fetch_h5_fn_list]  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'odimh5');
             new_index                             = ~ismember(fetch_h5_fn_list,complete_h5_fn_list);
             fetch_h5_ffn_list                     = fetch_h5_ffn_list(new_index);
             %update user
@@ -258,6 +255,7 @@ while exist('tmp/kill_process','file')==2
     unix(['tail -c 200kB  etc/log.qa > etc/log.qa']);
     unix(['tail -c 200kB  etc/log.ddb > etc/log.ddb']);
     unix(['tail -c 200kB  etc/log.cp > etc/log.cp']);
+    unix(['tail -c 200kB  etc/log.rm > etc/log.rm']);
     
     %break loop if cts_loop=0
     if realtime_flag==0
@@ -265,7 +263,8 @@ while exist('tmp/kill_process','file')==2
         break
     end
     
-    pause(2)
+    disp('pausing for 5s')
+    pause(5)
     
 end
 catch err

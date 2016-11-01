@@ -5,7 +5,7 @@ while true
     [~,eout] = unix('pgrep aws | wc -l');
     if str2num(eout)>0
         pause(0.2);
-        display(['aws processing running ',eout]);
+        display(['aws jobs running: ',eout]);
     else
         break
     end

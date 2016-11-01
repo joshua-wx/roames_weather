@@ -1,4 +1,4 @@
-function [pending_ffn_list,pending_fn_list] = staging_ddb_filter(ddb_table,oldest_time,newest_time,radar_id_list,obj_type)
+function [pending_ffn_list,pending_fn_list] = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,obj_type)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -16,6 +16,9 @@ pending_fn_list  = {};
 %read staging index
 p_exp            = 'data_type,data_id,h5_ffn'; %attributes to return
 jstruct          = ddb_query_part('data_type',obj_type,'S',p_exp,ddb_table);
+if isempty(jstruct)
+    return
+end
 staging_ffn_list = jstruct_to_mat([jstruct.h5_ffn],'S');
 for j=1:length(staging_ffn_list)
     [~,fn,ext] = fileparts(staging_ffn_list{j});

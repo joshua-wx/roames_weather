@@ -1,4 +1,4 @@
-function swaths_nl=storm_swath3(init_jstruct,finl_jstruct,kml_dir,stm_id,region,start_td,stop_td,cur_vis)
+function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
@@ -18,11 +18,14 @@ function swaths_nl=storm_swath3(init_jstruct,finl_jstruct,kml_dir,stm_id,region,
 %load config file
 load('tmp/global.config.mat');
 load('tmp/kml.config.mat');
-swaths_nl = '';
 
 %swath coord
 poly_lat = [];
 poly_lon = [];
+
+%init
+init_jstruct = track_jstruct(1:end-1);
+finl_jstruct = track_jstruct(2:end);
 
 %loop through each pair in the two ident dbs
 for i=1:length(init_jstruct)
@@ -69,7 +72,5 @@ ind = find(poly_lat==0 | isnan(poly_lat));
 poly_lon(ind) = []; poly_lat(ind)=[];
 
 %generate kml, write to file and create networklinks for the tracks data
-swath_tag = ['stm_swath_',stm_id];
-swath_kml = ge_poly_placemark('',['../doc.kml#swath_',num2str(swath_color_id),'_style'],swath_tag,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    
-ge_kmz_out(swath_tag,swath_kml,[kml_dir,storm_data_path],'');
-swaths_nl = ge_networklink('',swath_tag,[storm_data_path,swath_tag,'.kmz'],0,0,'',region,datestr(start_td,ge_tfmt),datestr(stop_td,ge_tfmt),cur_vis);
+name      = ['track_id_',num2str(track_id)];
+swath_kml = ge_poly_placemark(swath_kml,['../../track.kml#swath_',num2str(swath_color_id),'_style'],name,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    

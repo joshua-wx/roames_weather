@@ -1,4 +1,4 @@
-function kmz_dest_ffn = ge_kmz_out(kmzfilename,kml_str,destination_folder,cappi_path)
+function ge_kmz_out(kmzfilename,kml_str,destination_folder,cappi_path)
 %HELP
 %Writes doc.kml containing kml_str to tempdir, then zips and
 %renames the extension to kmz and moves it to the destination folder.
@@ -19,7 +19,7 @@ footer = [10,'</Document>',10,...
 
 %create filename with extension and create/open kml file
 kmlfilename = strcat('doc.kml');
-kmzfilename = strcat(kmzfilename,'.kmz');
+kmzfilename = strcat(kmzfilename);
 fid = fopen( [tempdir,kmlfilename], 'wt');
 
 %write header, kml_data and footer to kml_file

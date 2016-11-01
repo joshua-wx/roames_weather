@@ -22,11 +22,11 @@ if ~isempty(att_list)
     cmd = [cmd,' --projection-expression ','"',att_list,'"'];
 end
 %run script
-[sout,eout]                        = unix([cmd,' | tee tmp/eout.json']);
+[sout,eout]                        = unix([cmd,' | tee /tmp/eout.json']);
 %catch errors and convert out json to struct
 if sout ==0 && ~isempty(eout)
     %jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
-    jstruct_out = json_read('tmp/eout.json');
+    jstruct_out = json_read('/tmp/eout.json');
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else

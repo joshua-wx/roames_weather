@@ -46,16 +46,12 @@ for i=1:length(fcst_lat_polys)
     storm_id_n      = storm_id(end-2:end);
     single_fcst_tag = ['cell_fcst_',num2str((i)*fcst_step),'min_idx_',storm_id_n];
     %generate poly placemark kml of swath
-    try
-    cell_fcst_kml   = ge_poly_placemark(cell_fcst_kml,['../doc.kml#fcst_',intensity,'_step_',num2str(i),'_style'],single_fcst_tag,'clampToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(50,length(fcst_lon_polys{i}),1));
-    catch
-        keyboard
-    end
+    cell_fcst_kml   = ge_poly_placemark(cell_fcst_kml,['../doc.kml#fcst_',intensity,'_step_',num2str(i),'_style'],single_fcst_tag,'relativeToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(10,length(fcst_lon_polys{i}),1));
 end
 
 %% save forecast swath kml...
 tag     = ['cell_fcst_cell_ind',num2str(end_cell_idx),'_',num2str(radar_id)];
-ge_kml_out([kml_dir,storm_data_path,tag],tag,cell_fcst_kml);
+ge_kml_out([kml_dir,storm_data_path,tag],tag,nowcast_kml);
 %generate nl
 fcst_nl = ge_networklink(fcst_nl,tag,[storm_data_path,tag,'.kml'],0,0,'',region,datestr(start_td,ge_tfmt),datestr(stop_td,ge_tfmt),cur_vis);
 

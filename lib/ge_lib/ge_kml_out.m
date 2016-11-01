@@ -1,4 +1,4 @@
-function ge_kml_out(filename,name,kml_str)
+function ge_kml_out(out_ffn,name,kml_str)
 %WHAT: Saves kml string to file
 
 
@@ -10,15 +10,16 @@ header = ['<?xml version="1.0" encoding="UTF-8"?>',10,...
 footer = [10,'</Document>',10,...
     '</kml>',10];
 
+temp_ffn = [tempname,'kml'];
 
-kmlfilename = strcat(filename,'.kml');
-
-fid = fopen( kmlfilename, 'wt');
+fid = fopen(temp_ffn, 'wt');
 
     fprintf(fid,'%s',header);
     fprintf(fid,'%s',kml_str);
     fprintf(fid,'%s',footer);  
     
 fclose(fid);
+%move to correct location
+file_mv(temp_ffn,out_ffn);
 
 %disp(['Building ' filename '...Done']) 

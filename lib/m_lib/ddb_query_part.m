@@ -13,7 +13,7 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb query --table-name ',ddb_t
     '--key-condition-expression "',part_name,' = :r_id"',' ',...
     '--expression-attribute-values ''',exp_json,'''',' ',...
     '--projection-expression "',p_exp,'"'];
-[sout,eout]       = unix([cmd,' | tee tmp/eout.json']);
+[sout,eout]       = unix([cmd,' | tee /tmp/eout.json']);
 if sout~=0 || isempty(eout)
     log_cmd_write('tmp/log.ddb','',cmd,eout)
     jstruct = '';
@@ -21,7 +21,7 @@ if sout~=0 || isempty(eout)
 end
 %convert json to struct
 %jstruct    = loadjson('tmp/eout.json','SimplifyCell',1,'FastArrayParser',1);
-jstruct    = json_read('tmp/eout.json');
+jstruct    = json_read('/tmp/eout.json');
 if ~isempty(jstruct)
     jstruct = jstruct.Items;
 end

@@ -17,6 +17,7 @@ function storm_jstruct = wdss_tracking(tn_dt,tn_radar_id)
 
 %load vars
 load('tmp/global.config.mat');
+storm_jstruct = '';
 
 %% Load Databases
 tn_radar_id_str   = num2str(tn_radar_id,'%02.0f');
