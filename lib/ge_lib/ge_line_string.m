@@ -18,12 +18,16 @@ footer=        ['</coordinates>',10,...
             '</LineString>',10,...
         '</Placemark>',10];
     
-            
+          
+line_str = '';
  for i=1:length(start_lat_vec)
-     kml_out=[kml_out,header,...
-         sprintf('%.6f,%.6f,%.6f', start_lon_vec(i), start_lat_vec(i), relative_altitude),10,...
-         sprintf('%.6f,%.6f,%.6f', end_lon_vec(i), end_lat_vec(i), relative_altitude),10,...
-         footer];
+     line_str=[line_str,...
+         sprintf('%.6f,%.6f,%.6f', start_lon_vec(i), start_lat_vec(i), relative_altitude),10];
  end
+ 
+ line_str=[line_str,sprintf('%.6f,%.6f,%.6f', end_lon_vec(i), end_lat_vec(i), relative_altitude),10];
+ 
+ kml_out=[kml_out,header,line_str,footer];
+ 
  
  kml_out=[kml_in,kml_out];

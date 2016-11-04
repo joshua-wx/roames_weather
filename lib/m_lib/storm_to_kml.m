@@ -36,12 +36,17 @@ end
 %extract odimh5 atts for radar_id
 odimh5_atts   = 'tilt1,tilt2,img_latlonbox,vel_ni,sig_refl_flag,start_timestamp';
 jstruct_out   = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
-radar_ts      = datenum(jstruct_to_mat([jstruct_out.start_timestamp],'S'),ddb_tfmt);
-vol_latlonbox = str2num(jstruct_out(1).img_latlonbox.S)./geo_scale;
-vol_vel_ni    = str2num(jstruct_out(1).vel_ni.N);
-vol_tilt1_str = jstruct_out(1).tilt1.N;
-vol_tilt2_str = jstruct_out(1).tilt2.N;
-sig_refl_list = jstruct_to_mat([jstruct_out.sig_refl_flag],'N');
+jstruct_out   = clean_jstruct(jstruct_out,6);
+if ~isempty(jstruct_out)
+    radar_ts  = datenum(jstruct_to_mat([jstruct_out.start_timestamp],'S'),ddb_tfmt);
+    vol_latlonbox = str2num(jstruct_out(1).img_latlonbox.S)./geo_scale;
+    vol_vel_ni    = str2num(jstruct_out(1).vel_ni.N);
+    vol_tilt1_str = jstruct_out(1).tilt1.N;
+    vol_tilt2_str = jstruct_out(1).tilt2.N;
+    sig_refl_list = jstruct_to_mat([jstruct_out.sig_refl_flag],'N');
+else
+    sig_refl_list = [];
+end
 
 %extract storm atts for radar_id
 if any(sig_refl_list)
@@ -61,7 +66,7 @@ end
 %calc radar timestep
 if length(radar_ts) == 1
     radar_timestep = 10;
-else
+elseif length(radar_ts) > 1
     radar_timestep = mode(minute(radar_ts(2:end)-radar_ts(1:end-1)));
 end
 
@@ -270,9 +275,11 @@ r_id_list = [object_struct.radar_id];
 time_list = [object_struct.start_timestamp];
 %init nl
 nl_kml       = '';
+name         = [type,'_',num2str(radar_id,'%02.0f')];
 %find entries from correct radar_id and type
 target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
 if isempty(target_idx)
+    ge_kml_out([nl_path,name,'.kml'],'','');
     return
 end
 %sort by time
@@ -298,8 +305,6 @@ for j=1:length(target_idx)
     kml_name      = datestr(target_start,r_tfmt);
     nl_kml        = ge_networklink(nl_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
 end
-%write out if not empty
-if ~isempty(nl_kml)
-    name = [type,'_',num2str(radar_id,'%02.0f')];
-    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
-end
+%write out
+ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
+

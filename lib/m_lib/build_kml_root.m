@@ -44,6 +44,10 @@ if local_dest_flag==1
     mkdir([dest_root,scan_obj_path]);
     mkdir([dest_root,track_obj_path]);
     mkdir([dest_root,cell_obj_path]);
+else
+    file_rm([dest_root,scan_obj_path],1,0)
+    file_rm([dest_root,track_obj_path],1,0)
+    file_rm([dest_root,cell_obj_path],1,0)
 end
 
 %s3 nl from doc.kml need a url prefix
@@ -103,9 +107,7 @@ for i=1:length(site_id_list)
     %determine visibility from radar priority column and site selection
     coverage_vis        = ismember(site_id_list(i),site_no_selection);
     %write each segment to kml string
-    temp_coverage_kml   = ge_line_string('',coverage_vis,num2str(site_id_list(i)),'../scan.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
-    %place segments in a folder
-    coverage_str        = ge_folder(coverage_str,temp_coverage_kml,num2str(site_id_list(i)),'',coverage_vis);
+    coverage_str        = ge_line_string(coverage_str,coverage_vis,num2str(site_id_list(i)),'../scan.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 
@@ -136,6 +138,7 @@ file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,
 %% build scan groups kml
 
 %scan.kml
+display('building scan nl kml')
 scan_str  = scan_style_str;
 tmp_str   = generate_radar_nl('scan1_refl',dest_root,scan_obj_path,site_id_list,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
 scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 1','',1);
@@ -151,8 +154,10 @@ scan_str  = ge_networklink(scan_str,'Coverage','overlays/coverage.kml',0,0,'',''
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Scan Objects',scan_str);
 file_mv(temp_ffn,[dest_root,'scan.kml']);
+wait_aws_finish
 
 %track.kml
+display('building track nl kml')
 track_str  = track_style_str;
 tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
 track_str  = ge_folder(track_str,tmp_str,'Storm Tracks','',1);
@@ -168,8 +173,10 @@ track_str  = ge_folder(track_str,tmp_str,'Cell Stats','',1);
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Track Objects',track_str);
 file_mv(temp_ffn,[dest_root,'track.kml']);
+wait_aws_finish
 
 %cell.kml
+display('building cell nl kml')
 cell_str  = '';
 tmp_str   = generate_radar_nl('inneriso_H',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
 cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface HighRes','',1);
@@ -187,6 +194,7 @@ cell_str  = ge_folder(cell_str,tmp_str,'Cross Section Doppler','',1);
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Cell Objects',cell_str);
 file_mv(temp_ffn,[dest_root,'cell.kml']);
+wait_aws_finish
 
 function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag)
 %WHAT: creates network links and empty kml points which the nl point to for

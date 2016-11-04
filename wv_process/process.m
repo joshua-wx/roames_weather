@@ -206,14 +206,14 @@ while exist('tmp/kill_process','file')==2
                 %generate nowcast json on s3 for realtime data
                 if realtime_flag == 1
                      storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj);
-                     storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,vol_obj);
+                     %storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,vol_obj);
                 end
             else
                 %remove nowcast files is no prc_objects exist anymore
                 nowcast_root = [dest_root,num2str(radar_id,'%02.0f'),'/nowcast.'];
-                file_rm([nowcast_root,'json'],0)
-                file_rm([nowcast_root,'wtk'],0)
-                file_rm([nowcast_root,'svg'],0)
+                file_rm([nowcast_root,'json'],0,1)
+                %file_rm([nowcast_root,'wtk'],0)
+                %file_rm([nowcast_root,'svg'],0)
             end
 
             %append and clean h5_list for realtime processing

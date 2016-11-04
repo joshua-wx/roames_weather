@@ -13,7 +13,7 @@ function kml
 kml_config_fn     = 'kml.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
-restart_cofig_fn  = 'temp_kml_vars.mat';
+restart_vars_fn   = 'temp_kml_vars.mat';
 tmp_config_path   = 'tmp/';
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
@@ -76,19 +76,18 @@ end
 
 %init vars
 % check for restart or first start
-if exist(restart_cofig_fn,'file')==2
+if exist(restart_vars_fn,'file')==2 && reload_vars == 1
     %silent restart detected, load vars from reset and remove file
-    load(restart_cofig_fn);
-    delete(restart_cofig_fn);
+    load(restart_vars_fn);
 else
+    %build root kml
+    if rebuild_root == 1
+        build_kml_root(dest_root,radar_id_list,local_dest_flag)
+    end
     %new start
     object_struct     = [];
-    %build root kml
-    build_kml_root(dest_root,radar_id_list,local_dest_flag)
-    file_rm([dest_root,scan_obj_path,'*'],1)
-    file_rm([dest_root,track_obj_path,'*'],1)
-    file_rm([dest_root,cell_obj_path,'*'],1)
 end
+
 
 %% Primary code
 %cat daily databases for times between oldest and newest time,
@@ -117,43 +116,62 @@ while exist('tmp/kill_kml','file')==2
     else
         [download_ffn_list,download_fn_list] = ddb_filter_odimh5(odimh5_ddb_table,src_root,oldest_time_str,newest_time_str,radar_id_list);
     end
-    for j=1:length(download_fn_list)
+    for i=1:length(download_fn_list)
         %download data file and untar into download_path
-        display(['s3 cp of ',download_fn_list{j}])
-        file_cp(download_ffn_list{j},download_path,0,1);
-        download_list   = [download_list;download_fn_list{j}];
+        display(['s3 cp of ',download_fn_list{i}])
+        file_cp(download_ffn_list{i},download_path,0,1);
     end 
     %wait for aws processes to finish
     wait_aws_finish
     %untar files and create radar_id list
     download_r_id_list = [];
-    for i=1:length(download_list)
-        download_r_id_list = [download_r_id_list;str2num(download_list{i}(1:2))];
-        untar([download_path,download_list{i}],download_path)
+    for i=1:length(download_fn_list)
+        download_ffn = [download_path,download_fn_list{i}];
+        if exist(download_ffn,'file') == 2
+            download_r_id_list = [download_r_id_list;str2num(download_fn_list{i}(1:2))];
+            download_list      = [download_list;download_fn_list{i}];
+            untar(download_ffn,download_path);
+        end
     end
     
     %% clean object_struct and remove old files
+    remove_radar_id = [];
     if ~isempty(object_struct)
+        %find old files
         remove_idx      = find([object_struct.start_timestamp]<oldest_time);
-        remove_ffn_list = vertcat(object_struct(remove_idx).ffn);
-        for i=1:length(remove_ffn_list)
-             file_rm(remove_ffn_list{i},1);
+        if ~isempty(remove_idx)
+            remove_ffn_list = {object_struct(remove_idx).ffn};
+            %clean out files
+            for i=1:length(remove_ffn_list)
+                 file_rm(remove_ffn_list{i},0,1);
+            end
+            %preserve removed radar_ids
+            remove_radar_id           = [object_struct(remove_idx).radar_id]';
+            %remove entries
+            object_struct(remove_idx) = [];
         end
-        object_struct(remove_idx) = [];
     end
     
     %% process volumes to kml objects
-    uniq_radar_id_list = unique(download_r_id_list);
-    for i=1:length(uniq_radar_id_list)
-        radar_id      = uniq_radar_id_list(i)
+    %merge removed radar_id list and download list for updating in
+    %storm_to_kml
+    kml_radar_list = unique([download_r_id_list;remove_radar_id]);
+    %loop through radar id list
+    for i=1:length(kml_radar_list)
+        radar_id      = kml_radar_list(i);
         tmp_fn_list   = download_list(download_r_id_list==radar_id);
         object_struct = storm_to_kml(object_struct,radar_id,oldest_time,newest_time,tmp_fn_list,dest_root,options);
+        try
+            save(restart_vars_fn,'object_struct')
+        catch err
+            display(err)
+        end
     end
     
     %% generate kml nl layer
     
     %Update user
-    disp([10,'kml pass complete. ',num2str(length(uniq_radar_id_list)),' radars updated at ',datestr(now),10]);
+    disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
     
     %break loop for not realtime
     if realtime_kml == 0
@@ -167,7 +185,7 @@ while exist('tmp/kill_kml','file')==2
     unix(['tail -c 200kB  etc/log.rm > etc/log.rm']);
     %Kill function
     if toc(kill_timer)>kill_wait
-        save('temp_kml_vars.mat','object_struct')
+        save(restart_vars_fn,'object_struct')
         %update user
         disp(['@@@@@@@@@ wv_kml restarted at ',datestr(now)])
         %restart
@@ -196,7 +214,7 @@ catch err
     rethrow(err)
 end
 
-save('temp_kml_vars.mat','object_struct')
+save(restart_vars_fn,'object_struct')
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])

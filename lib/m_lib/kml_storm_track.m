@@ -36,6 +36,4 @@ end
 
 %generate kml, write to file and create networklinks for the tracks data
 name        = ['track_id_',num2str(track_id)];
-tmp_kml     = ge_line_string('',1,name,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);
-%append to kml
-track_kml   = ge_folder(track_kml,tmp_kml,name,'',1);
+track_kml   = ge_line_string(track_kml,1,name,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);

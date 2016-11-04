@@ -36,7 +36,7 @@ radar_id = str2num(source(7:8));
 
 %use radar id to load radar centroid from site_info matrix
 site_ind = find(radar_id==site_id_list);
-r_lat    = -double(site_centroid(site_ind,1)); %negated
+r_lat    = double(site_centroid(site_ind,1)); %negated
 r_lon    = double(site_centroid(site_ind,2));
 r_elv    = double(site_centroid(site_ind,3));
 
