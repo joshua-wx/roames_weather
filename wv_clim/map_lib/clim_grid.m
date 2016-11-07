@@ -14,7 +14,7 @@ dir_img_struct   = struct('u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank
 year_list=year(opt_struct.td_opt(1)):year(opt_struct.td_opt(2));
 
 %load config files
-load('tmp_global_config.mat')
+load('tmp/global.config.mat')
 
 
 %if 50dbz sfc needs plotting, load snding data

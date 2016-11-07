@@ -1,8 +1,0 @@
-#! /bin/bash
-
-./run_wv_process.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/
-
-while [ -f temp_process_vars.mat ]; do
-	./run_wv_process.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/
-done
-

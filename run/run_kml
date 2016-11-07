@@ -1,8 +1,0 @@
-#! /bin/bash
-
-./run_wv_kml.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/
-
-while [ -f temp_kml_vars.mat ]; do
-	./run_wv_kml.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/
-done
-

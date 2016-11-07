@@ -19,5 +19,5 @@ tar(tar_fn,{'run_repro_3_rename.sh','repro_3_rename','config','run_repro','site_
 
 display('scp')
 %machine 1
-ec2_ip      = '52.65.212.240';
+ec2_ip      = '52.63.227.18';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/build_index'])

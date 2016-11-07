@@ -1,4 +1,4 @@
-function [link,ffn] = kml_iso_collada(dest_root,dest_path,cell_tag,type,res,refl_vol,storm_latlonbox)
+function [link,ffn] = kml_iso_collada(dest_root,dest_path,cell_tag,type,refl_vol,storm_latlonbox)
 
 %WHAT
     %takes a subset of volume data the ideally contains one cell and
@@ -47,7 +47,7 @@ elseif strcmp(type,'outeriso')
 end
 
 %generate triangles
-[triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,res,storm_latlonbox);
+[triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,storm_latlonbox);
 if isempty(triangles)
     link = [];
     ffn  = [];
@@ -66,7 +66,7 @@ textures       = cell(size(triangles,1),1);
 texcoords      = repmat([0 0 0 1 1 1],size(triangles,1),1);
 colors         = [repmat(cmap,size(triangles,1),4)];
 %write collada
-iso_tag        = [cell_tag,'_',type,'_',res];
+iso_tag        = [cell_tag,'_',type];
 collada_fn     = [iso_tag,'.dae'];
 kmz_fn         = [iso_tag,'.kmz'];
 temp_ffn       = [tempdir,collada_fn];
@@ -80,7 +80,7 @@ ge_kmz_out(kmz_fn,kml_str,[dest_root,dest_path],temp_ffn);
 link = kmz_fn;
 ffn  = [dest_root,dest_path,kmz_fn];
 
-function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,res,storm_latlonbox)
+function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,storm_latlonbox)
 %HELP: create isosurface polygons in anticlockwise ge format for a set dBZ_level
 
 %INPUT: 3D coord meshes (lon,lat,z) dBZ cartesian volume (v), isosurface
@@ -104,10 +104,6 @@ clon          = storm_latlonbox(4);
 if length(fv.faces)>n_faces
     %reduce faces
     fv = reducepatch(fv,n_faces/length(fv.faces));
-end
-%low res reduction
-if strcmp(res,'L')
-    fv = reducepatch(fv,low_res_iso_factor);
 end
 
 faces     = [];

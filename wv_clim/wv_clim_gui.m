@@ -51,13 +51,13 @@ function wv_clim_gui_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to wv_clim_gui (see VARARGIN)
-addpath('../libraries/functions','../libraries/ge_functions','../config_files');
+addpath('../lib/m_lib','../lib/ge_lib','../etc');
 
 % LOAD ZONE DATA INTO GUI
-if exist('site_info.mat','file')~=2
-    read_site_info
+if exist('tmp/site_info.txt.mat','file')~=2
+    read_site_info('site_info.txt')
 end
-load('site_info.mat')
+load('tmp/site_info.txt.mat')
 for i=1:length(site_s_name_list)
     site_s_name_list{i}=['IDR_',num2str(site_id_list(i)),'_',site_s_name_list{i}];
 end
@@ -184,7 +184,7 @@ function bttn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %% Load GUI variables
-load('site_info.mat')
+load('tmp/site_info.txt.mat')
 %src data
 arch_dir        = get(handles.arch_dir_txt,'string');
 snd_ffn        = get(handles.snd_ffn_txt,'string');

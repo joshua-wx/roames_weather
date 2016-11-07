@@ -17,16 +17,15 @@ if nargin==0
     return
 end
 %% Load global config files
-config_input_path='wv_global.config';
-mat_output_path='tmp_global_config.mat';
-read_config(config_input_path,mat_output_path);
-load(mat_output_path);
+config_input_path = 'global.config';
+read_config(config_input_path);
+load(['tmp/',config_input_path,'.mat']);
 
 %% load site info and mapping coordinates
 %load radar site lat, long and name
-load('site_info.mat')
+load('tmp/site_info.txt.mat')
 r_ind=find(opt_struct.site_id==site_id_list);
-site_lat=-site_lat_list(r_ind); site_lon=site_lon_list(r_ind);
+site_lat=site_lat_list(r_ind); site_lon=site_lon_list(r_ind);
 
 %mapping coordinates, working in ij coordinates
 mstruct = defaultm('mercator');
@@ -232,12 +231,10 @@ end
 
 if opt_struct.output_opt(3)
     %inialise plot
-    create_clim_map_qjrms_small
-    
-    
+    create_clim_map_qjrms   
     %primary grid
     if opt_struct.ci_opt || opt_struct.ce_opt
-        geoshow(plot_grid,R,'DisplayType','contour','Fill','on','Levelstep',.05);
+        geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');
     else
         geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');%,'FaceAlpha','texturemap','AlphaData',double(cone_mask))
     end
@@ -252,6 +249,44 @@ if opt_struct.output_opt(3)
     cmap = flipud(cmap);
     colormap(cmap)
     
+    
+    %load subsetted mapping data
+    subset_fn='marburg_map.mat';
+    load(subset_fn);
+    %plot coast lines
+    geoshow(coast_lat,coast_lon,'DisplayType','line','color','k','LineWidth',1)
+
+    %plot somerset
+    geoshow(somerset_lat,somerset_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
+
+    %plot wivenhow
+    geoshow(wivenhoe_lat,wivenhoe_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
+
+    %plot border lines
+    %geoshow(border_lat,border_lon,'DisplayType','line','Linestyle','-.','color','k','LineWidth',1)
+
+    %plot shaded topo
+    h = fspecial('gaussian',[15,15]);
+    topo_z = imfilter(topo_z,h);
+    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
+    %%geoshow(topo_z,topo_refvec,'DisplayType','texturemap');
+
+
+    %add radar location and range rings
+    r_lat = -27.61;
+    r_lon = 152.54;
+    ring_r1 = 40;
+    ring_r2 = 80;
+    [lat,lon] = scircle1(r_lat,r_lon,km2deg(ring_r1));
+    plotm(lat,lon,'k')
+    [lat,lon] = scircle1(r_lat,r_lon,km2deg(ring_r2));
+    plotm(lat,lon,'k')
+    plotm(r_lat,r_lon,'kd','MarkerSize',10,'MarkerFaceColor','k')
+    
+    
+    
+    
+    
     %generate driection plot
     if opt_struct.dir_opt
         vec_data=[dir_vertices,dir_arrowvertices];
@@ -263,7 +298,7 @@ if opt_struct.output_opt(3)
         end
     end    
     %overlay place names
-    create_clim_map_names_qjrms_small
+    create_clim_map_names_qjrms
     
     %setup colorbar
     ch=colorbar('FontSize',12);
@@ -449,7 +484,7 @@ function [object_kml,image_fn_list]=generate_grid_kml(object_kml,grid_img,opt_st
 image_fn_list = {};
     
 %load config variables
-load('tmp_global_config.mat')
+load('tmp/global.config.mat')
 
 %generate alpha_img
 alpha_img=ones(size(grid_img));

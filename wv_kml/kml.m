@@ -13,7 +13,8 @@ function kml
 kml_config_fn     = 'kml.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
-restart_vars_fn   = 'temp_kml_vars.mat';
+site_info_hide_fn = 'site_info_hide.txt';
+restart_vars_fn   = 'tmp/kml_restart_vars.mat';
 tmp_config_path   = 'tmp/';
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
@@ -74,18 +75,19 @@ if strcmp(radar_id_list,'all')
     radar_id_list = site_id_list;
 end
 
+% site_info_mask.txt
+radar_id_hide = dlmread(site_info_hide_fn); save([tmp_config_path,site_info_hide_fn,'.mat']);
+
 %init vars
 % check for restart or first start
-if exist(restart_vars_fn,'file')==2 && reload_vars == 1
+if exist(restart_vars_fn,'file')==2
     %silent restart detected, load vars from reset and remove file
     load(restart_vars_fn);
 else
     %build root kml
-    if rebuild_root == 1
-        build_kml_root(dest_root,radar_id_list,local_dest_flag)
-    end
+    build_kml_root(dest_root,radar_id_list,local_dest_flag)
     %new start
-    object_struct     = [];
+    object_struct = [];
 end
 
 
@@ -161,11 +163,6 @@ while exist('tmp/kill_kml','file')==2
         radar_id      = kml_radar_list(i);
         tmp_fn_list   = download_list(download_r_id_list==radar_id);
         object_struct = storm_to_kml(object_struct,radar_id,oldest_time,newest_time,tmp_fn_list,dest_root,options);
-        try
-            save(restart_vars_fn,'object_struct')
-        catch err
-            display(err)
-        end
     end
     
     %% generate kml nl layer
@@ -175,7 +172,15 @@ while exist('tmp/kill_kml','file')==2
     
     %break loop for not realtime
     if realtime_kml == 0
+        delete('tmp/kill_kml')
         break
+    elseif ~isempty(kml_radar_list) && save_object_struct == 1
+        %update restart_vars_fn on kml update for realtime processing
+        try
+            save(restart_vars_fn,'object_struct')
+        catch err
+            display(err)
+        end
     end
     
     %rotate ddb, cp_file, and qa logs to 200kB
@@ -185,7 +190,6 @@ while exist('tmp/kill_kml','file')==2
     unix(['tail -c 200kB  etc/log.rm > etc/log.rm']);
     %Kill function
     if toc(kill_timer)>kill_wait
-        save(restart_vars_fn,'object_struct')
         %update user
         disp(['@@@@@@@@@ wv_kml restarted at ',datestr(now)])
         %restart
@@ -207,14 +211,11 @@ while exist('tmp/kill_kml','file')==2
     
 end
 catch err
-    %save vars
+    %display and log error
     display(err)
-    save('temp_kml_vars.mat','object_struct')
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     rethrow(err)
 end
-
-save(restart_vars_fn,'object_struct')
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])

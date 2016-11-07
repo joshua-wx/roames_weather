@@ -1,4 +1,4 @@
-function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id)
+function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
@@ -73,4 +73,6 @@ poly_lon(ind) = []; poly_lat(ind)=[];
 
 %generate kml, write to file and create networklinks for the tracks data
 name      = ['track_id_',num2str(track_id)];
-swath_kml = ge_poly_placemark(swath_kml,['../../track.kml#swath_',num2str(swath_color_id),'_style'],name,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    
+start_str = datestr(radar_start_ts,ge_tfmt);
+stop_str  = datestr(radar_stop_ts,ge_tfmt);
+swath_kml = ge_poly_placemark(swath_kml,['../../track.kml#swath_',num2str(swath_color_id),'_style'],name,start_str,stop_str,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    

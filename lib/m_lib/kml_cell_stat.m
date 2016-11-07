@@ -16,11 +16,13 @@ for i=1:length(storm_jstruct)
     storm_dbz_centlat = str2num(storm_jstruct(i).storm_dbz_centlat.N)./geo_scale;
     storm_dbz_centlon = str2num(storm_jstruct(i).storm_dbz_centlon.N)./geo_scale;
     subset_id         = storm_jstruct(i).subset_id.S;
+    cell_id           = subset_id(end-2:end);
     start_timestr     = datestr(timestamps(i),ge_tfmt);
     stop_timestr      = datestr(addtodate(timestamps(i),timestep_mm,'minute'),ge_tfmt);
     %generate kml
+    name    = [datestr(timestamps(i),r_tfmt),'_',cell_id];
     tmp_kml = ge_balloon_stats_placemark(tmp_kml,1,...
-        '../../track.kml#balloon_stats_style','',storm_cell_vild,storm_max_mesh...
+        '../../track.kml#balloon_stats_style',name,storm_cell_vild,storm_max_mesh...
         ,storm_max_tops,subset_id,storm_dbz_centlat,storm_dbz_centlon,...
         start_timestr,stop_timestr);
 end

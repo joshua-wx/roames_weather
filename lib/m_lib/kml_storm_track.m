@@ -1,4 +1,4 @@
-function track_kml = kml_storm_track(track_kml,track_jstruct,track_id)
+function track_kml = kml_storm_track(track_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts)
 %WHAT: Generates a storm track kml file using the inputted init and finl
 %ident pair.
 
@@ -36,4 +36,6 @@ end
 
 %generate kml, write to file and create networklinks for the tracks data
 name        = ['track_id_',num2str(track_id)];
-track_kml   = ge_line_string(track_kml,1,name,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);
+start_str   = datestr(radar_start_ts,ge_tfmt);
+stop_str    = datestr(radar_stop_ts,ge_tfmt);
+track_kml   = ge_line_string(track_kml,1,name,start_str,stop_str,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);

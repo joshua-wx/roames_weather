@@ -16,6 +16,7 @@ display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/Dropbox/dev/wv/etc/global.config',etc_path)
 copyfile('/home/meso/Dropbox/dev/wv/etc/site_info.txt',etc_path)
+copyfile('/home/meso/Dropbox/dev/wv/etc/site_info_hide.txt',etc_path)
 copyfile('/home/meso/Dropbox/dev/wv/etc/refl24bit.txt',etc_path)
 copyfile('/home/meso/Dropbox/dev/wv/etc/vel24bit.txt',etc_path)
 
@@ -31,3 +32,4 @@ ec2_ip      = '52.65.167.91';
 
 delete('/home/meso/Dropbox/dev/wv/wv_kml/etc/global.config')
 delete('/home/meso/Dropbox/dev/wv/wv_kml/etc/site_info.txt')
+delete('/home/meso/Dropbox/dev/wv/wv_kml/etc/site_info_hide.txt')

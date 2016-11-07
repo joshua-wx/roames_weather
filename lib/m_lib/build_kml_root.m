@@ -31,6 +31,7 @@ load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
 load('tmp/kml.config.mat')
 load('tmp/site_info.txt.mat')
+load('tmp/site_info_hide.txt.mat')
 
 %empty string vairables for storing kml
 overlay_str  = '';
@@ -63,7 +64,7 @@ scan_style_str = ge_line_style(scan_style_str,'coverage_style',html_color(0.5,[1
 
 %% Track Styles
 
-track_style_str = '';
+track_style_str     = '';
 %forecast style with a maximum of n_fcst_steps steps.
 forecast_S_colormap = colormap(pink(n_fcst_steps)); %stregthening
 forecast_W_colormap = colormap(bone(n_fcst_steps)); %weakening
@@ -99,15 +100,17 @@ master_str  = ge_folder(master_str,overlay_str,'Overlays','',1);
 
 %generate coverage kml for each radar site
 site_latlonbox = [];
-for i=1:length(site_id_list)
+for i=1:length(site_no_selection)
+    %site list idx
+    site_info_idx       = find(site_id_list==site_no_selection(i));
     %generate circle latlon
-    [temp_lat,temp_lon] = scircle1(site_lat_list(i),site_lon_list(i),km2deg(coverage_range));
+    [temp_lat,temp_lon] = scircle1(site_lat_list(site_info_idx),site_lon_list(site_info_idx),km2deg(coverage_range));
     %append site latlonbox
     site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
     %determine visibility from radar priority column and site selection
-    coverage_vis        = ismember(site_id_list(i),site_no_selection);
+    coverage_vis        = ~ismember(site_no_selection(i),radar_id_hide);
     %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,coverage_vis,num2str(site_id_list(i)),'../scan.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str        = ge_line_string(coverage_str,coverage_vis,num2str(site_no_selection(i)),'','','../scan.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 
@@ -140,13 +143,13 @@ file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,
 %scan.kml
 display('building scan nl kml')
 scan_str  = scan_style_str;
-tmp_str   = generate_radar_nl('scan1_refl',dest_root,scan_obj_path,site_id_list,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+tmp_str   = generate_radar_nl('scan1_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
 scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 1','',1);
-tmp_str   = generate_radar_nl('scan2_refl',dest_root,scan_obj_path,site_id_list,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+tmp_str   = generate_radar_nl('scan2_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
 scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 2','',1);
-tmp_str   = generate_radar_nl('scan1_vel',dest_root,scan_obj_path,site_id_list,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+tmp_str   = generate_radar_nl('scan1_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
 scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 1','',1);
-tmp_str   = generate_radar_nl('scan2_vel',dest_root,scan_obj_path,site_id_list,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+tmp_str   = generate_radar_nl('scan2_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
 scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 2','',1);
 
 scan_str  = ge_networklink(scan_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
@@ -159,16 +162,14 @@ wait_aws_finish
 %track.kml
 display('building track nl kml')
 track_str  = track_style_str;
-tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
+tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
 track_str  = ge_folder(track_str,tmp_str,'Storm Tracks','',1);
-tmp_str    = generate_radar_nl('swath',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
+tmp_str    = generate_radar_nl('swath',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
 track_str  = ge_folder(track_str,tmp_str,'Storm Swaths','',1);
-tmp_str    = generate_radar_nl('nowcast',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
+tmp_str    = generate_radar_nl('nowcast',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
 track_str  = ge_folder(track_str,tmp_str,'Storm Nowcasts','',1);
-tmp_str    = generate_radar_nl('nowcast_stat',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
+tmp_str    = generate_radar_nl('nowcast_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
 track_str  = ge_folder(track_str,tmp_str,'Nowcast Stats','',1);
-tmp_str    = generate_radar_nl('cell_stat',dest_root,track_obj_path,site_id_list,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-track_str  = ge_folder(track_str,tmp_str,'Cell Stats','',1);
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Track Objects',track_str);
@@ -178,25 +179,23 @@ wait_aws_finish
 %cell.kml
 display('building cell nl kml')
 cell_str  = '';
-tmp_str   = generate_radar_nl('inneriso_H',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface HighRes','',1);
-tmp_str   = generate_radar_nl('inneriso_L',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface LowRes','',1);
-tmp_str   = generate_radar_nl('outeriso_H',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface HighRes','',1);
-tmp_str   = generate_radar_nl('outeriso_L',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface LowRes','',1);
-tmp_str   = generate_radar_nl('xsec_refl',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Cross Section Reflectivity','',1);
-tmp_str   = generate_radar_nl('xsec_dopl',dest_root,cell_obj_path,site_id_list,'','','',local_dest_flag);
-cell_str  = ge_folder(cell_str,tmp_str,'Cross Section Doppler','',1);
+tmp_str   = generate_radar_nl('cell_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+cell_str  = ge_folder(cell_str,tmp_str,'Cell Stats','',1);
+tmp_str   = generate_radar_nl('inneriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface','',1);
+tmp_str   = generate_radar_nl('outeriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface','',1);
+tmp_str   = generate_radar_nl('xsec_refl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+cell_str  = ge_folder(cell_str,tmp_str,'XSection Reflectivity','',1);
+tmp_str   = generate_radar_nl('xsec_dopl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Cell Objects',cell_str);
 file_mv(temp_ffn,[dest_root,'cell.kml']);
 wait_aws_finish
 
-function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag)
+function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag,radar_id_hide)
 %WHAT: creates network links and empty kml points which the nl point to for
 %each radar for the specified prefix
 kml_out       = '';
@@ -215,10 +214,12 @@ for i=1:length(radar_id_list)
     if local_dest_flag == 1 && exist(kml_full_path,'file')~=7
         mkdir(kml_full_path)
     end 
+    %creeate visbility
+    nl_vis       = ~ismember(radar_id_list(i),radar_id_hide);
     %init nl
     kml_name     = radar_id_str;
     kml_fn       = [kml_path,prefix,'_',radar_id_str,'.kml'];
-    kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,'',region_kml,'','',1);
+    kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,60,region_kml,'','',nl_vis); %refresh every minute or onRegion
     %init empty kml file
     ge_kml_out([dest_root,kml_fn],'','');
 end 

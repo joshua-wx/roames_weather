@@ -1,5 +1,8 @@
 function object_struct = storm_to_kml(object_struct,radar_id,oldest_time,newest_time,tar_fn_list,dest_root,options)
 
+%WHAT: Master script that generates new kml objects and updates the kml
+%network tree structure
+
 %load radar colormap and gobal config
 load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
@@ -38,13 +41,23 @@ odimh5_atts   = 'tilt1,tilt2,img_latlonbox,vel_ni,sig_refl_flag,start_timestamp'
 jstruct_out   = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
 jstruct_out   = clean_jstruct(jstruct_out,6);
 if ~isempty(jstruct_out)
-    radar_ts  = datenum(jstruct_to_mat([jstruct_out.start_timestamp],'S'),ddb_tfmt);
-    vol_latlonbox = str2num(jstruct_out(1).img_latlonbox.S)./geo_scale;
-    vol_vel_ni    = str2num(jstruct_out(1).vel_ni.N);
-    vol_tilt1_str = jstruct_out(1).tilt1.N;
-    vol_tilt2_str = jstruct_out(1).tilt2.N;
-    sig_refl_list = jstruct_to_mat([jstruct_out.sig_refl_flag],'N');
+    radar_ts       = datenum(jstruct_to_mat([jstruct_out.start_timestamp],'S'),ddb_tfmt);
+    vol_latlonbox  = str2num(jstruct_out(1).img_latlonbox.S)./geo_scale;
+    vol_vel_ni     = str2num(jstruct_out(1).vel_ni.N);
+    vol_tilt1_str  = jstruct_out(1).tilt1.N;
+    vol_tilt2_str  = jstruct_out(1).tilt2.N;
+    sig_refl_list  = jstruct_to_mat([jstruct_out.sig_refl_flag],'N');
+    %calc radar timestep
+    if length(radar_ts) == 1
+        radar_timestep = 10;
+    elseif length(radar_ts) > 1
+        radar_timestep = mode(minute(radar_ts(2:end)-radar_ts(1:end-1)));
+    end
+    %set radar start and stop times
+    radar_start_ts = min(radar_ts);
+    radar_stop_ts  = addtodate(max(radar_ts),radar_timestep,'minute');
 else
+    radar_ts      = [];
     sig_refl_list = [];
 end
 
@@ -57,17 +70,11 @@ else
     storm_jstruct   = [];
 end
 
+%extract storm ids
 if ~isempty(storm_jstruct)
     storm_subset_id = jstruct_to_mat([storm_jstruct.subset_id],'S');
 else
     storm_subset_id = {};
-end
-
-%calc radar timestep
-if length(radar_ts) == 1
-    radar_timestep = 10;
-elseif length(radar_ts) > 1
-    radar_timestep = mode(minute(radar_ts(2:end)-radar_ts(1:end-1)));
 end
 
 %generate data from tar_fn_list (scans and storm volumes)
@@ -84,28 +91,28 @@ for i=1:length(tar_fn_list)
         %create kml for tilt1 image
         scan_tag      = [data_tag,'.scan1_refl'];
         [link,ffn]    = kml_scan_ppi(dest_root,scan_tag,download_path,vol_latlonbox,scan_path,vol_tilt1_str);
-        object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,vol_latlonbox,'scan1_refl',link,ffn);
+        object_struct = collate_kmlobj(object_struct,radar_id,'',data_start_ts,data_stop_ts,vol_latlonbox,'scan1_refl',link,ffn);
     end
     %scan2_refl
     if options(2)==1
         %create kml for tilt2 image
         scan_tag      = [data_tag,'.scan2_refl'];
         [link,ffn]    = kml_scan_ppi(dest_root,scan_tag,download_path,vol_latlonbox,scan_path,vol_tilt2_str);
-        object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,vol_latlonbox,'scan2_refl',link,ffn);
+        object_struct = collate_kmlobj(object_struct,radar_id,'',data_start_ts,data_stop_ts,vol_latlonbox,'scan2_refl',link,ffn);
     end
     %scan1_vel
     if options(3)==1 && vol_vel_ni~=0
         %create kml for tilt2 image
         scan_tag      = [data_tag,'.scan1_vel'];
         [link,ffn]    = kml_scan_ppi(dest_root,scan_tag,download_path,vol_latlonbox,scan_path,vol_tilt1_str);
-        object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,vol_latlonbox,'scan1_vel',link,ffn);
+        object_struct = collate_kmlobj(object_struct,radar_id,'',data_start_ts,data_stop_ts,vol_latlonbox,'scan1_vel',link,ffn);
     end
     %scan2_vel
     if options(4)==1 && vol_vel_ni~=0
         %create kml for tilt1 image
         scan_tag      = [data_tag,'.scan2_vel'];
         [link,ffn]    = kml_scan_ppi(dest_root,scan_tag,download_path,vol_latlonbox,scan_path,vol_tilt2_str);
-        object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,vol_latlonbox,'scan2_vel',link,ffn);
+        object_struct = collate_kmlobj(object_struct,radar_id,'',data_start_ts,data_stop_ts,vol_latlonbox,'scan2_vel',link,ffn);
     end
     
     %% cell_objects
@@ -120,7 +127,7 @@ for i=1:length(tar_fn_list)
         for j=1:n_groups
             %create subset_id
             subset_id         = [datestr(data_start_ts,ddb_tfmt),'_',num2str(j,'%03.0f')];
-            cell_tag          = [data_tag,'_',num2str(j,'%03.0f')];
+            storm_tag         = [data_tag,'_',num2str(j,'%03.0f')];
             storm_jstruct_idx = find(ismember(storm_subset_id,subset_id));
             %no matching subset_id entries in ddb
             if isempty(storm_jstruct_idx)
@@ -132,34 +139,31 @@ for i=1:length(tar_fn_list)
             group_id          = num2str(j);
             storm_data_struct = h5_data_read(h5_fn,download_path,group_id);
             refl_vol          = double(storm_data_struct.refl_vol)./r_scale;
+            smooth_refl_vol   = smooth3(refl_vol); %smooth volume
             %Refl xsections
             if options(5)==1
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_xsec(dest_root,cell_path,cell_tag,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'refl');
-                    object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_refl',link,ffn);
+                    [link,ffn]    = kml_xsec(dest_root,cell_path,storm_tag,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'refl');
+                    object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_refl',link,ffn);
                 end
             end
             %Dopl xsections
             if options(6)==1 && vol_vel_ni~=0
                 vel_vol         = double(storm_data_struct.vel_vol)./r_scale;
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_xsec(dest_root,cell_path,cell_tag,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vel');
-                    object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vel',link,ffn);
+                    [link,ffn]    = kml_xsec(dest_root,cell_path,storm_tag,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vel');
+                    object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vel',link,ffn);
                 end
             end    
             %inner iso
             if options(7)==1
-                [link,ffn] = kml_iso_collada(dest_root,cell_path,cell_tag,'inneriso','H',refl_vol,storm_latlonbox);
-                object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso_H',link,ffn);
-                [link,ffn] = kml_iso_collada(dest_root,cell_path,cell_tag,'inneriso','L',refl_vol,storm_latlonbox);
-                object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso_L',link,ffn);
+                [link,ffn]    = kml_iso_collada(dest_root,cell_path,storm_tag,'inneriso',smooth_refl_vol,storm_latlonbox);
+                object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso',link,ffn);
             end
             %outer iso
             if options(8)==1
-                [link,ffn] = kml_iso_collada(dest_root,cell_path,cell_tag,'outeriso','H',refl_vol,storm_latlonbox);
-                object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso_H',link,ffn);
-                [link,ffn] = kml_iso_collada(dest_root,cell_path,cell_tag,'outeriso','L',refl_vol,storm_latlonbox);
-                object_struct = collate_kmlobj(object_struct,radar_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso_L',link,ffn);
+                [link,ffn]    = kml_iso_collada(dest_root,cell_path,storm_tag,'outeriso',smooth_refl_vol,storm_latlonbox);
+                object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso',link,ffn);
             end
         end
     end
@@ -197,15 +201,15 @@ if ~isempty(storm_jstruct)
             cell_stat_kml = kml_cell_stat(cell_stat_kml,track_jstruct,track_id);
         end
         if options(10)==1
-            track_kml     = kml_storm_track(track_kml,track_jstruct,track_id);
+            track_kml     = kml_storm_track(track_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts);
         end
         if options(11)==1
-            swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id);
+            swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
         track_timestamp = timestamp_list(track_idx);
         if max(track_timestamp) == max(timestamp_list) && options(12)==1
-            [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,track_id);
+            [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,track_id,radar_start_ts,radar_stop_ts);
         end
     end
     %write out to kmz
@@ -220,25 +224,21 @@ end
 %load radar colormap and gobal config
 
 %scan1_refl
-generate_nl(radar_id,object_struct,'scan1_refl',[dest_root,scan_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+generate_nl_scan(radar_id,object_struct,'scan1_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
 %scan2_refl
-generate_nl(radar_id,object_struct,'scan2_refl',[dest_root,scan_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+generate_nl_scan(radar_id,object_struct,'scan2_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
 %scan1_vel
-generate_nl(radar_id,object_struct,'scan1_vel',[dest_root,scan_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+generate_nl_scan(radar_id,object_struct,'scan1_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
 %scan2_vel
-generate_nl(radar_id,object_struct,'scan2_vel',[dest_root,scan_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+generate_nl_scan(radar_id,object_struct,'scan2_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
 %xsec_refl
-generate_nl(radar_id,object_struct,'xsec_refl',[dest_root,cell_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_refl',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
 %xsec_vel
-generate_nl(radar_id,object_struct,'xsec_vel',[dest_root,cell_path],static_flag,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
-%inneriso HighRes
-generate_nl(radar_id,object_struct,'inneriso_H',[dest_root,cell_path],static_flag,max_ge_alt,high_minLodPixels,high_maxLodPixels)
-%inneriso LowRes
-generate_nl(radar_id,object_struct,'inneriso_L',[dest_root,cell_path],static_flag,max_ge_alt,low_minLodPixels,low_maxLodPixels)
-%outeriso HighRes
-generate_nl(radar_id,object_struct,'outeriso_H',[dest_root,cell_path],static_flag,max_ge_alt,high_minLodPixels,high_maxLodPixels)
-%outeriso LowRes
-generate_nl(radar_id,object_struct,'outeriso_L',[dest_root,cell_path],static_flag,max_ge_alt,low_minLodPixels,low_maxLodPixels)
+generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_vel',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+%inneriso
+generate_nl_cell(radar_id,storm_jstruct,object_struct,'inneriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels)
+%outeriso
+generate_nl_cell(radar_id,storm_jstruct,object_struct,'outeriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels)
 
 %remove track data for radar_id if there are no storms using empty kml
 if storm_flag==0
@@ -249,24 +249,96 @@ if storm_flag==0
     ge_kml_out(nowcast_stats_ffn,'','')
 end
 
-function object_struct = collate_kmlobj(object_struct,radar_id,start_ts,stop_ts,storm_latlonbox,type,link,ffn)
+function object_struct = collate_kmlobj(object_struct,radar_id,subset_id,start_ts,stop_ts,storm_latlonbox,type,link,ffn)
+%WHAT: Append entry to object_struct
 
 if isempty(link)
     return
 end
 
-tmp_struct = struct('radar_id',radar_id,'start_timestamp',start_ts,'stop_timestamp',stop_ts,...
+tmp_struct = struct('radar_id',radar_id,'subset_id',subset_id,...
+    'start_timestamp',start_ts,'stop_timestamp',stop_ts,...
     'latlonbox',storm_latlonbox,'type',type,'nl',link,'ffn',ffn);
 
 object_struct = [object_struct,tmp_struct];
 
-
-
-function generate_nl(radar_id,object_struct,type,nl_path,static_flag,altLod,minlod,maxlod)
+function generate_nl_cell(radar_id,storm_jstruct,object_struct,type,nl_path,altLod,minlod,maxlod)
 
 %WHAT: generates kml for cell or scan objects listed in object_Struct using
 %a radar_id and type filter
+load('tmp/global.config.mat')
 
+%init nl
+nl_kml       = '';
+nl_name      = [type,'_',num2str(radar_id,'%02.0f')];
+%exist if no storm struct data
+if isempty(storm_jstruct)
+    ge_kml_out([nl_path,nl_name,'.kml'],'','');
+    return
+end
+
+%keep object_struct entries from radar_id and type 
+filt_idx      = find(ismember({object_struct.type},type) & [object_struct.radar_id]==radar_id);
+object_struct = object_struct(filt_idx);
+
+%init lists
+type_list   = {object_struct.type};
+subset_list = {object_struct.subset_id};
+r_id_list   = [object_struct.radar_id];
+time_list   = [object_struct.start_timestamp];
+
+%build jstruct cell list and storm_id list
+jstruct_subset_list = jstruct_to_mat([storm_jstruct.subset_id],'S');
+jstruct_track_list  = jstruct_to_mat([storm_jstruct.track_id],'N');
+
+%build track_list
+[~,Lib]    = ismember(subset_list,jstruct_subset_list);
+track_list = jstruct_track_list(Lib);
+%exist if no tracks
+if isempty(track_list)
+    ge_kml_out([nl_path,nl_name,'.kml'],'','');
+    return
+end
+
+%loop through unique tracks
+uniq_track_list = unique(track_list);
+for i=1:length(uniq_track_list)
+    track_id = uniq_track_list(i);
+    %find entries track
+    target_idx   = find(track_list==track_id);
+
+    %sort by time
+    [~,sort_idx]  = sort(time_list(target_idx));
+    target_idx    = target_idx(sort_idx);
+
+    %loop through entries, appending kml
+    tmp_kml = '';
+    for j=1:length(target_idx)
+        %target data
+        target_start     = object_struct(target_idx(j)).start_timestamp;
+        target_stop      = object_struct(target_idx(j)).stop_timestamp;
+        target_latlonbox = object_struct(target_idx(j)).latlonbox;
+        target_link      = object_struct(target_idx(j)).nl;
+        %nl
+        timeSpanStart = datestr(target_start,ge_tfmt);
+        timeSpanStop  = datestr(target_stop,ge_tfmt);
+        region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
+        kml_name      = datestr(target_start,r_tfmt);
+        tmp_kml       = ge_networklink(tmp_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
+    end
+    
+    %group into folder
+    track_name = ['track_id_',num2str(track_id)];
+    nl_kml     = ge_folder(nl_kml,tmp_kml,track_name,'',1);
+end
+%write out
+ge_kml_out([nl_path,nl_name,'.kml'],nl_name,nl_kml);
+
+
+function generate_nl_scan(radar_id,object_struct,type,nl_path,altLod,minlod,maxlod)
+
+%WHAT: generates kml for cell or scan objects listed in object_Struct using
+%a radar_id and type filter
 load('tmp/global.config.mat')
 
 %init radar_id and type list
@@ -282,14 +354,10 @@ if isempty(target_idx)
     ge_kml_out([nl_path,name,'.kml'],'','');
     return
 end
-%sort by time
-[~,sort_idx] = sort(time_list(target_idx));
-target_idx   = target_idx(sort_idx);
 
-%static flag, only process the last entry
-if static_flag == 1
-    target_idx = target_idx(end);
-end
+%sort by time
+[~,sort_idx]  = sort(time_list(target_idx));
+target_idx    = target_idx(sort_idx);
 
 %loop through entries, appending kml
 for j=1:length(target_idx)

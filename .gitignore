@@ -1,5 +1,9 @@
-build/
+*/tmp/
+*/build/
 *~
 wv_kml/tmp/
+wv_kml/build/
 wv_process/tmp/
-wv_process/h5_download/
+wv_process/build/
+wv_prep/tmp/
+wv_prep/build/

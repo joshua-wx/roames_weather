@@ -1,6 +1,6 @@
-s3_year        2015
-date_start     20150101
-date_stop      20151231
+s3_year        2013
+date_start     20130101
+date_stop      20131231
 s3_log_fn      s3.log
 local_log_fn   local.log
 s3_in          s3://roames-wxradar-archive/odimh5_archive/

@@ -15,8 +15,7 @@ mlabel on; plabel on; framem on; axis off;
 setm(ax, 'MLabelLocation', 1, 'PLabelLocation', 1,'MLabelRound',0,'PLabelRound',0,'LabelUnits','degrees','Fontsize',8)
 
 %plot coast lines
-geoshow(coast_lat,coast_lon,'DisplayType','line','color','k','LineWidth',1)
-
+linem(coast_lat,coast_lon,'-k','LineWidth',1)
 %plot somerset
 %geoshow(somerset_lat,somerset_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
 

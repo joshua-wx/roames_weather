@@ -10,7 +10,8 @@ end
 if isempty(refreshtime)
     refresh_kml='';
 else
-    refresh_kml=['<refreshMode>onInterval</refreshMode><refreshInterval>',num2str(refreshtime),'</refreshInterval>',10];
+    refresh_kml=['<refreshMode>onInterval</refreshMode>',10,...
+                 '<refreshInterval>',num2str(refreshtime),'</refreshInterval>',10];
 end
 
 out='';

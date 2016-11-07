@@ -1,4 +1,4 @@
-function kml_places_str=ge_poly_placemark(kml_places_str,Style_id,name,altitudeMode,tessellate,X,Y,Z)
+function kml_places_str=ge_poly_placemark(kml_places_str,Style_id,name,timeSpanStart,timeSpanStop,altitudeMode,tessellate,X,Y,Z)
 %WHAT: creates a single polygon from x=long, y=lat, z=alt
 
 coord=[];
@@ -6,6 +6,22 @@ for i=1:length(X)
     coord=[coord,...
         sprintf('%.6f,%.6f,%.6f ', X(i), Y(i), Z(i))];
 end
+
+%build timekml if values inputted, otherwise blank
+if isempty(timeSpanStart)
+    timekml='';
+else
+    timekml=['<TimeSpan><begin>' timeSpanStart '</begin><end>' timeSpanStop '</end></TimeSpan>',10];
+end
+
+%create custom header for multigeometry
+header=['<Placemark>',10,...
+            '<name>',name,'</name>',10,...
+            '<styleUrl>',Style_id,'</styleUrl>',10,...
+            timekml];
+        
+%create custom footer
+footer=['</Placemark>',10];
 
 poly=  ['<Polygon>',10,...
 			'<altitudeMode>',altitudeMode,'</altitudeMode>',10,...
@@ -18,14 +34,5 @@ poly=  ['<Polygon>',10,...
 				'</LinearRing>',10,...	
 			'</outerBoundaryIs>',10,...
 		'</Polygon>',10];
-
-
-%create custom header for multigeometry
-header=['<Placemark>',10,...
-            '<name>',name,'</name>',10,...
-            '<styleUrl>',Style_id,'</styleUrl>',10];
-        
-%create custom footer
-footer=['</Placemark>',10];
     
 kml_places_str=[kml_places_str,header,poly,footer];
