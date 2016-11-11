@@ -2,7 +2,8 @@ function flurry2archive_type1
 %Description:
 %downloads individual volumes from a full dir structure and tar's them up
 
-addpath('../lib/m_lib')
+addpath('../../lib/m_lib')
+addpath('../../etc')
 
 kill_fn = 'flurry2archive.kill';
 [~,~] = system(['touch ',kill_fn]);
@@ -24,8 +25,8 @@ log_fn=['flurry2archive_log_',datestr(now,'yymmdd_HHMM'),'.mat'];
 [~,~]=unix('touch kill_flurry2archive');
 
 %radar_id list
-read_site_info;
-load('site_info.mat')
+read_site_info('site_info.txt');
+load('tmp/site_info.txt.mat')
 
 %site_s_name_list = {'PrthA_P','BrisA_P','R_hmptn','K_grlie','T_Hills'};
 %site_id_list = [26,43,47,48,71];
@@ -55,6 +56,9 @@ display('late start')
 for i=1:length(site_s_name_list)
     %create flurry url
     flurry_radar_name=site_s_name_list{i};
+    if site_id_list(i)<16
+        continue
+    end
     for j=1:length(datelist)
         %create flurry path
         curr_day   = num2str(day(datelist(j)), '%02.0f');

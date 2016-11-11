@@ -31,8 +31,8 @@ if ~isdeployed
     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
     addpath('/home/meso/Dropbox/dev/wv/lib/ge_lib');
     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-    addpath('/home/meso/Dropbox/dev/wv/wv_process/bin/json_read')
     addpath('/home/meso/Dropbox/dev/wv/etc')
+    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
     addpath('/home/meso/Dropbox/dev/wv/wv_kml/etc')
     addpath('/home/meso/Dropbox/dev/wv/wv_kml/tmp')
 else

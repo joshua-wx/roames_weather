@@ -1,5 +1,6 @@
 #! /bin/bash
 
+mkdir tmp
 touch tmp/kill_prep
 
 while [ -e tmp/kill_prep ]; do

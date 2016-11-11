@@ -14,6 +14,11 @@ oldest_time_str   = datestr(oldest_time,ddb_tfmt);
 newest_time_str   = datestr(newest_time,ddb_tfmt);
 radar_id_str      = num2str(radar_id,'%02.0f');
 storm_flag        = 0;
+cell_stat_kml     = '';
+track_kml         = '';
+swath_kml         = '';
+nowcast_kml       = '';
+nowcast_stat_kml  = '';
 
 %init paths
 track_path        = [dest_root,track_obj_path];
@@ -177,12 +182,6 @@ if ~isempty(storm_jstruct)
     track_id_list      = jstruct_to_mat([storm_jstruct.track_id],'N');
     timestamp_list     = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
     uniq_track_id_list = unique(track_id_list);
-    %init vars
-    cell_stat_kml    = '';
-    track_kml        = '';
-    swath_kml        = '';
-    nowcast_kml      = '';
-    nowcast_stat_kml = '';
     %loop through tracks
     for i=1:length(uniq_track_id_list)
         track_id = uniq_track_id_list(i);
@@ -212,41 +211,59 @@ if ~isempty(storm_jstruct)
             [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,track_id,radar_start_ts,radar_stop_ts);
         end
     end
-    %write out to kmz
-    ge_kml_out(cell_stats_ffn,radar_id_str,cell_stat_kml)
-    ge_kml_out(track_ffn,radar_id_str,track_kml)
-    ge_kml_out(swath_ffn,radar_id_str,swath_kml)
-    ge_kml_out(nowcast_ffn,radar_id_str,nowcast_kml)
-    ge_kml_out(nowcast_stats_ffn,radar_id_str,nowcast_stat_kml)
 end
 
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
 
 %scan1_refl
-generate_nl_scan(radar_id,object_struct,'scan1_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(1)==1
+    generate_nl_scan(radar_id,object_struct,'scan1_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %scan2_refl
-generate_nl_scan(radar_id,object_struct,'scan2_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(2)==1
+    generate_nl_scan(radar_id,object_struct,'scan2_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %scan1_vel
-generate_nl_scan(radar_id,object_struct,'scan1_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(3)==1
+    generate_nl_scan(radar_id,object_struct,'scan1_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %scan2_vel
-generate_nl_scan(radar_id,object_struct,'scan2_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(4)==1
+    generate_nl_scan(radar_id,object_struct,'scan2_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %xsec_refl
-generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_refl',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(5)==1
+    generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_refl',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %xsec_vel
-generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_vel',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels)
+if options(6)==1
+    generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_vel',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+end
 %inneriso
-generate_nl_cell(radar_id,storm_jstruct,object_struct,'inneriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels)
+if options(7)==1
+    generate_nl_cell(radar_id,storm_jstruct,object_struct,'inneriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+end
 %outeriso
-generate_nl_cell(radar_id,storm_jstruct,object_struct,'outeriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels)
-
-%remove track data for radar_id if there are no storms using empty kml
-if storm_flag==0
-    ge_kml_out(cell_stats_ffn,'','')
-    ge_kml_out(track_ffn,'','')
-    ge_kml_out(swath_ffn,'','')
-    ge_kml_out(nowcast_ffn,'','')
-    ge_kml_out(nowcast_stats_ffn,'','')
+if options(8)==1
+    generate_nl_cell(radar_id,storm_jstruct,object_struct,'outeriso',[dest_root,cell_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+end
+%cell stats
+if options(9)==1
+    ge_kml_out(cell_stats_ffn,radar_id_str,cell_stat_kml);
+end
+%track
+if options(10)==1
+    ge_kml_out(track_ffn,radar_id_str,track_kml);
+end
+%swath
+if options(11)==1
+    ge_kml_out(swath_ffn,radar_id_str,swath_kml);
+end
+%nowcast
+if options(12)==1
+    ge_kml_out(nowcast_ffn,radar_id_str,nowcast_kml);
+    ge_kml_out(nowcast_stats_ffn,radar_id_str,nowcast_stat_kml);
 end
 
 function object_struct = collate_kmlobj(object_struct,radar_id,subset_id,start_ts,stop_ts,storm_latlonbox,type,link,ffn)
@@ -345,13 +362,19 @@ load('tmp/global.config.mat')
 type_list = {object_struct.type};
 r_id_list = [object_struct.radar_id];
 time_list = [object_struct.start_timestamp];
+%init vars
+scan_latlonbox = object_struct(1).latlonbox; %does not change
+region_kml     = ge_region(scan_latlonbox,0,altLod,minlod,maxlod);
 %init nl
 nl_kml       = '';
 name         = [type,'_',num2str(radar_id,'%02.0f')];
 %find entries from correct radar_id and type
 target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
+%write out offline radar image if no data is present
 if isempty(target_idx)
-    ge_kml_out([nl_path,name,'.kml'],'','');
+    radar_id_str = num2str(radar_id,'%02.0f');
+    nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,region_kml,'','',1);
+    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
     return
 end
 
@@ -364,15 +387,12 @@ for j=1:length(target_idx)
     %target data
     target_start     = object_struct(target_idx(j)).start_timestamp;
     target_stop      = object_struct(target_idx(j)).stop_timestamp;
-    target_latlonbox = object_struct(target_idx(j)).latlonbox;
     target_link      = object_struct(target_idx(j)).nl;
     %nl
     timeSpanStart = datestr(target_start,ge_tfmt);
     timeSpanStop  = datestr(target_stop,ge_tfmt);
-    region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
     kml_name      = datestr(target_start,r_tfmt);
     nl_kml        = ge_networklink(nl_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
 end
 %write out
 ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
-

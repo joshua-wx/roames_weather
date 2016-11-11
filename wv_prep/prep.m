@@ -10,6 +10,7 @@ function prep
 
 if ~isdeployed
     addpath('/home/meso/Dropbox/dev/wv/etc');
+    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
     unix('touch tmp/kill_prep');
@@ -33,6 +34,11 @@ global_config_fn = 'global.config';
 read_config(global_config_fn);
 load(['tmp/',global_config_fn,'.mat']);
 
+% site_info.txt
+site_info_fn = 'site_info.txt';
+read_site_info(site_info_fn);
+load(['tmp/',site_info_fn,'.mat']);
+
 %init local mirror folder
 local_mirror_path = [tempdir,'rapic_mirror'];
 if exist(local_mirror_path,'file')~=7
@@ -54,8 +60,8 @@ fetch_h5_fn        = {};
 
 while exist('tmp/kill_prep','file')==2 %run loop while script termination control still exists
     %be nice to server
-    disp('pausing for 2s')
-    pause(2)
+    disp('pausing for 5s')
+    pause(5)
     
     %Kill function
     if toc(kill_timer)>kill_wait
@@ -143,7 +149,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     %filter using h5 archive , only for init loop run (otherwise
     %prev_fetch_hf_fn is sufficent)
-   if isempty(prev_fetch_h5_fn)
+    if isempty(prev_fetch_h5_fn)
         index_timer  = tic;
         filt_volumes = {};
         filt_h5_fn   = {};
@@ -166,7 +172,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
             end
         end
         disp(['index filter took  ',num2str(toc(index_timer)),' seconds for ',num2str(length(new_datetime)),' volumes'])
-   else
+    else
         filt_r_id    = new_r_id;
         filt_h5_fn   = new_h5_fn;
         filt_volumes = new_volumes;
@@ -247,7 +253,6 @@ if ~isempty(scan_filenames)
         %Find indicies of filenames of uniq_r_id
         uniq_r_id = uniq_r_id_list(i);
         r_idx     = find(r_id==uniq_r_id);
-        
         %Collate filenames from the same volume into one cell
         temp_vol      = {};
         temp_dt       = [];
@@ -294,6 +299,14 @@ function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,ddb_table)
 %file_list: cell array of strings of file names in the tmp dir
 %dest_path: path to destination dir for h5 file
 
+%read site_info
+load(['tmp/site_info.txt.mat']);
+%find radar lat lon
+site_idx  = find(radar_id==site_id_list);
+radar_lat = site_lat_list(site_idx);
+radar_lon = site_lon_list(site_idx);
+radar_h   = site_elv_list(site_idx);
+
 %create full path filenames
 dled_files = strcat( repmat({[' ',local_mirror_path,'/']},length(file_list),1),file_list);
 
@@ -310,6 +323,10 @@ if exist(tmp_h5_ffn,'file') == 2
     delete(tmp_h5_ffn)
 end
 
+if radar_id==46
+    keyboard
+end
+
 %cat scans into temp rapic volume 
 tmp_rapic_ffn = [tempname,'.rapic'];
 cmd = ['cat ',cell2mat(dled_files'),' > ',tmp_rapic_ffn];
@@ -318,12 +335,25 @@ if sout ~= 0
     log_cmd_write('tmp/log.cat',broken_rapic_fn,cmd,eout)
 end
 
+%filter for error messages
+error_1 = 'MSSG: 30 Status information following - 3D-Rapic TxDevice';
+error_2 = 'MSSG: 6 \*\** Radar completed automatic update \*\**'; %escaped * chars
+cmd     = ['sed -i -e ''s/\(',error_1,'\|',error_2,'\)//g'' ',tmp_rapic_ffn];
+[sout,eout] = unix(cmd);
+
 %convert to odim and save in correct archive folder
 cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',tmp_h5_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
     eout
-    log_cmd_write('tmp/log.convert',broken_rapic_fn,'','')
+    log_cmd_write('tmp/log.convert',broken_rapic_fn,'',eout)
+end
+
+%write missing latlonheight data as required
+if any(strfind(eout,'LATITUDE'))
+    h5writeatt(tmp_h5_ffn,'/where','height',radar_h);
+    h5writeatt(tmp_h5_ffn,'/where','lat',radar_lat);
+    h5writeatt(tmp_h5_ffn,'/where','lon',radar_lon);
 end
 
 %if h5 file does not exist, move rapic file to broken rapic vol
@@ -355,15 +385,6 @@ ddb_struct.data_type.S          = 'odimh5';
 ddb_struct.data_id.S            = data_id;
 ddb_struct.h5_ffn.S             = h5_ffn;
 ddb_put_item(ddb_struct,ddb_table)
-% ddb_struct                      = struct;
-% ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
-% ddb_struct.start_timestamp.S    = datestr(h5_start_dt,'yyyy-mm-ddTHH:MM:SS');
-% ddb_struct.h5_size.N            = num2str(h5_size);
-% ddb_struct.h5_ffn.S             = h5_ffn;
-% ddb_struct.sig_refl_flag.N      = '0';
-% 
-% ddb_put_item(ddb_struct,ddb_table)
-
 
 %remove tmp rapic file
 delete(tmp_rapic_ffn)

@@ -33,6 +33,11 @@ load('tmp/kml.config.mat')
 load('tmp/site_info.txt.mat')
 load('tmp/site_info_hide.txt.mat')
 
+%overide site_info_hide for historical data
+if realtime_kml == 0
+    radar_id_hide = [];
+end
+
 %empty string vairables for storing kml
 overlay_str  = '';
 coverage_str = '';
@@ -65,6 +70,7 @@ scan_style_str = ge_line_style(scan_style_str,'coverage_style',html_color(0.5,[1
 %% Track Styles
 
 track_style_str     = '';
+cell_style_str      = '';
 %forecast style with a maximum of n_fcst_steps steps.
 forecast_S_colormap = colormap(pink(n_fcst_steps)); %stregthening
 forecast_W_colormap = colormap(bone(n_fcst_steps)); %weakening
@@ -76,7 +82,7 @@ track_style_str = ge_poly_style(track_style_str,['fcst_N_step_',num2str(i),'_sty
 end
 
 %balloon style (stats and graph)
-track_style_str = ge_balloon_stats_style(track_style_str,'balloon_stats_style');
+cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style');
 track_style_str = ge_balloon_graph_style(track_style_str,'balloon_graph_style');
 
 %track path and swath style
@@ -91,7 +97,6 @@ end
 
 %Build kml for screen Overlays (logos)
 overlay_str = ge_screenoverlay(overlay_str,'ROAMES Logo',[url_prefix,overlays_path,'ROAMES_logo.png'],.03,.04,0,.085,'','');
-overlay_str = ge_screenoverlay(overlay_str,'BoM Logo',[url_prefix,overlays_path,'bom_logo.gif'],.32,.04,0,.085,'','');
 overlay_str = ge_screenoverlay(overlay_str,'Refl Colorbar',[url_prefix,overlays_path,'refl_colorbar.png'],.96,.1,0,.4,'','');
 overlay_str = ge_screenoverlay(overlay_str,'Vel Colorbar',[url_prefix,overlays_path,'vel_colorbar.png'],.92,.1,0,.4,'','');
 master_str  = ge_folder(master_str,overlay_str,'Overlays','',1);
@@ -134,7 +139,6 @@ if ~strcmp(dest_root(1:2),'s3') && exist([dest_root,'overlays/'],'file')~=7
 end
 file_mv([tempdir,'coverage.kml'],[dest_root,'overlays/coverage.kml'])
 file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'ROAMES_logo.png'],0,1)
-file_cp([pwd,'/etc/',overlays_path,'bom_logo.gif'],[dest_root,overlays_path,'bom_logo.gif'],0,1)
 file_cp([pwd,'/etc/',overlays_path,'refl_colorbar.png'],[dest_root,overlays_path,'refl_colorbar.png'],0,1)
 file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,'vel_colorbar.png'],0,1)
 
@@ -143,15 +147,27 @@ file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,
 %scan.kml
 display('building scan nl kml')
 scan_str  = scan_style_str;
-tmp_str   = generate_radar_nl('scan1_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
-scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 1','',1);
-tmp_str   = generate_radar_nl('scan2_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
-scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 2','',1);
-tmp_str   = generate_radar_nl('scan1_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
-scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 1','',1);
-tmp_str   = generate_radar_nl('scan2_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
-scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 2','',1);
+if options(1)==1
+    tmp_str   = generate_radar_nl('scan1_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
+    scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 1','',1);
+end
+if options(2)==1
+    tmp_str   = generate_radar_nl('scan2_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
+    scan_str  = ge_folder(scan_str,tmp_str,'Reflectivity Tilt 2','',1);
+end
+if options(3)==1
+    tmp_str   = generate_radar_nl('scan1_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
+    scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 1','',1);
+end
+if options(4)==1
+    tmp_str   = generate_radar_nl('scan2_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,radar_id_hide);
+    scan_str  = ge_folder(scan_str,tmp_str,'Doppler Wind Tilt 2','',1);
+end
 
+if any(options(1:4))
+    display('building offline images')
+    generate_offline_radar(dest_root,scan_obj_path,site_no_selection,site_latlonbox)
+end
 scan_str  = ge_networklink(scan_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
 
 temp_ffn = tempname;
@@ -162,15 +178,20 @@ wait_aws_finish
 %track.kml
 display('building track nl kml')
 track_str  = track_style_str;
-tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
-track_str  = ge_folder(track_str,tmp_str,'Storm Tracks','',1);
-tmp_str    = generate_radar_nl('swath',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
-track_str  = ge_folder(track_str,tmp_str,'Storm Swaths','',1);
-tmp_str    = generate_radar_nl('nowcast',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
-track_str  = ge_folder(track_str,tmp_str,'Storm Nowcasts','',1);
-tmp_str    = generate_radar_nl('nowcast_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
-track_str  = ge_folder(track_str,tmp_str,'Nowcast Stats','',1);
-
+if options(10)==1
+    tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+    track_str  = ge_folder(track_str,tmp_str,'Storm Tracks','',1);
+end
+if options(11)==1
+    tmp_str    = generate_radar_nl('swath',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+    track_str  = ge_folder(track_str,tmp_str,'Storm Swaths','',1);
+end
+if options(12)==1
+    tmp_str    = generate_radar_nl('nowcast',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+    track_str  = ge_folder(track_str,tmp_str,'Storm Nowcasts','',1);
+    tmp_str    = generate_radar_nl('nowcast_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+    track_str  = ge_folder(track_str,tmp_str,'Nowcast Stats','',1);
+end
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Track Objects',track_str);
 file_mv(temp_ffn,[dest_root,'track.kml']);
@@ -178,18 +199,28 @@ wait_aws_finish
 
 %cell.kml
 display('building cell nl kml')
-cell_str  = '';
-tmp_str   = generate_radar_nl('cell_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
-cell_str  = ge_folder(cell_str,tmp_str,'Cell Stats','',1);
-tmp_str   = generate_radar_nl('inneriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
-cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface','',1);
-tmp_str   = generate_radar_nl('outeriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
-cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface','',1);
-tmp_str   = generate_radar_nl('xsec_refl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
-cell_str  = ge_folder(cell_str,tmp_str,'XSection Reflectivity','',1);
-tmp_str   = generate_radar_nl('xsec_dopl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
-cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
+cell_str  = cell_style_str;
+if options(9)==1
+    tmp_str   = generate_radar_nl('cell_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag,radar_id_hide);
+    cell_str  = ge_folder(cell_str,tmp_str,'Cell Stats','',1);
+end
+if options(7)==1
+    tmp_str   = generate_radar_nl('inneriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+    cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface','',1);
+end
+if options(8)==1
+    tmp_str   = generate_radar_nl('outeriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+    cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface','',1);
+end
 
+if options(5)==1
+    tmp_str   = generate_radar_nl('xsec_refl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+    cell_str  = ge_folder(cell_str,tmp_str,'XSection Reflectivity','',1);
+end
+if options(6)==1
+    tmp_str   = generate_radar_nl('xsec_dopl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag,radar_id_hide);
+    cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
+end
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Cell Objects',cell_str);
 file_mv(temp_ffn,[dest_root,'cell.kml']);
@@ -208,7 +239,7 @@ for i=1:length(radar_id_list)
         region_kml = '';
     end
     %init paths
-    radar_id_str = num2str(radar_id_list(i),'%02.0f');
+    radar_id_str  = num2str(radar_id_list(i),'%02.0f');
     kml_path      = [file_path,radar_id_str,'/'];
     kml_full_path = [dest_root,kml_path];
     if local_dest_flag == 1 && exist(kml_full_path,'file')~=7
@@ -220,6 +251,25 @@ for i=1:length(radar_id_list)
     kml_name     = radar_id_str;
     kml_fn       = [kml_path,prefix,'_',radar_id_str,'.kml'];
     kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,60,region_kml,'','',nl_vis); %refresh every minute or onRegion
-    %init empty kml file
-    ge_kml_out([dest_root,kml_fn],'','');
-end 
+    %init radar offline kml network link for scans, empty for others
+    if strcmp(prefix(1:4),'scan')
+        kml2_nl = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,region_kml,'','',1);
+    else
+        kml2_nl = '';
+    end
+    %write out
+    ge_kml_out([dest_root,kml_fn],kml_name,kml2_nl);
+end
+
+function generate_offline_radar(dest_root,file_path,radar_id_list,site_latlonbox)
+%WHAT: generates offline ground overlays for each radar
+%loop through radar ids
+png_ffn = [pwd,'/etc/overlays/radar_offline.png'];
+for i=1:length(radar_id_list)
+    radar_id_str = num2str(radar_id_list(i),'%02.0f');
+    offline_kml  = ge_groundoverlay('','Radar Offline','radar_offline.png',site_latlonbox(i,:),'','','clamped','',1);
+    kmz_fn       = ['radar_offline_',radar_id_str,'.kmz'];
+    kml_path     = [dest_root,file_path,radar_id_str,'/'];
+    ge_kmz_out(kmz_fn,offline_kml,kml_path,png_ffn);
+end
+    
