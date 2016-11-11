@@ -238,4 +238,4 @@
 # 96 Dev-Rdr  37.68989  144.94687  99  16 DWSR2502C-8_ 0
 # 97 Int-Rdr  37.691    144.946    100  22 DWSR2502C-14 0
 # 98 CP2Bris  27.6683   152.8617   187  17 CP2Radar    0 
-# 99 LabTest   0.000    0.000     0 19 Simulator   0
+  99 UQXPOL   0.000     0.000      0    19 Simulator   0
