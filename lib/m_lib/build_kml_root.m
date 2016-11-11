@@ -253,7 +253,7 @@ for i=1:length(radar_id_list)
     kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,60,region_kml,'','',nl_vis); %refresh every minute or onRegion
     %init radar offline kml network link for scans, empty for others
     if strcmp(prefix(1:4),'scan')
-        kml2_nl = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,region_kml,'','',1);
+        kml2_nl = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
     else
         kml2_nl = '';
     end
