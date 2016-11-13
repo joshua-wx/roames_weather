@@ -19,16 +19,15 @@ function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(h5_ffn,aazi_grid,sl_rrang
 %Load config file
 load('tmp/global.config.mat');
 load('tmp/site_info.txt.mat');
-
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
 %pol grid constants
-r_width     = 360/double(h5readatt(h5_ffn,'/dataset1/where','nrays'));                 %deg, beam width
-a_vec       = 0:r_width:360;                                                             %deg, azimuth vector
-r_bin       =  double(h5readatt(h5_ffn,'/dataset1/where','rscale'));                   %m, range bin size (range res)
+n_rays      = double(h5readatt(h5_ffn,'/dataset1/where','nrays'))+1;                   %deg, beam width, +1 to ensure continuity
+a_vec       = linspace(0,360,n_rays);                                                  %deg, azimuth vector
+r_bin       = double(h5readatt(h5_ffn,'/dataset1/where','rscale'));                    %m, range bin size (range res)
 r_start     = double(h5readatt(h5_ffn,'/dataset1/where','rstart'))*1000;               %m, range of radar
 r_range     = double(h5readatt(h5_ffn,'/dataset1/where','nbins'))*r_bin+r_start-r_bin; %m, range of radar
-slant_r_vec = r_start:r_bin:r_range;                                                     %m,   slant range (along ray)
+slant_r_vec = r_start:r_bin:r_range;                                                   %m,   slant range (along ray)
 
 %load radar id
 source   = h5readatt(h5_ffn,'/what','source');                                         %source text tag (contains radar id)
@@ -63,7 +62,11 @@ z_vec = [v_grid:v_grid:v_range]';                             %m, Z domain vecto
 [imgrid_intp_a,imgrid_intp_sr] = cart2pol(imgrid_x,imgrid_y);   %convert regridd coord into polar
 
 %interpolate refl scans
+try
 scan1_refl_out = interp2(imgrid_a,imgrid_sr,scan1_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan1 into convereted regridded coord
+catch
+    keyboard
+end
 scan1_refl_out = rot90(scan1_refl_out,3); %orientate
 tilt1          = scan1_elv;
 scan2_refl_out = interp2(imgrid_a,imgrid_sr,scan2_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
@@ -136,7 +139,7 @@ if sig_refl == 1
             log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
             continue
         end
-        elv_vec(i)         = temp_elv;    
+        elv_vec(i)         = temp_elv;
         refl_vol(:,:,i)    = temp_refl;
         if vel_flag == 1
             vel_vol(:,:,i) = temp_vel;
@@ -275,7 +278,6 @@ function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,data
 %OUTPUTS:
 %elv: elevation angle of radar beam
 %pol_data: polarmetric data
-
 try
     %extract constants from what group for the dataset
     elv      = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/where/'],'elangle');

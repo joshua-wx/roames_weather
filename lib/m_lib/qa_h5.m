@@ -43,7 +43,7 @@ group_list={h5_info.Groups(1:end-3).Name};
 %read data groups in the first scan
 data_list={h5_info.Groups(1).Groups(1:end-3).Name};
 %if there are two data group, then mark as vel
-if length(data_list)==2
+if length(data_list)>1
     vel_flag = 1;
 end
 %save number of groups
@@ -63,7 +63,7 @@ for i=1:length(group_no_list_sorted)
     end
 end
 %check for a min number of groups and doubled scans (normally 14 levels)
-if length(group_no_list)<min_n_groups || length(group_no_list)>20 
+if length(group_no_list)<min_n_groups %|| max number of scans
     log_cmd_write('tmp/log.qa',h5_ffn,'insufficent number of scans at',num2str(group_no_list));
     return
 end
