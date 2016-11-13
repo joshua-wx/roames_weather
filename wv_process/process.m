@@ -29,11 +29,11 @@ unix('touch tmp/kill_process');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/wv/etc')
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
-    addpath('/home/meso/Dropbox/dev/wv/bin/mirt3D');
+    addpath('/home/meso/dev/wv/lib/m_lib');
+    addpath('/home/meso/dev/wv/etc')
+    addpath('/home/meso/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/wv/bin/json_read');
+    addpath('/home/meso/dev/wv/bin/mirt3D');
     addpath('etc')
     addpath('tmp')
     unix('touch tmp/kill_process');
@@ -189,7 +189,10 @@ while exist('tmp/kill_process','file')==2
                     [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,vol_obj.r_lat,vol_obj.r_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    [nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
+                    display('manual set fz level')
+                    nn_snd_fz_h      = 3800;
+                    nn_snd_minus20_h = 6600;
+                    %[nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
                 end
                 %run ident
                 prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
