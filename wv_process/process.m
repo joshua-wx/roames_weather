@@ -160,8 +160,7 @@ while exist('tmp/kill_process','file')==2
             if qa_flag==0
                 disp(['Volume failed QA: ' pending_h5_fn_list{i}])
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt   = [complete_h5_dt;start_dt];
-                delete(h5_ffn)
+                complete_h5_dt      = [complete_h5_dt;start_dt];
                 continue
             end
 
@@ -170,8 +169,7 @@ while exist('tmp/kill_process','file')==2
             if isempty(vol_obj)
                 disp(['Volume datasets missing: ' pending_h5_fn_list{i}])
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt   = [complete_h5_dt;start_dt];
-                delete(h5_ffn)
+                complete_h5_dt      = [complete_h5_dt;start_dt];
                 continue
             end
             %run cell identify if sig_refl has been detected
@@ -189,10 +187,7 @@ while exist('tmp/kill_process','file')==2
                     [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,vol_obj.r_lat,vol_obj.r_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    display('manual set fz level')
-                    nn_snd_fz_h      = 3800;
-                    nn_snd_minus20_h = 6600;
-                    %[nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
+                    [nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
                 end
                 %run ident
                 prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
@@ -200,7 +195,7 @@ while exist('tmp/kill_process','file')==2
                 prc_obj = {};
             end
             
-            update_archive(dest_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag)
+            update_archive(src_root,dest_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,h5_ffn)
 
             %run tracking algorithm if sig_refl has been detected
             if vol_obj.sig_refl==1 && ~isempty(prc_obj)
@@ -285,7 +280,7 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_ti
 %profile off
 %profile viewer
 
-function update_archive(dest_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag)
+function update_archive(src_root,dest_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
@@ -302,13 +297,15 @@ load('tmp/interp_cmaps.mat')
 %setup paths and tags
 date_vec  = datevec(vol_obj.start_timedate);
 radar_id  = vol_obj.radar_id;
-data_path = [dest_root,num2str(radar_id,'%02.0f'),...
+arch_path = [num2str(radar_id,'%02.0f'),...
     '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
+dest_path = [dest_root,arch_path];
+src_path  = [src_root,arch_path];
 data_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
 %create local data path
 if ~strcmp(dest_root(1:2),'s3')
-    mkdir(data_path)
+    mkdir(dest_path)
 end
 
 %% volume data
@@ -316,8 +313,7 @@ tar_fn      = [data_tag,'.wv.tar'];
 tmp_tar_ffn = [tempdir,tar_fn];
 h5_fn       = [data_tag,'.storm.h5'];
 tmp_h5_ffn  = [tempdir,h5_fn];
-dst_tar_ffn = [data_path,tar_fn];
-scaled_llb  = round(vol_obj.llb*geo_scale)';
+dst_tar_ffn = [dest_path,tar_fn];
 
 %delete h5 if exists
 if exist(tmp_h5_ffn,'file') == 2
@@ -331,56 +327,28 @@ jstruct = ddb_get_item(odimh5_ddb_table,...
     'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
 %update init_sig_relf_flag
 if ~isempty(jstruct)
-    init_sig_relf_flag = jstruct.Item.sig_refl_flag.N;
+    storm_flag    = jstruct.Item.storm_flag.N;
 else
-    init_sig_relf_flag = 0;
-    jstruct            = struct;
-end
-
-jstruct.Item.radar_id.N       = num2str(radar_id,'%02.0f');
-jstruct.Item.start_timestamp.S= datestr(vol_obj.start_timedate,ddb_tfmt);
-jstruct.Item.sig_refl_flag.N  = num2str(vol_obj.sig_refl);
-jstruct.Item.tilt1.N          = num2str(vol_obj.tilt1);
-jstruct.Item.tilt2.N          = num2str(vol_obj.tilt2);
-jstruct.Item.vel_ni.N         = num2str(vol_obj.vel_ni);
-jstruct.Item.img_latlonbox.S  = num2str(scaled_llb);
-%write to odimh5 ddb
-ddb_put_item(jstruct.Item,odimh5_ddb_table);
-%convert refl images to png
-refl_transp  = ones(length(interp_refl_cmap),1); refl_transp(1) = 0;
-vel_transp   = ones(length(interp_vel_cmap),1);   vel_transp(1) = 0;
-s1_refl_png  = png_transform(vol_obj.scan1_refl,'refl',vol_obj.refl_vars,min_dbz);
-s2_refl_png  = png_transform(vol_obj.scan2_refl,'refl',vol_obj.refl_vars,min_dbz);
-s1_refl_ffn  = [tempdir,data_tag,'.scan1_refl.png'];
-s2_refl_ffn  = [tempdir,data_tag,'.scan2_refl.png'];
-imwrite(s1_refl_png,interp_refl_cmap,s1_refl_ffn,'Transparency',refl_transp);
-imwrite(s2_refl_png,interp_refl_cmap,s2_refl_ffn,'Transparency',refl_transp);
-tar_ffn_list = {[data_tag,'.scan1_refl.png'];[data_tag,'.scan2_refl.png']};
-%convert vel images to png
-if vol_obj.vel_ni~=0
-    s1_vel_png = png_transform(vol_obj.scan1_vel,'vel',vol_obj.vel_vars,min_vel);
-    s2_vel_png = png_transform(vol_obj.scan2_vel,'vel',vol_obj.vel_vars,min_vel);
-    s1_vel_ffn = [tempdir,data_tag,'.scan1_vel.png'];
-    s2_vel_ffn = [tempdir,data_tag,'.scan2_vel.png'];
-    imwrite(s1_vel_png,interp_vel_cmap,s1_vel_ffn,'Transparency',vel_transp);
-    imwrite(s2_vel_png,interp_vel_cmap,s2_vel_ffn,'Transparency',vel_transp);
-    tar_ffn_list = [tar_ffn_list;[data_tag,'.scan1_vel.png'];[data_tag,'.scan2_vel.png']];
+    storm_flag    = 0;
+    jstruct       = struct;
 end
 
 %skip if storm_obj is empty
 if ~isempty(storm_obj)
+    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
+    tar_ffn_list    = '';
     track_id        = 0; %default for no track
     %delete storm ddb entries for this volume if they already exist
-    if init_sig_relf_flag == 1 %since indicates volumes was previous processed for storms
+    if storm_flag == 1 %since indicates volumes was previous processed for storms
         storm_atts      = 'radar_id,subset_id';
         oldest_time_str = datestr(vol_obj.start_timedate,ddb_tfmt);
         newest_time_str = datestr(addtodate(vol_obj.start_timedate,1,'second'),ddb_tfmt); %duffer time for between function
+        %query for storm_ddb entries
         delete_jstruct  = ddb_query('radar_id',num2str(radar_id,'%02.0f'),'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
         for i=1:length(delete_jstruct)
+            %remove items
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);
         end
-        %run a query for radar_id and time_start
-        %pass to delete
     end
     %init struct
     ddb_put_struct  = struct;
@@ -428,27 +396,43 @@ if ~isempty(storm_obj)
         end
         h5_data_write(h5_fn,tempdir,subset_id,data_struct,r_scale);
     end
-    %move h5 files to data_path
+    %%%TAR
+    %append h5 files to tar list
     if exist(tmp_h5_ffn,'file') == 2
         tar_ffn_list = [tar_ffn_list;h5_fn];
     end
-    
+    %tar data and move to s3
+    %parse file list
+    tartxt_fid = fopen('etc/tar_ffn_list.txt','w');
+    for i=1:length(tar_ffn_list)
+        fprintf(tartxt_fid,'%s\n',tar_ffn_list{i});
+    end
+    fclose(tartxt_fid);
+    %pass to tar cmd
+    cmd         = ['tar -C ',tempdir,' -cvf ',tmp_tar_ffn,' -T etc/tar_ffn_list.txt'];
+    [sout,eout] = unix(cmd);
+    file_mv(tmp_tar_ffn,dst_tar_ffn);
+    %remove files
+    for i=1:length(tar_ffn_list)
+        delete([tempdir,tar_ffn_list{i}]);
+    end
 end
 
-%tar data and move to s3
-%create file list
-tartxt_fid = fopen('etc/tar_ffn_list.txt','w');
-for i=1:length(tar_ffn_list)
-    fprintf(tartxt_fid,'%s\n',tar_ffn_list{i});
-end
-fclose(tartxt_fid);
-%unix tar cmd (matlab breaks...)
-cmd         = ['tar -C ',tempdir,' -cvf ',tmp_tar_ffn,' -T etc/tar_ffn_list.txt'];
-[sout,eout] = unix(cmd);
-file_mv(tmp_tar_ffn,dst_tar_ffn);
-for i=1:length(tar_ffn_list)
-    delete([tempdir,tar_ffn_list{i}]);
-end
+%write odimh5 ddb entry for volume
+[~,odimh5_name,~] = fileparts(odimh5_ffn) 
+odimh5_src_path   = [src_path,odimh5_name,'.h5'];
+dir_out           = dir(odimh5_ffn);
+odimh5_size       = dir_out.bytes;
+%fill struct
+jstruct.Item.radar_id.N        = num2str(radar_id,'%02.0f');
+jstruct.Item.start_timestamp.S = datestr(vol_obj.start_timedate,ddb_tfmt);
+jstruct.Item.h5_size.N         = odimh5_size;
+jstruct.Item.h5_ffn.S          = odimh5_src_path;
+jstruct.Item.storm_flag.N      = storm_flag;
+jstruct.Item.vel_ni.N          = num2str(vol_obj.vel_ni);
+%write to odimh5 ddb
+ddb_put_item(jstruct.Item,odimh5_ddb_table);
+
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
     data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
@@ -476,16 +460,3 @@ for i = 1:length(data_name_list);
 end
 %check size
 tmp_sz =  length(fieldnames(ddb_struct));
-
-function data_out = png_transform(data_in,type,vars,min_value)
-
-%find no data regions
-%scale to true value using transformation constants
-data_out=double(data_in).*vars(1)+vars(2);
-if strcmp(type,'refl');
-        %scale for colormapping
-        data_out=(data_out-min_value)*2+1;
-else strcmp(type,'vel');
-        %scale for colormapping
-        data_out=(data_out-min_value)+1;
-end

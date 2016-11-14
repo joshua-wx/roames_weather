@@ -10,11 +10,9 @@ function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(h5_ffn,aazi_grid,sl_rrang
 %no_datasets: number of datasets in h5 file, output of QA
 
 %OUTPUT:
-%intp_struct: contains fields of lon_vev (regridded lon coordinates), lat_vec (regridded lat coordinates, z_vec_asml (regridded z coord),
-    %region_latlonbox (sscan latlongbox), start_timedate, stop_timedate,
-    %radar_id, sig_refl (sig_refl_count_thresh threshold), sscan (surface scan
-    %image)
-%v: regridded volume with coordinates lat,lon,z vec.
+%vol_obj: struct containing attributes for radar data volume
+%vol_refl_out: regridded reflectivity
+%vol_vel_out:  regridded doppler velocity
 
 %Load config file
 load('tmp/global.config.mat');
@@ -22,8 +20,8 @@ load('tmp/site_info.txt.mat');
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
 %pol grid constants
-n_rays      = double(h5readatt(h5_ffn,'/dataset1/where','nrays'))+1;                   %deg, beam width, +1 to ensure continuity
-a_vec       = linspace(0,360,n_rays);                                                  %deg, azimuth vector
+n_rays      = double(h5readatt(h5_ffn,'/dataset1/where','nrays'));                     %deg, beam width
+a_vec       = linspace(0,360,n_rays+1);                                                %deg, azimuth vector, duplicating 0 ray to 360
 r_bin       = double(h5readatt(h5_ffn,'/dataset1/where','rscale'));                    %m, range bin size (range res)
 r_start     = double(h5readatt(h5_ffn,'/dataset1/where','rstart'))*1000;               %m, range of radar
 r_range     = double(h5readatt(h5_ffn,'/dataset1/where','nbins'))*r_bin+r_start-r_bin; %m, range of radar
@@ -51,38 +49,6 @@ x_vec = -h_range:h_grid:h_range;                              %m, X domain vecto
 y_vec = -h_range:h_grid:h_range;                              %m, Y domain vector
 z_vec = [v_grid:v_grid:v_range]';                             %m, Z domain vector, adjusted for radar height
 
-%% EXTRACT SURFACE SCAN
-% Interpolate a surface scane image into carteisan coord
-[scan1_elv,scan1_refl,refl_vars,scan1_vel,vel_vars] = read_radar_scan(h5_ffn,1,slant_r_vec,a_vec,vel_flag);
-[scan2_elv,scan2_refl,~,scan2_vel,~]                = read_radar_scan(h5_ffn,2,slant_r_vec,a_vec,vel_flag);
-
-%setup interpolation grid
-[imgrid_a,imgrid_sr]           = meshgrid(a_vec,slant_r_vec);   %coordinate for surface image
-[imgrid_x,imgrid_y]            = meshgrid(x_vec,y_vec);         %coordinates for regridded image
-[imgrid_intp_a,imgrid_intp_sr] = cart2pol(imgrid_x,imgrid_y);   %convert regridd coord into polar
-
-%interpolate refl scans
-try
-scan1_refl_out = interp2(imgrid_a,imgrid_sr,scan1_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan1 into convereted regridded coord
-catch
-    keyboard
-end
-scan1_refl_out = rot90(scan1_refl_out,3); %orientate
-tilt1          = scan1_elv;
-scan2_refl_out = interp2(imgrid_a,imgrid_sr,scan2_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
-scan2_refl_out = rot90(scan2_refl_out,3); %orientate
-tilt2          = scan2_elv;
-%interpolate vel scans
-if vel_flag == 1
-    scan1_vel_out = interp2(imgrid_a,imgrid_sr,scan1_vel,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan1 into convereted regridded coord
-    scan1_vel_out = rot90(scan1_vel_out,3); %orientate
-    scan2_vel_out = interp2(imgrid_a,imgrid_sr,scan2_vel,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
-    scan2_vel_out = rot90(scan2_vel_out,3); %orientate
-else
-    scan1_vel_out=[];
-    scan2_vel_out=[];
-end
-
 %% Generate mapping coordinates
 %mapping coordinates, working in ij coordinates
 mstruct        = defaultm('mercator');
@@ -91,22 +57,24 @@ mstruct.geoid  = almanac('earth','wgs84','meters');
 mstruct        = defaultm(mstruct);
 %transfore x,y into lat long using centroid
 [lat_vec, lon_vec]     = minvtran(mstruct, x_vec, x_vec);
-[r_lat_vec, r_lon_vec] = minvtran(mstruct, [0,0,x_vec(1),x_vec(end)], [y_vec(1),y_vec(end),0,0]);
-region_latlonbox       = [max(r_lat_vec);min(r_lat_vec);max(r_lon_vec);min(r_lon_vec)];
 
-%% INTERPOLATE
-%WHAT: Check for significant convection by masking to ewt_a and checking saliency
-%criteria
+%% EXTRACT SURFACE SCAN FOR SIG_REFL CHECK
+% Interpolate a surface scane image into carteisan coord
+[~,sig_refl_data,sig_refl_vars,~,~,~] = read_radar_scan(h5_ffn,sig_refl_sweep,slant_r_vec,a_vec,0);
 
-%mask scan
-try
-    temp_scan       = double(scan2_refl_out).*refl_vars(1)+refl_vars(2);
-catch
-    vol_obj      = [];
-    vol_refl_out = [];
-    vol_vel_out  = [];
-    return
-end    
+%setup interpolation grid
+[imgrid_a,imgrid_sr]           = meshgrid(a_vec,slant_r_vec);   %coordinate for surface image
+[imgrid_x,imgrid_y]            = meshgrid(x_vec,y_vec);         %coordinates for regridded image
+[imgrid_intp_a,imgrid_intp_sr] = cart2pol(imgrid_x,imgrid_y);   %convert regridd coord into polar
+
+%extract ppi sweep 2 to check sig_refl
+sig_refl_intp = interp2(imgrid_a,imgrid_sr,sig_refl_data,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
+sig_refl_intp = rot90(sig_refl_intp,3); %orientate
+
+%transform to radar coords
+temp_scan       = sig_refl_intp.*sig_refl_vars(1)+sig_refl_vars(2);
+
+%mask using ewt_a value
 temp_mask       = temp_scan>=ewt_a;
 %calc number of pixels required for saliency
 saliency_pixels = floor(ewt_saliency/h_grid*h_grid);
@@ -119,22 +87,20 @@ else
     sig_refl = 0;
 end
 
+%% INTERPOLATION
 %for sig_refl, load all radar data and regrid into cartesian coordinates
 if sig_refl == 1
 
     %preallocate matrices to build HDF5 coordinates and dump scan1 and
     %scan2 data to improve performance
     refl_vol        = zeros(length(slant_r_vec),length(a_vec),no_datasets);    %dBZ, HDF5 radar data
-    refl_vol(:,:,1) = scan1_refl; refl_vol(:,:,2) = scan2_refl;
     elv_vec         = zeros(no_datasets,1);                                    %deg, ray elevation data
-    elv_vec(1)      = scan1_elv; elv_vec(2) = scan2_elv;
     if vel_flag == 1
-        vel_vol        = zeros(length(slant_r_vec),length(a_vec),no_datasets); %m/s, HDF5 radar data
-        vel_vol(:,:,1) = scan1_vel; vel_vol(:,:,2) = scan2_vel;
+        vel_vol     = zeros(length(slant_r_vec),length(a_vec),no_datasets); %m/s, HDF5 radar data
     end
     %load data frm h5 datasets into matrices
-    for i=3:no_datasets
-        [temp_elv,temp_refl,~,temp_vel,~] = read_radar_scan(h5_ffn,i,slant_r_vec,a_vec,vel_flag);
+    for i=1:no_datasets
+        [temp_elv,temp_refl,~,temp_vel,~,~] = read_radar_scan(h5_ffn,i,slant_r_vec,a_vec,vel_flag);
         if temp_elv == 0
             log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
             continue
@@ -153,12 +119,12 @@ if sig_refl == 1
         vel_vol(:,:,zero_mask)=[];
     end
     %check for duplicate elevations
-    [~,uniq_elv_idx] = unique(elv_vec);
+    [~,uniq_elv_idx]   = unique(elv_vec);
     if length(elv_vec)~=length(uniq_elv_idx)
         log_cmd_write('tmp/process_regrid.log',h5_ffn,'duplicate scan in h5 file','');
         %exit interpolation and return blank entires
-        elv_vec  = elv_vec(uniq_elv_idx);
-        refl_vol = refl_vol(:,:,uniq_elv_idx);
+        elv_vec     = elv_vec(uniq_elv_idx);
+        refl_vol    = refl_vol(:,:,uniq_elv_idx);
         if vel_flag == 1
             vel_vol = vel_vol(:,:,uniq_elv_idx);
         end 
@@ -166,20 +132,19 @@ if sig_refl == 1
     
     %% start regrid process
     %vectorise range, azi and elv
-    eval = [aazi_grid(:),sl_rrange_grid(:),eelv_grid(:)];
+    eval        = [aazi_grid(:),sl_rrange_grid(:),eelv_grid(:)];
     eval_length = length(eval);
     %filter out boundaries
     [inside_ind,filt_eval] = boundary_filter(eval,elv_vec,slant_r_vec(2)-slant_r_vec(1),slant_r_vec(end));
     %convert to pixel coordinates for interpolation
-    [pix_a,pix_r,pix_e] = vec2pix(a_vec,slant_r_vec,elv_vec,filt_eval);
+    [pix_a,pix_r,pix_e]    = vec2pix(a_vec,slant_r_vec,elv_vec,filt_eval);
     
     %regrid refl into cartesian
     %run interp C function
     refl_vol(refl_vol==0)=NaN;
     intp_refl = mirt3D_mexinterp(refl_vol,pix_a,pix_r,pix_e);
-    intp_refl = uint8(intp_refl);
     %resize to 3D array
-    vol_refl_out = zeros(eval_length,1,'uint8');
+    vol_refl_out = zeros(eval_length,1);
     vol_refl_out(inside_ind) = intp_refl;
     sizev        = size(aazi_grid);
     vol_refl_out = reshape(vol_refl_out,sizev(1),sizev(2),sizev(3));
@@ -193,9 +158,8 @@ if sig_refl == 1
         %run interp C function
         vel_vol(vel_vol==0) = NaN;
         intp_vel = mirt3D_mexinterp(vel_vol,pix_a,pix_r,pix_e);
-        intp_vel = uint8(intp_vel);
         %resize to 3D array
-        vol_vel_out = zeros(eval_length,1,'uint8');
+        vol_vel_out = zeros(eval_length,1);
         vol_vel_out(inside_ind) = intp_vel;
         sizev       = size(aazi_grid);
         vol_vel_out = reshape(vol_vel_out,sizev(1),sizev(2),sizev(3));
@@ -215,10 +179,10 @@ end
 
 %rescale/offset data
 if ~isempty(vol_refl_out)
-    vol_refl_out = double(vol_refl_out).*refl_vars(1)+refl_vars(2);
+    vol_refl_out = vol_refl_out.*refl_vars(1)+refl_vars(2);
 end
 if ~isempty(vol_vel_out)
-    vol_vel_out  = double(vol_vel_out).*vel_vars(1)+vel_vars(2);
+    vol_vel_out  = vol_vel_out.*vel_vars(1)+vel_vars(2);
     vel_ni       = vel_vars(3);
 else
     vel_ni       = 0;
@@ -226,12 +190,10 @@ end
 
 %output into struct vol_obj
 vol_obj = struct('lon_vec',lon_vec,'lat_vec',lat_vec,'z_vec_amsl',z_vec+r_elv,...
-    'llb',region_latlonbox,'start_timedate',start_timedate,...
+    'start_timedate',start_timedate,...
     'r_lat',r_lat,'r_lon',r_lon,...
-    'radar_id',radar_id,'sig_refl',sig_refl,...
-    'scan1_refl',scan1_refl_out,'scan2_refl',scan2_refl_out,...
-    'scan1_vel',scan1_vel_out,'scan2_vel',scan2_vel_out,'vel_ni',vel_ni,...
-    'tilt1',tilt1,'tilt2',tilt2,'refl_vars',refl_vars,'vel_vars',vel_vars);
+    'radar_id',radar_id,'sig_refl',sig_refl,'vel_ni',vel_ni,...
+    'refl_vars',refl_vars,'vel_vars',vel_vars);
 
 
 function [inside_ind,filt_eval] = boundary_filter(eval,elv_vec,r_min,r_max)
@@ -268,7 +230,7 @@ pix_r  = eval(:,2).*rang_m+rang_c;
 %elevation vector is non-monotonic, use a 1D inteprolation method.
 pix_e = interp1(elv_vec',1:length(elv_vec),eval(:,3),'pchip');
 
-function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,dataset_no,slant_r_vec,a_vec,vel_flag)
+function [elv,refl_data,refl_vars,vel_data,vel_vars,vel_ni]=read_radar_scan(h5_ffn,dataset_no,vol_slant_r_vec,vol_a_vec,vel_flag)
 %WHAT: reads scan and elv data from dataset_no from h5_ffn.
 %INPUTS:
 %h5_ffn: path to h5 file
@@ -279,51 +241,54 @@ function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,data
 %elv: elevation angle of radar beam
 %pol_data: polarmetric data
 try
+    %extract data dims
+    data_n_rays      = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'nrays'));                       %number of rays
+    data_a_vec       = linspace(0,360,data_n_rays+1);                                                                   %wrap to 360 by duplicating first ray
+    data_r_bin       = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'rscale'));                      %m, range bin size (range res)
+    data_r_start     = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'rstart'))*1000;                 %m, range of radar
+    data_r_range     = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'nbins'))*data_r_bin+data_r_start-data_r_bin; %m, range of radar
+    data_slant_r_vec = data_r_start:data_r_bin:data_r_range;                                                            %m,   slant range (along ray)
     %extract constants from what group for the dataset
     elv      = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/where/'],'elangle');
-    vel_data = [];
-    vel_vars = [];
-    %read reflectivity data from hdf5 file, and scaling formula parameters, apply the forumla
-    refl_data   = h5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/data']);
-    refl_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'gain');
-    refl_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'offset');
-    %keep transformation variables
-    refl_vars   = [refl_gain,refl_offset];
-    %ensure continuity
-    refl_data   = cat(2,refl_data,refl_data(:,1));
-
-    %pad refl range dim with zeros if scan is cut short (repair data) or too
-    %long
-    range_padding = length(slant_r_vec)-size(refl_data,1);
-    if range_padding>0
-        refl_data = [refl_data;zeros(range_padding,length(a_vec),'uint8')];
-    elseif range_padding<0
-        refl_data = refl_data(1:end+range_padding,:);
-    end
-    %vel data
+    %refl data (data no 1)
+    [refl_data,refl_vars,~] = extract_odimh5_ppi(h5_ffn,dataset_no,1,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec);
+    %vel data (data no 2)
     if vel_flag == 1
-        vel_data   = h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data2/data'));
-        vel_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'gain');
-        vel_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'offset');
-        vel_ni     = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
-        %keep transformation variables
-        vel_vars   = [vel_gain,vel_offset,vel_ni];
-        %ensure continuity
-        vel_data   = cat(2,vel_data,vel_data(:,1));
-        %pad refl range dim with zeros if scan is cut short (repair data) or too
-        %long
-        range_padding = length(slant_r_vec)-size(vel_data,1);
-        if range_padding>0
-            vel_data = [vel_data;zeros(range_padding,length(a_vec),'uint8')];
-        elseif range_padding<0
-            vel_data = vel_data(1:end+range_padding,:);
-        end
+        [vel_data,vel_vars,vel_ni] = extract_odimh5_ppi(h5_ffn,dataset_no,2,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec);
+    else
+        vel_data = [];
+        vel_vars = [];
+        vel_ni   = [];
     end
 catch
     disp(['/dataset',num2str(dataset_no),' is broken']);
     elv       = 0;
-    vel_data  = zeros(length(slant_r_vec),length(a_vec),'uint8');
-    vel_vars  = [];
-    refl_data = zeros(length(slant_r_vec),length(a_vec),'uint8');
+    vel_data  = zeros(length(slant_r_vec),length(a_vec));
+    vel_vars  = []; vel_ni = [];
+    refl_data = zeros(length(slant_r_vec),length(a_vec));
     refl_vars = [];
 end
+
+function [ppi_data,ppi_vars,vel_ni] = extract_odimh5_ppi(h5_ffn,dataset_no,data_no,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec)
+
+%extract data and vars
+ppi_data   = double(h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data',num2str(data_no),'/data')));
+ppi_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'gain');
+ppi_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'offset');
+%collate variables
+ppi_vars = [ppi_gain,ppi_offset];
+%vel ni
+if data_no == 2
+    vel_ni = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
+else
+    vel_ni = [];
+end
+%wrap 0deg to 360deg ray
+ppi_data   = cat(2,ppi_data,ppi_data(:,1));
+%interpolate if dataset dims are different size from vol dim vecs
+if length(data_slant_r_vec)~=length(slant_r_vec) || length(data_a_vec)~=length(a_vec)
+    [data_az_grid,data_sl_grid] = meshgrid(data_a_vec,data_slant_r_vec);   %grid for dataset
+    [vol_az_grid, vol_sl_grid]  = meshgrid(vol_a_vec,vol_slant_r_vec);             %grid for volume
+    ppi_data                    = interp2(data_az_grid,data_sl_grid,ppi_data,vol_az_grid,vol_sl_grid,'linear',0); %interpolate and extrap to 0
+end
+        
