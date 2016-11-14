@@ -29,11 +29,11 @@ unix('touch tmp/kill_process');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/wv/etc')
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
-    addpath('/home/meso/Dropbox/dev/wv/bin/mirt3D');
+    addpath('/home/meso/dev/wv/lib/m_lib');
+    addpath('/home/meso/dev/wv/etc')
+    addpath('/home/meso/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/wv/bin/json_read');
+    addpath('/home/meso/dev/wv/bin/mirt3D');
     addpath('etc')
     addpath('tmp')
     unix('touch tmp/kill_process');
@@ -273,6 +273,7 @@ catch err
     hist_oldest_restart = date_list(d);
     save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     rethrow(err)
 end
 

@@ -28,13 +28,13 @@ unix('touch tmp/kill_kml');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/wv/lib/ge_lib');
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-    addpath('/home/meso/Dropbox/dev/wv/etc')
-    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
-    addpath('/home/meso/Dropbox/dev/wv/wv_kml/etc')
-    addpath('/home/meso/Dropbox/dev/wv/wv_kml/tmp')
+    addpath('/home/meso/dev/wv/lib/m_lib');
+    addpath('/home/meso/dev/wv/lib/ge_lib');
+    addpath('/home/meso/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/wv/etc')
+    addpath('/home/meso/dev/wv/bin/json_read');
+    addpath('/home/meso/dev/wv/wv_kml/etc')
+    addpath('/home/meso/dev/wv/wv_kml/tmp')
 else
     addpath('etc')
     addpath('tmp')
@@ -214,6 +214,7 @@ catch err
     %display and log error
     display(err)
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     rethrow(err)
 end
 
