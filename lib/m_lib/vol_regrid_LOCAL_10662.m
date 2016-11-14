@@ -20,13 +20,8 @@ load('tmp/site_info.txt.mat');
 %% SETUP STANDARD GRID FOR SPH->POL->CART TRANFORMS
 
 %pol grid constants
-<<<<<<< HEAD
 n_rays      = double(h5readatt(h5_ffn,'/dataset1/where','nrays'));                     %deg, beam width
 a_vec       = linspace(0,360,n_rays+1);                                                %deg, azimuth vector, duplicating 0 ray to 360
-=======
-n_rays      = double(h5readatt(h5_ffn,'/dataset1/where','nrays'))+1;                   %deg, beam width, +1 to ensure continuity
-a_vec       = linspace(0,360,n_rays);                                                  %deg, azimuth vector
->>>>>>> 064cc3569e2cf68da7b1e3875a7da0acab1eb7ca
 r_bin       = double(h5readatt(h5_ffn,'/dataset1/where','rscale'));                    %m, range bin size (range res)
 r_start     = double(h5readatt(h5_ffn,'/dataset1/where','rstart'))*1000;               %m, range of radar
 r_range     = double(h5readatt(h5_ffn,'/dataset1/where','nbins'))*r_bin+r_start-r_bin; %m, range of radar
@@ -54,41 +49,6 @@ x_vec = -h_range:h_grid:h_range;                              %m, X domain vecto
 y_vec = -h_range:h_grid:h_range;                              %m, Y domain vector
 z_vec = [v_grid:v_grid:v_range]';                             %m, Z domain vector, adjusted for radar height
 
-<<<<<<< HEAD
-=======
-%% EXTRACT SURFACE SCAN
-% Interpolate a surface scane image into carteisan coord
-[scan1_elv,scan1_refl,refl_vars,scan1_vel,vel_vars] = read_radar_scan(h5_ffn,1,slant_r_vec,a_vec,vel_flag);
-[scan2_elv,scan2_refl,~,scan2_vel,~]                = read_radar_scan(h5_ffn,2,slant_r_vec,a_vec,vel_flag);
-
-%setup interpolation grid
-[imgrid_a,imgrid_sr]           = meshgrid(a_vec,slant_r_vec);   %coordinate for surface image
-[imgrid_x,imgrid_y]            = meshgrid(x_vec,y_vec);         %coordinates for regridded image
-[imgrid_intp_a,imgrid_intp_sr] = cart2pol(imgrid_x,imgrid_y);   %convert regridd coord into polar
-
-%interpolate refl scans
-try
-scan1_refl_out = interp2(imgrid_a,imgrid_sr,scan1_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan1 into convereted regridded coord
-catch
-    keyboard
-end
-scan1_refl_out = rot90(scan1_refl_out,3); %orientate
-tilt1          = scan1_elv;
-scan2_refl_out = interp2(imgrid_a,imgrid_sr,scan2_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
-scan2_refl_out = rot90(scan2_refl_out,3); %orientate
-tilt2          = scan2_elv;
-%interpolate vel scans
-if vel_flag == 1
-    scan1_vel_out = interp2(imgrid_a,imgrid_sr,scan1_vel,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan1 into convereted regridded coord
-    scan1_vel_out = rot90(scan1_vel_out,3); %orientate
-    scan2_vel_out = interp2(imgrid_a,imgrid_sr,scan2_vel,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
-    scan2_vel_out = rot90(scan2_vel_out,3); %orientate
-else
-    scan1_vel_out=[];
-    scan2_vel_out=[];
-end
-
->>>>>>> 064cc3569e2cf68da7b1e3875a7da0acab1eb7ca
 %% Generate mapping coordinates
 %mapping coordinates, working in ij coordinates
 mstruct        = defaultm('mercator');
