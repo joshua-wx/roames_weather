@@ -1,4 +1,4 @@
-function [pending_ffn_list,pending_fn_list] = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,obj_type)
+function pending_ffn_list = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,data_type,delete_flag)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -12,26 +12,25 @@ function [pending_ffn_list,pending_fn_list] = ddb_filter_staging(ddb_table,oldes
 
 %init pending_list
 pending_ffn_list = {};
-pending_fn_list  = {};
 %read staging index
-p_exp            = 'data_type,data_id,h5_ffn'; %attributes to return
-jstruct          = ddb_query_part('data_type',obj_type,'S',p_exp,ddb_table);
+p_exp            = 'data_type,data_id,data_ffn'; %attributes to return
+jstruct          = ddb_query_part('data_type',data_type,'S',p_exp,ddb_table);
 if isempty(jstruct)
     return
 end
-staging_ffn_list = jstruct_to_mat([jstruct.h5_ffn],'S');
+staging_ffn_list  = jstruct_to_mat([jstruct.(data_ffn)],'S');
+
 for j=1:length(staging_ffn_list)
-    [~,fn,ext] = fileparts(staging_ffn_list{j});
+    [~,fn,~] = fileparts(staging_ffn_list{j});
     tmp_radar_id    = str2num(fn(1:2));
     tmp_timestamp   = datenum(fn(4:end),'yyyymmdd_HHMMSS');
     %filter
     if any(ismember(tmp_radar_id,radar_id_list)) && tmp_timestamp>=oldest_time && tmp_timestamp<=newest_time
-        pending_fn_list = [pending_fn_list;[fn,ext]];
         pending_ffn_list = [pending_ffn_list;staging_ffn_list{j}];
         %clean ddb table
         delete_struct           = struct;
         delete_struct.data_id   = jstruct(j).data_id;
         delete_struct.data_type = jstruct(j).data_type;
-        ddb_rm_item(delete_struct,ddb_table);  
+        ddb_rm_item(delete_struct,ddb_table);
     end
 end

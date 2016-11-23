@@ -1,4 +1,4 @@
-function storm_jstruct = wdss_tracking(tn_dt,tn_radar_id)
+function storm_jstruct = process_wdss_tracking(tn_dt,tn_radar_id)
 %WHAT: For the curr dt and curr radar id, the assocaited cells in
 %ident are checks using nn and forecasting methods for temporal and spatial
 %association with other cells in ident. Tracks are compiled using ident id

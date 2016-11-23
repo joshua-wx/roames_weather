@@ -1,4 +1,4 @@
-function [aazi_grid,sl_rrange_grid,eelv_grid]=create_inv_grid(wv_global_config_fn)
+function [aazi_grid,sl_rrange_grid,eelv_grid] = process_create_inv_grid(wv_global_config_fn)
 
 %WHAT
 % Builds the regridding cartesian coords from global_config and then

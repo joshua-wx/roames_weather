@@ -1,4 +1,4 @@
-function [pending_ffn_list,pending_fn_list] = ddb_filter_odimh5(ddb_table,storm_root,oldest_time_str,newest_time_str,radar_id_list)
+function pending_ffn_list = ddb_filter_odimh5(ddb_table,storm_root,oldest_time_str,newest_time_str,radar_id_list)
 %WHAT: filters volumes in odimh5 ddb and generates a list of their respective storm.wv.tar files.
 
 %INPUT
@@ -14,7 +14,6 @@ load('tmp/global.config.mat')
 
 %init pending_list
 pending_ffn_list = {};
-pending_fn_list  = {};
 %read staging index
 odimh5_atts      = 'radar_id,start_timestamp'; %attributes to return
 
@@ -32,7 +31,6 @@ for i = 1:length(radar_id_list)
             storm_ffn = [storm_root,radar_id_str,'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/',storm_fn];
             %append
             pending_ffn_list = [pending_ffn_list;storm_ffn];
-            pending_fn_list  = [pending_fn_list;storm_fn];
         end
     end
 end

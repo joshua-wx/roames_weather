@@ -1,4 +1,4 @@
-function build_kml_root(dest_root,site_no_selection,local_dest_flag)
+function kml_build_root(dest_root,site_no_selection,local_dest_flag)
 %WHAT
 %Performs the following tasks to prepare for the execution of the
 %ge_update_heirarchy script

@@ -1,4 +1,4 @@
-function ident_obj=ewt2ident(intp_obj,refl_img,refl_vol,vel_vol,ewtBasinExtend,snd_fz_h,snd_minus20_h)
+function ident_obj = process_ewt2ident(intp_obj,refl_img,refl_vol,vel_vol,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
 load('tmp/global.config.mat');

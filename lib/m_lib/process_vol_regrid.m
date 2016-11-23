@@ -1,4 +1,4 @@
-function [vol_obj,vol_refl_out,vol_vel_out]=vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
+function [vol_obj,vol_refl_out,vol_vel_out] = process_vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_datasets,vel_flag)
 %WHAT
 %Regrids 3D polarmetic data into cartesian coordinates using a max library
 

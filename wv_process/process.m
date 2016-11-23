@@ -93,7 +93,7 @@ else
 end
 
 %% Preallocate cartesian regridding coordinates
-[aazi_grid,sl_rrange_grid,eelv_grid]=create_inv_grid(['tmp/',global_config_fn,'.mat']);
+[aazi_grid,sl_rrange_grid,eelv_grid] = process_create_inv_grid(['tmp/',global_config_fn,'.mat']);
 %profile clear
 %profile on
 %% Primary Loop
@@ -122,9 +122,7 @@ while exist('tmp/kill_process','file')==2
             %Produce a list of filenames to process
             oldest_time                           = addtodate(date_list,realtime_offset,'hour');
             newest_time                           = date_list;
-            [fetch_h5_ffn_list,fetch_h5_fn_list]  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'odimh5');
-            new_index                             = ~ismember(fetch_h5_fn_list,complete_h5_fn_list);
-            fetch_h5_ffn_list                     = fetch_h5_ffn_list(new_index);
+            fetch_h5_ffn_list                     = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'pre_odimh5');
             %update user
             disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
             for i=1:length(fetch_h5_ffn_list)
@@ -154,18 +152,18 @@ while exist('tmp/kill_process','file')==2
             end
 
             %QA the h5 file (attempt to read groups)
-            [qa_flag,no_groups,radar_id,vel_flag,start_dt] = qa_h5(h5_ffn,min_n_groups,radar_id_list);
+            [qa_flag,no_groups,radar_id,vel_flag,start_dt] = process_qa_h5(h5_ffn,min_n_groups,radar_id_list);
 
             %QA exit
             if qa_flag==0
                 disp(['Volume failed QA: ' pending_h5_fn_list{i}])
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt      = [complete_h5_dt;start_dt];
+                complete_h5_dt       = [complete_h5_dt;start_dt];
                 continue
             end
 
             %run regridding/interpolation
-            [vol_obj,refl_vol,vel_vol] = vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
+            [vol_obj,refl_vol,vel_vol] = process_vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
             if isempty(vol_obj)
                 disp(['Volume datasets missing: ' pending_h5_fn_list{i}])
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
@@ -179,7 +177,7 @@ while exist('tmp/kill_process','file')==2
                 ewt_refl_image = max(refl_vol,[],3); %allows the assumption only shrinking is needed.
                 ewt_refl_image = medfilt2(ewt_refl_image, [ewt_kernel_size,ewt_kernel_size]);       
                 %run EWT
-                ewtBasinExtend = wdss_ewt(ewt_refl_image);
+                ewtBasinExtend = process_wdss_ewt(ewt_refl_image);
                 %extract sounding level data
                 if realtime_flag == 1
                     %extract radar lat lon
@@ -187,13 +185,10 @@ while exist('tmp/kill_process','file')==2
                     [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,vol_obj.r_lat,vol_obj.r_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    display('manual set fz level')
-                    nn_snd_fz_h      = 3800;
-                    nn_snd_minus20_h = 6600;
-                    %[nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
+                    [nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
                 end
                 %run ident
-                prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                prc_obj = process_ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
                 prc_obj = {};
             end
@@ -203,7 +198,7 @@ while exist('tmp/kill_process','file')==2
             %run tracking algorithm if sig_refl has been detected
             if vol_obj.sig_refl==1 && ~isempty(prc_obj)
                 %tracking
-                updated_storm_jstruct = wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
+                updated_storm_jstruct = process_wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
                 %generate nowcast json on s3 for realtime data
                 if realtime_flag == 1
                      storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj);
@@ -253,10 +248,10 @@ while exist('tmp/kill_process','file')==2
     disp(['Processing complete at ',datestr(now),10])
     
     %rotate ddb, cp_file, and qa logs to 200kB
-    unix(['tail -c 200kB  etc/log.qa > etc/log.qa']);
-    unix(['tail -c 200kB  etc/log.ddb > etc/log.ddb']);
-    unix(['tail -c 200kB  etc/log.cp > etc/log.cp']);
-    unix(['tail -c 200kB  etc/log.rm > etc/log.rm']);
+    unix(['tail -c 200kB  tmp/log.qa > tmp/log.qa']);
+    unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
+    unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
+    unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
     
     %break loop if cts_loop=0
     if realtime_flag==0
@@ -316,7 +311,7 @@ tar_fn      = [data_tag,'.wv.tar'];
 tmp_tar_ffn = [tempdir,tar_fn];
 h5_fn       = [data_tag,'.storm.h5'];
 tmp_h5_ffn  = [tempdir,h5_fn];
-dst_tar_ffn = [dest_path,tar_fn];
+stormh5_ffn = '';
 
 %delete h5 if exists
 if exist(tmp_h5_ffn,'file') == 2
@@ -338,6 +333,7 @@ end
 
 %skip if storm_obj is empty
 if ~isempty(storm_obj)
+    stormh5_ffn     = [dest_path,tar_fn];
     storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
     tar_ffn_list    = '';
     track_id        = 0; %default for no track
@@ -414,7 +410,7 @@ if ~isempty(storm_obj)
     %pass to tar cmd
     cmd         = ['tar -C ',tempdir,' -cvf ',tmp_tar_ffn,' -T etc/tar_ffn_list.txt'];
     [sout,eout] = unix(cmd);
-    file_mv(tmp_tar_ffn,dst_tar_ffn);
+    file_mv(tmp_tar_ffn,stormh5_ffn);
     %remove files
     for i=1:length(tar_ffn_list)
         delete([tempdir,tar_ffn_list{i}]);
@@ -422,7 +418,7 @@ if ~isempty(storm_obj)
 end
 
 %write odimh5 ddb entry for volume
-[~,odimh5_name,~] = fileparts(odimh5_ffn) 
+[~,odimh5_name,~] = fileparts(odimh5_ffn);
 odimh5_src_path   = [src_path,odimh5_name,'.h5'];
 dir_out           = dir(odimh5_ffn);
 odimh5_size       = dir_out.bytes;
@@ -438,11 +434,19 @@ ddb_put_item(jstruct.Item,odimh5_ddb_table);
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
+    %process odimh5
     data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
     ddb_staging                      = struct;
-    ddb_staging.data_type.S          = 'storm';
+    ddb_staging.data_type.S          = 'process_odimh5';
     ddb_staging.data_id.S            = data_id;
-    ddb_staging.h5_ffn.S             = dst_tar_ffn;
+    ddb_staging.data_ffn.S           = odimh5_src_path;
+    ddb_put_item(ddb_staging,staging_ddb_table)
+    %process stormh5
+    data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
+    ddb_staging                      = struct;
+    ddb_staging.data_type.S          = 'process_stormh5';
+    ddb_staging.data_id.S            = data_id;
+    ddb_staging.data_ffn.S           = stormh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)
 end
 

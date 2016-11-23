@@ -1,4 +1,4 @@
-function [qa_flag,no_groups,radar_id,vel_flag,start_timedate]=qa_h5(h5_ffn,min_n_groups,site_list)
+function [qa_flag,no_groups,radar_id,vel_flag,start_timedate] = process_qa_h5(h5_ffn,min_n_groups,site_list)
 %WHAT:
 %Checks the h5 file is readable and contains atleast 8 scan levels
 

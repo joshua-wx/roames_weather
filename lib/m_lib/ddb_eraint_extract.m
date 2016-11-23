@@ -1,4 +1,4 @@
-function [fz_h,minus20_h] = eraint_ddb_extract(timestamp,radar_id,eraint_ddb_table)
+function [fz_h,minus20_h] = ddb_eraint_extract(timestamp,radar_id,eraint_ddb_table)
 
 era_hour              = round(hour(timestamp)/6)*6; %round to nearest 6 hour
 era_date              = floor(timestamp); %extract date

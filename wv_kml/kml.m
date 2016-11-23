@@ -51,9 +51,11 @@ end
 
 %build paths strings
 if local_src_flag==1
-    src_root = local_src_root;
+    src_odimh5_root  = local_src_odimh5_root;
+    src_stormh5_root = local_src_stormh5_root;
 else
-    src_root = s3_src_root;
+    src_odimh5_root  = s3_src_odimh5_root;
+    src_stormh5_root = s3_src_stormh5_root;
 end
 if local_dest_flag==1
     dest_root = local_dest_root;
@@ -85,7 +87,7 @@ if exist(restart_vars_fn,'file')==2
     load(restart_vars_fn);
 else
     %build root kml
-    build_kml_root(dest_root,radar_id_list,local_dest_flag)
+    kml_build_root(dest_root,radar_id_list,local_dest_flag)
     %new start
     object_struct = [];
 end
@@ -114,9 +116,10 @@ while exist('tmp/kill_kml','file')==2
     download_list = {};
     %read staging index
     if realtime_kml == 1
-        [download_ffn_list,download_fn_list] = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'storm');
+        download_odimh5_ffn_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
+        download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_stormh5');
     else
-        [download_ffn_list,download_fn_list] = ddb_filter_odimh5(odimh5_ddb_table,src_root,oldest_time_str,newest_time_str,radar_id_list);
+        download_ffn_list          = ddb_filter_odimh5(odimh5_ddb_table,src_root,oldest_time_str,newest_time_str,radar_id_list);
     end
     for i=1:length(download_fn_list)
         %download data file and untar into download_path
@@ -184,10 +187,10 @@ while exist('tmp/kill_kml','file')==2
     end
     
     %rotate ddb, cp_file, and qa logs to 200kB
-    unix(['tail -c 200kB  etc/log.qa > etc/log.qa']);
-    unix(['tail -c 200kB  etc/log.ddb > etc/log.ddb']);
-    unix(['tail -c 200kB  etc/log.cp > etc/log.cp']);
-    unix(['tail -c 200kB  etc/log.rm > etc/log.rm']);
+    unix(['tail -c 200kB  tmp/log.qa > tmp/log.qa']);
+    unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
+    unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
+    unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
     %Kill function
     if toc(kill_timer)>kill_wait
         %update user

@@ -197,10 +197,10 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     disp(['###### ',num2str(no_vols),' volumes preprocessed',10]);
     
     %rotate ddb, cp_file, and qa logs to 200kB
-    unix(['tail -c 200kB  etc/log.lftp > etc/log.lftp']);
-    unix(['tail -c 200kB  etc/log.ddb > etc/log.ddb']);
-    unix(['tail -c 200kB  etc/log.convert > etc/log.convert']);
-    unix(['tail -c 200kB  etc/log.mv > etc/log.mv']);
+    unix(['tail -c 200kB  tmp/log.lftp > tmp/log.lftp']);
+    unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
+    unix(['tail -c 200kB  tmp/log.convert > tmp/log.convert']);
+    unix(['tail -c 200kB  tmp/log.mv > tmp/log.mv']);
 end
 
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
@@ -381,9 +381,9 @@ file_mv(tmp_h5_ffn,h5_ffn);
 %write to staging dynamo db
 data_id                         = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd'),'_',datestr(h5_start_dt,'HHMMSS')];
 ddb_struct                      = struct;
-ddb_struct.data_type.S          = 'odimh5';
+ddb_struct.data_type.S          = 'pre_odimh5';
 ddb_struct.data_id.S            = data_id;
-ddb_struct.h5_ffn.S             = h5_ffn;
+ddb_struct.data_ffn.S           = h5_ffn;
 ddb_put_item(ddb_struct,ddb_table)
 
 %remove tmp rapic file
