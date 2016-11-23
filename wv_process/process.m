@@ -251,6 +251,10 @@ while exist('tmp/kill_process','file')==2
     %Update user and clear pending list
     disp(['Processing complete at ',datestr(now),10])
     
+    %remove empty log.ddb entires
+    cmd = ['grep -wEv ''({|})'' tmp/log.ddb > tmp/log.ddb2; mv tmp/log.ddb2 tmp/log.ddb'];
+    unix(cmd);
+
     %rotate ddb, cp_file, and qa logs to 200kB
     unix(['tail -c 200kB  etc/log.qa > etc/log.qa']);
     unix(['tail -c 200kB  etc/log.ddb > etc/log.ddb']);
@@ -402,6 +406,10 @@ if ~isempty(storm_obj)
         tmp_jstruct.storm_dbz_centlon.N = num2str(storm_dcent(2));
         tmp_jstruct.h_grid.N            = num2str(h_grid);
         tmp_jstruct.v_grid.N            = num2str(v_grid);
+        %log imaginary stat entries
+        if any(~isreal(storm_stats))
+            save(['imaginary_stats_',num2str(vol_obj.radar_id),'_',datestr(vol_obj.start_timedate,ddb_tfmt),'.mat'],'storm_stats')
+        end
         %append stats
         for j=1:length(storm_stats)
             tmp_jstruct.(storm_obj(i).stats_labels{j}).N = num2str(storm_stats(j));

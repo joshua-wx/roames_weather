@@ -33,6 +33,9 @@ if strcmp(type,'inneriso')
     temp_refl_vol(temp_refl_vol<ewt_a) = nan;
     %set threshold
     threshold     = round(prctile(temp_refl_vol(:),inner_iso_percentile));
+    if threshold < ewt_a
+        threshold = ewt_a;
+    end
     %set colourmap
     cmap_threshold = (threshold-min_dbz)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
