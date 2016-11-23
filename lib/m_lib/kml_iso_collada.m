@@ -33,12 +33,13 @@ if strcmp(type,'inneriso')
     temp_refl_vol(temp_refl_vol<ewt_a) = nan;
     %set threshold
     threshold     = round(prctile(temp_refl_vol(:),inner_iso_percentile));
-    if threshold < ewt_a
+    if threshold < ewt_a || isnan(threshold) %smoothing volumes can create subvols with max dbz < ewt_a
         threshold = ewt_a;
     end
     %set colourmap
     cmap_threshold = (threshold-min_dbz)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
+
 elseif strcmp(type,'outeriso')
     %set max faces
     n_faces        = outer_iso_faces;
