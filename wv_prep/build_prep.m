@@ -2,9 +2,9 @@
 build_path = 'build/';
 
 
-addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-addpath('/home/meso/Dropbox/dev/wv/bin/json_read')
-addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
+addpath('/home/meso/dev/wv/lib/m_lib');
+addpath('/home/meso/dev/wv/bin/json_read')
+addpath('/home/meso/dev/shared_lib/jsonlab');
 
 
 if exist(build_path,'file')==7
@@ -18,8 +18,8 @@ mcc('-m','prep.m','-d',build_path)
 
 %copy global config
 etc_path = 'etc';
-copyfile('/home/meso/Dropbox/dev/wv/etc/global.config',etc_path)
-copyfile('/home/meso/Dropbox/dev/wv/etc/site_info.txt',etc_path)
+copyfile('/home/meso/dev/wv/etc/global.config',etc_path)
+copyfile('/home/meso/dev/wv/etc/site_info.txt',etc_path)
 
 display('tar')
 tar_fn = [build_path,'prep.tar'];
@@ -30,5 +30,5 @@ display('scp')
 ec2_ip      = '54.66.205.187';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/wv_prep'])
 
-delete('/home/meso/Dropbox/dev/wv/wv_prep/etc/global.config')
-delete('/home/meso/Dropbox/dev/wv/wv_prep/etc/site_info.txt')
+delete('/home/meso/dev/wv/wv_prep/etc/global.config')
+delete('/home/meso/dev/wv/wv_prep/etc/site_info.txt')
