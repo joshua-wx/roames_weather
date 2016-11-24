@@ -240,5 +240,6 @@ WT   = 57.5*snd_fzh_height/1000-121;
 
 %calc probability of severe hail (POSH) (%)
 POSH           = 29.*log(SHI./WT)+50;
+POSH           = real(POSH);
 POSH(POSH<0)   = 0;
 POSH(POSH>100) = 100;
