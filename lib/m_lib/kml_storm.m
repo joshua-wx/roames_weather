@@ -1,4 +1,4 @@
-function object_struct = storm_to_kml(object_struct,radar_id,oldest_time,newest_time,tar_fn_list,dest_root,options)
+function object_struct = kml_storm(object_struct,radar_id,oldest_time,newest_time,download_path,dest_root,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure
@@ -13,14 +13,14 @@ load('tmp/kml.config.mat')
 oldest_time_str   = datestr(oldest_time,ddb_tfmt);
 newest_time_str   = datestr(newest_time,ddb_tfmt);
 radar_id_str      = num2str(radar_id,'%02.0f');
-cell_stat_kml     = '';
+stat_kml          = '';
 track_kml         = '';
 swath_kml         = '';
 nowcast_kml       = '';
 nowcast_stat_kml  = '';
 
 %init paths
-cell_stats_ffn    = [dest_root,track_obj_path,radar_id_str,'/cell_stat_',radar_id_str,'.kml'];
+stats_ffn         = [dest_root,track_obj_path,radar_id_str,'/stat_',radar_id_str,'.kml'];
 track_ffn         = [dest_root,track_obj_path,radar_id_str,'/track_',radar_id_str,'.kml'];
 swath_ffn         = [dest_root,track_obj_path,radar_id_str,'/swath_',radar_id_str,'.kml'];
 nowcast_ffn       = [dest_root,track_obj_path,radar_id_str,'/nowcast_',radar_id_str,'.kml'];
@@ -39,34 +39,17 @@ for i=1:length(xsec_alt)
     xsec_idx    = [xsec_idx;tmp_idx];
 end
 
-%extract odimh5 atts for radar_id
-odimh5_atts        = 'h5_ffn,vel_ni,storm_flag,start_timestamp';
-odimh5_jstruct_out = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_str,newest_time_str,odimh5_atts,odimh5_ddb_table);
-odimh5_jstruct_out = clean_jstruct(odimh5_jstruct_out,4);
-if ~isempty(odimh5_jstruct_out)
-    radar_ts        = datenum(jstruct_to_mat([odimh5_jstruct_out.start_timestamp],'S'),ddb_tfmt);
-    vol_vel_ni      = str2num(odimh5_jstruct_out(1).vel_ni.N);
-    storm_flag_list = jstruct_to_mat([odimh5_jstruct_out.storm_flag],'N');
+%query storm ddb
+storm_atts      = 'subset_id,start_timestamp,track_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+storm_jstruct   = ddb_query('radar_id',radar_id_str,'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+if ~isempty(storm_jstruct)
+    radar_ts        = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
     %calc radar timestep
     if length(radar_ts) == 1
         radar_timestep = 10;
     elseif length(radar_ts) > 1
         radar_timestep = mode(minute(radar_ts(2:end)-radar_ts(1:end-1)));
     end
-    %set radar start and stop times
-    radar_start_ts = min(radar_ts);
-    radar_stop_ts  = addtodate(max(radar_ts),radar_timestep,'minute');
-else
-    storm_flag_list = [];
-end
-
-%extract storm atts for radar_id
-if any(storm_flag_list)
-    %query storm ddb
-    storm_atts      = 'subset_id,start_timestamp,track_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
-    storm_jstruct   = ddb_query('radar_id',radar_id_str,'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
-else
-    storm_jstruct   = [];
 end
 
 %extract storm ids
@@ -74,27 +57,6 @@ if ~isempty(storm_jstruct)
     storm_subset_id = jstruct_to_mat([storm_jstruct.subset_id],'S');
 else
     storm_subset_id = {};
-end
-
-%% scan ground overlays ########### ONLY RUN THIS FOR NEW SCANS!!!! NOT ALL SCANS. MUST BE PART OF LOOP BELOW
-for i=1:length(odimh5_jstruct_out)
-    odimh5_ffn     = odimh5_jstruct_out(i).h5_ffn.S;
-    scan_start_ts  = datenum(odimh5_jstruct_out(i).start_timestamp.S,ddb_tfmt);
-    scan_stop_ts   = addtodate(scan_start_ts,radar_timestep,'minute');
-    %PPI Reflectivity
-    if options(1)==1
-        %create kml for refl ppi
-        scan_tag                  = [data_tag,'.ppi_refl'];
-        [link,ffn,scan_latlonbox] = kml_scan(dest_root,scan_tag,download_path,odimh5_ffn,scan_path);
-        object_struct             = collate_kmlobj(object_struct,radar_id,'',scan_start_ts,scan_stop_ts,scan_latlonbox,'ppi_refl',link,ffn);
-    end
-    %PPI Velocity
-    if options(2)==1
-        %create kml for vel ppi
-        scan_tag                  = [data_tag,'.ppi_vel'];
-        [link,ffn,scan_latlonbox] = kml_scan(dest_root,scan_tag,download_path,odimh5_ffn,scan_path);
-        object_struct             = collate_kmlobj(object_struct,radar_id,'',scan_start_ts,scan_stop_ts,scan_latlonbox,'ppi_vel',link,ffn);
-    end
 end
 
 %% generate cell objects
@@ -145,12 +107,12 @@ for i=1:length(tar_fn_list)
             end    
             %inner iso
             if options(5)==1
-                [link,ffn]    = kml_iso_collada(dest_root,cell_path,storm_tag,'inneriso',smooth_refl_vol,storm_latlonbox);
+                [link,ffn]    = kml_storm_collada(dest_root,cell_path,storm_tag,'inneriso',smooth_refl_vol,storm_latlonbox);
                 object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso',link,ffn);
             end
             %outer iso
             if options(6)==1
-                [link,ffn]    = kml_iso_collada(dest_root,cell_path,storm_tag,'outeriso',smooth_refl_vol,storm_latlonbox);
+                [link,ffn]    = kml_storm_collada(dest_root,cell_path,storm_tag,'outeriso',smooth_refl_vol,storm_latlonbox);
                 object_struct = collate_kmlobj(object_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso',link,ffn);
             end
         end
@@ -178,33 +140,24 @@ if ~isempty(storm_jstruct)
         track_jstruct = storm_jstruct(track_idx);
         %% track objects
         if options(7)==1
-            cell_stat_kml = kml_cell_stat(cell_stat_kml,track_jstruct,track_id);
+            stat_kml      = kml_storm_stat(stat_kml,track_jstruct,track_id);
         end
         if options(8)==1
-            track_kml     = kml_storm_track(track_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts);
+            track_kml     = kml_storm_track(track_kml,track_jstruct,track_id,oldest_time,radar_stop_ts);
         end
         if options(9)==1
-            swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts);
+            swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id,oldest_time,radar_stop_ts);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
         track_timestamp = timestamp_list(track_idx);
         if max(track_timestamp) == max(timestamp_list) && options(10)==1
-            [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,track_id,radar_start_ts,radar_stop_ts);
+            [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,track_id,oldest_time,newest_time);
         end
     end
 end
 
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
-
-%PPI Reflectivity
-if options(1)==1
-    generate_nl_scan(radar_id,object_struct,'ppi_refl',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-end
-%PPI Velcoity
-if options(2)==1
-    generate_nl_scan(radar_id,object_struct,'ppi_vel',[dest_root,scan_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-end
 %xsec_refl
 if options(3)==1
     generate_nl_cell(radar_id,storm_jstruct,object_struct,'xsec_refl',[dest_root,cell_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
@@ -223,7 +176,7 @@ if options(6)==1
 end
 %cell stats
 if options(7)==1
-    ge_kml_out(cell_stats_ffn,radar_id_str,cell_stat_kml);
+    ge_kml_out(stats_ffn,radar_id_str,stat_kml);
 end
 %track
 if options(8)==1
@@ -323,48 +276,3 @@ for i=1:length(uniq_track_list)
 end
 %write out
 ge_kml_out([nl_path,nl_name,'.kml'],nl_name,nl_kml);
-
-
-function generate_nl_scan(radar_id,object_struct,type,nl_path,altLod,minlod,maxlod)
-
-%WHAT: generates kml for scan objects listed in object_Struct using
-%a radar_id and type filter
-load('tmp/global.config.mat')
-
-%init radar_id and type list
-type_list = {object_struct.type};
-r_id_list = [object_struct.radar_id];
-time_list = [object_struct.start_timestamp];
-%init nl
-nl_kml       = '';
-name         = [type,'_',num2str(radar_id,'%02.0f')];
-%find entries from correct radar_id and type
-target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
-%write out offline radar image if no data is present
-if isempty(target_idx)
-    radar_id_str = num2str(radar_id,'%02.0f');
-    nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
-    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
-    return
-end
-
-%sort by time
-[~,sort_idx]  = sort(time_list(target_idx));
-target_idx    = target_idx(sort_idx);
-
-%loop through entries, appending kml
-for j=1:length(target_idx)
-    %target data
-    target_start     = object_struct(target_idx(j)).start_timestamp;
-    target_stop      = object_struct(target_idx(j)).stop_timestamp;
-    target_link      = object_struct(target_idx(j)).nl;
-    target_latlonbox = object_struct(target_idx(j)).latlonbox;
-    %nl
-    region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
-    timeSpanStart = datestr(target_start,ge_tfmt);
-    timeSpanStop  = datestr(target_stop,ge_tfmt);
-    kml_name      = datestr(target_start,r_tfmt);
-    nl_kml        = ge_networklink(nl_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
-end
-%write out
-ge_kml_out([nl_path,name,'.kml'],name,nl_kml);

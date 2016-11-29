@@ -183,16 +183,13 @@ if ~isempty(vol_refl_out)
 end
 if ~isempty(vol_vel_out)
     vol_vel_out  = vol_vel_out.*vel_vars(1)+vel_vars(2);
-    vel_ni       = vel_vars(3);
-else
-    vel_ni       = 0;
 end
 
 %output into struct vol_obj
 vol_obj = struct('lon_vec',lon_vec,'lat_vec',lat_vec,'z_vec_amsl',z_vec+r_elv,...
     'start_timedate',start_timedate,...
     'r_lat',r_lat,'r_lon',r_lon,...
-    'radar_id',radar_id,'sig_refl',sig_refl,'vel_ni',vel_ni,...
+    'radar_id',radar_id,'sig_refl',sig_refl,...
     'refl_vars',refl_vars,'vel_vars',vel_vars);
 
 

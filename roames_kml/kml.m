@@ -113,28 +113,27 @@ while exist('tmp/kill_kml','file')==2
     %% download realtime data
     %empty download path
     delete([download_path,'*'])
-    download_list = {};
     %read staging index
     if realtime_kml == 1
         download_odimh5_ffn_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
-        download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_stormh5');
+        download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
     else
-        download_ffn_list          = ddb_filter_odimh5(odimh5_ddb_table,src_root,oldest_time_str,newest_time_str,radar_id_list);
+        download_odimh5_ffn_list   = ddb_filter_s3h5(odimh5_ddb_table,'start_timestamp',oldest_time_str,newest_time_str,radar_id_list);
+        download_stormh5_ffn_list  = ddb_filter_s3h5(storm_ddb_table,'subset_id',oldest_time_str,newest_time_str,radar_id_list);
     end
-    for i=1:length(download_fn_list)
+    download_ffn_list = [download_odimh5_ffn_list;download_stormh5_ffn_list];
+    for i=1:length(download_ffn_list)
         %download data file and untar into download_path
-        display(['s3 cp of ',download_fn_list{i}])
+        display(['s3 cp of ',download_ffn_list{i}])
         file_cp(download_ffn_list{i},download_path,0,1);
     end 
     %wait for aws processes to finish
     wait_aws_finish
-    %untar files and create radar_id list
-    download_r_id_list = [];
-    for i=1:length(download_fn_list)
-        download_ffn = [download_path,download_fn_list{i}];
+    %untar stormh5 files and create list
+    for i=1:length(download_stormh5_ffn_list)
+        [~,storm_name,ext] = fileparts(download_stormh5_ffn_list{i});
+        download_ffn       = [download_path,storm_name,ext];
         if exist(download_ffn,'file') == 2
-            download_r_id_list = [download_r_id_list;str2num(download_fn_list{i}(1:2))];
-            download_list      = [download_list;download_fn_list{i}];
             untar(download_ffn,download_path);
         end
     end
@@ -164,8 +163,8 @@ while exist('tmp/kill_kml','file')==2
     %loop through radar id list
     for i=1:length(kml_radar_list)
         radar_id      = kml_radar_list(i);
-        tmp_fn_list   = download_list(download_r_id_list==radar_id);
-        object_struct = storm_to_kml(object_struct,radar_id,oldest_time,newest_time,tmp_fn_list,dest_root,options);
+        object_struct = kml_storm_obj(object_struct,radar_id,oldest_time,newest_time,download_path,dest_root,options);
+        object_struct = kml_odimh5_obj(object_struct,radar_id,download_path,dest_root,options);
     end
     
     %% generate kml nl layer

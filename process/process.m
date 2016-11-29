@@ -122,19 +122,19 @@ while exist('tmp/kill_process','file')==2
             %Produce a list of filenames to process
             oldest_time                           = addtodate(date_list,realtime_offset,'hour');
             newest_time                           = date_list;
-            fetch_h5_ffn_list                     = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'pre_odimh5');
+            fetch_h5_ffn_list                     = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'prep_odimh5');
             %update user
             disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
-            for i=1:length(fetch_h5_ffn_list)
-                file_cp(fetch_h5_ffn_list{i},download_path,0,1)
-            end
         else
-            radar_id = radar_id_list(1); %only has one entry for climatology processing
-            date_vec = datevec(date_list(d));
-            s3_path  = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
+            oldest_time                           = date_list(d);
+            newest_time                           = addtodate(date_list(d)+1,-1,'minute');            
+            fetch_h5_ffn_list                     = ddb_filter_s3h5(odimh5_ddb_table,'start_timestamp',oldest_time,newest_time,radar_id_list);
             %update user
             disp(['Climatology processing downloading files from ',s3_path]);
-            file_cp(s3_path,download_path,1,1)
+        end
+        %loop through and download files
+        for i=1:length(fetch_h5_ffn_list)
+             file_cp(fetch_h5_ffn_list{i},download_path,0,1)
         end
         %wait for aws process to finish
         wait_aws_finish
@@ -142,7 +142,7 @@ while exist('tmp/kill_process','file')==2
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
         pending_h5_fn_list = {download_path_dir.name};
 
-        
+        %primary loop
         for i=1:length(pending_h5_fn_list)
             display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
             %init local filename for processing
@@ -293,9 +293,10 @@ load('tmp/global.config.mat')
 load('tmp/interp_cmaps.mat')
 
 %setup paths and tags
-date_vec  = datevec(vol_obj.start_timedate);
-radar_id  = vol_obj.radar_id;
-arch_path = [num2str(radar_id,'%02.0f'),...
+date_vec     = datevec(vol_obj.start_timedate);
+radar_id     = vol_obj.radar_id;
+radar_id_str = num2str(radar_id,'%02.0f');
+arch_path = [radar_id_str,...
     '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
 dest_path = [dest_root,arch_path];
@@ -321,7 +322,7 @@ end
 %append to odimh5_ddb_table (replaces any previous entries)
 %get-item
 jstruct = ddb_get_item(odimh5_ddb_table,...
-    'radar_id','N',num2str(radar_id,'%02.0f'),...
+    'radar_id','N',radar_id_str,...
     'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
 %update init_sig_relf_flag
 if ~isempty(jstruct)
@@ -332,11 +333,9 @@ else
 end
 
 %skip if storm_obj is empty
-if ~isempty(storm_obj)
-    stormh5_ffn     = [dest_path,tar_fn];
-    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
-    tar_ffn_list    = '';
-    track_id        = 0; %default for no track
+if isempty(storm_obj)
+    storm_flag = 0;
+else
     %delete storm ddb entries for this volume if they already exist
     if storm_flag == 1 %since indicates volumes was previous processed for storms
         storm_atts      = 'radar_id,subset_id';
@@ -349,6 +348,11 @@ if ~isempty(storm_obj)
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);
         end
     end
+    %init vars
+    stormh5_ffn     = [dest_path,tar_fn];
+    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
+    tar_ffn_list    = '';
+    track_id        = 0; %default for no track
     %init struct
     ddb_put_struct  = struct;
     for i=1:length(storm_obj)
@@ -362,6 +366,7 @@ if ~isempty(storm_obj)
         tmp_jstruct                     = struct;
         tmp_jstruct.radar_id.N          = num2str(vol_obj.radar_id);
         tmp_jstruct.subset_id.S         = [datestr(vol_obj.start_timedate,ddb_tfmt),'_',num2str(i,'%03.0f')];
+        tmp_jstruct.data_ffn.S          = stormh5_ffn;
         tmp_jstruct.start_timestamp.S   = datestr(vol_obj.start_timedate,ddb_tfmt);
         tmp_jstruct.track_id.N          = num2str(track_id);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
@@ -390,7 +395,7 @@ if ~isempty(storm_obj)
                             'tops_h_grid',storm_obj(i).tops_h_grid,'sts_h_grid',storm_obj(i).sts_h_grid,...
                             'MESH_grid',storm_obj(i).MESH_grid,'POSH_grid',storm_obj(i).POSH_grid,...
                             'max_dbz_grid',storm_obj(i).max_dbz_grid,'vil_grid',storm_obj(i).vil_grid);      
-        if vol_obj.vel_ni~=0
+        if ~isempty(vol_obj.vol_vel_out)
             data_struct.vel_vol = storm_obj(i).subset_vel;
         end
         h5_data_write(h5_fn,tempdir,subset_id,data_struct,r_scale);
@@ -414,37 +419,24 @@ if ~isempty(storm_obj)
     %remove files
     for i=1:length(tar_ffn_list)
         delete([tempdir,tar_ffn_list{i}]);
-    end
+    end  
 end
 
-%write odimh5 ddb entry for volume
-[~,odimh5_name,~] = fileparts(odimh5_ffn);
-odimh5_src_path   = [src_path,odimh5_name,'.h5'];
-dir_out           = dir(odimh5_ffn);
-odimh5_size       = dir_out.bytes;
-%fill struct
-jstruct.Item.radar_id.N        = num2str(radar_id,'%02.0f');
-jstruct.Item.start_timestamp.S = datestr(vol_obj.start_timedate,ddb_tfmt);
-jstruct.Item.h5_size.N         = odimh5_size;
-jstruct.Item.h5_ffn.S          = odimh5_src_path;
-jstruct.Item.storm_flag.N      = storm_flag;
-jstruct.Item.vel_ni.N          = num2str(vol_obj.vel_ni);
-%write to odimh5 ddb
-ddb_put_item(jstruct.Item,odimh5_ddb_table);
+%update dynamodb odimh5 table
+ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
+    data_id                          = [datestr(vol_obj.start_timedate,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
     %process odimh5
-    data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
     ddb_staging                      = struct;
     ddb_staging.data_type.S          = 'process_odimh5';
     ddb_staging.data_id.S            = data_id;
-    ddb_staging.data_ffn.S           = odimh5_src_path;
+    ddb_staging.data_ffn.S           = odimh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)
-    %process stormh5
-    data_id                          = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
+    %stormh5
     ddb_staging                      = struct;
-    ddb_staging.data_type.S          = 'process_stormh5';
+    ddb_staging.data_type.S          = 'stormh5';
     ddb_staging.data_id.S            = data_id;
     ddb_staging.data_ffn.S           = stormh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)

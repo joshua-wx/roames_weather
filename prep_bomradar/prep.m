@@ -190,7 +190,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,staging_ddb_table);
+        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,staging_ddb_table,odimh5_ddb_table);
         disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
@@ -289,7 +289,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,ddb_table)
+function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,staging_ddb_table,odimh5_ddb_table)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
@@ -301,6 +301,7 @@ function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,ddb_table)
 
 %read site_info
 load(['tmp/site_info.txt.mat']);
+load(['tmp/global.config.mat']);
 %find radar lat lon
 site_idx  = find(radar_id==site_id_list);
 radar_lat = site_lat_list(site_idx);
@@ -316,7 +317,7 @@ if ~isdir(arch_path) && ~strcmp(arch_path(1:2),'s3')
 end
 broken_dest     = [arch_path,'broken_vols/',num2str(radar_id,'%02.0f'),'/'];
 broken_dt       = datenum(file_list{1}(10:21),'yyyymmddHHMM');
-broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(broken_dt,'yyyymmdd'),'_',datestr(broken_dt,'HHMMSS'),'.rapic'];
+broken_rapic_fn = [num2str(radar_id,'%02.0f'),'_',datestr(broken_dt,r_tfmt),'.rapic'];
 %temp h5
 tmp_h5_ffn = [tempname,'.h5'];
 if exist(tmp_h5_ffn,'file') == 2
@@ -372,19 +373,28 @@ end
 %create correct archive folder
 h5_start_dt_vec  = datevec(h5_start_dt);
 archive_dest     = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(h5_start_dt_vec(1)),'/',num2str(h5_start_dt_vec(2),'%02.0f'),'/',num2str(h5_start_dt_vec(3),'%02.0f'),'/'];
-h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd'),'_',datestr(h5_start_dt,'HHMMSS'),'.h5'];
+h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,r_tfmt),'.h5'];
 h5_ffn           = [archive_dest,h5_fn];
 
 %move to required directory
 file_mv(tmp_h5_ffn,h5_ffn);
 
 %write to staging dynamo db
-data_id                         = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,'yyyymmdd'),'_',datestr(h5_start_dt,'HHMMSS')];
+data_id                         = [datestr(h5_start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
 ddb_struct                      = struct;
-ddb_struct.data_type.S          = 'pre_odimh5';
+ddb_struct.data_type.S          = 'prep_odimh5';
 ddb_struct.data_id.S            = data_id;
 ddb_struct.data_ffn.S           = h5_ffn;
-ddb_put_item(ddb_struct,ddb_table)
+ddb_put_item(ddb_struct,staging_ddb_table)
+
+%write to odimh5 dynamo db
+ddb_struct                      = struct;
+ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
+ddb_struct.start_timestamp.S    = datestr(h5_start_dt,ddb_tfmt);
+ddb_struct.data_size.N          = num2str(h5_size);
+ddb_struct.data_ffn.S           = h5_ffn;
+ddb_struct.storm_flag.N         = num2str(-1);
+ddb_put_item(ddb_struct,odimh5_ddb_table)
 
 %remove tmp rapic file
 delete(tmp_rapic_ffn)

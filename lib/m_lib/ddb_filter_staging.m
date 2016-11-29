@@ -1,4 +1,4 @@
-function pending_ffn_list = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,data_type,delete_flag)
+function pending_ffn_list = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,data_type)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -26,7 +26,7 @@ for j=1:length(staging_ffn_list)
     tmp_timestamp   = datenum(fn(4:end),'yyyymmdd_HHMMSS');
     %filter
     if any(ismember(tmp_radar_id,radar_id_list)) && tmp_timestamp>=oldest_time && tmp_timestamp<=newest_time
-        pending_ffn_list = [pending_ffn_list;staging_ffn_list{j}];
+        pending_ffn_list        = [pending_ffn_list;staging_ffn_list{j}];
         %clean ddb table
         delete_struct           = struct;
         delete_struct.data_id   = jstruct(j).data_id;

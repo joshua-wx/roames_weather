@@ -1,4 +1,4 @@
-function [link,ffn] = kml_iso_collada(dest_root,dest_path,cell_tag,type,refl_vol,storm_latlonbox)
+function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,type,refl_vol,storm_latlonbox)
 
 %WHAT
     %takes a subset of volume data the ideally contains one cell and

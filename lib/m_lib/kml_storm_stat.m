@@ -1,4 +1,4 @@
-function kml_str = kml_cell_stat(kml_str,storm_jstruct,track_id)
+function kml_str = kml_storm_stat(kml_str,storm_jstruct,track_id)
 
 load('tmp/global.config.mat')
 
