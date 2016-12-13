@@ -1,9 +1,10 @@
 */tmp/
 */build/
 *~
-wv_kml/tmp/
-wv_kml/build/
-wv_process/tmp/
-wv_process/build/
-wv_prep/tmp/
-wv_prep/build/
+roames_kml/tmp/
+roames_kml/build/
+process/tmp/
+process/build/
+prep_bomradar/tmp/
+prep_bomradar/build/
+dev/data/
