@@ -8,12 +8,9 @@ function rw_merger
 read_site_info('site_info.txt')
 load([tempdir,'site_info.txt','.mat'])
 
-h5_ffn = '28_20161203_043200.h5';
+h5_ffn = 'data/28_20161203_043200.h5';
 
 %% SETUP RADAR GRID
-
-%generate volume grid from dataset1
-[vol_azi_vec,vol_rng_vec] = read_ppi_dims(h5_ffn,1);
 
 %load radar id
 source_att = h5readatt(h5_ffn,'/what','source');                                    
@@ -26,31 +23,38 @@ dataset_count = length(dataset_list);
 
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
-empty_vol = zeros(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
+[vol_azi_vec,vol_rng_vec] = read_ppi_dims(h5_ffn,1);
+empty_vol = zeros(length(vol_rng_vec),length(vol_azi_vec),dataset_count,'uint8');
 empty_vec = zeros(dataset_count,1);
 dbzh_vol  = empty_vol;
-vradh_vol = empty_vol;        
+vradh_vol = empty_vol;
 elv_vec   = empty_vec;
 time_vec  = empty_vec;
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
-    [ppi_elv,ppi_time]       = read_dataset_atts(h5_ffn,i);
-    if temp_elv == 0
+    [ppi_elv,ppi_time] = read_dataset_atts(h5_ffn,i);
+    elv_vec(i)         = ppi_elv;
+    time_vec(i)        = ppi_time;
+    
+    if ppi_elv == 0
         log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
         continue
     end
-    [ppi_dbzh,ppi_dbzh_vars] = read_data(h5_ffn,i,1,vol_rng_vec,vol_azi_vec);
-    
-    
-    elv_vec(i)         = ppi_elv;
-    time_vec(i)        = ppi_time;
-    dbzh_vol(:,:,i)    = ppi_dbzh;
-    if vel_flag == 1
-        [~,~,ppi_vradh,ppi_vradh_vars] = read_radar_scan(h5_ffn,i,2,vol_rng_vec,vol_azi_vec);
-        vradh_vol(:,:,i) = ppi_vradh;
+    dataset_struct = read_ppi_data(h5_ffn,i);
+    ppi_dbzh       = dataset_struct.data1.data;
+    ppi_vradh      = dataset_struct.data2.data;
+    if ~any(size(ppi_dbzh)~=size(empty_vol(:,:,1)))
+        [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for dataset
+        [vol_azi_grid,vol_rng_grid] = meshgrid(vol_azi_vec,vol_rng_vec);                                 %grid for volume
+        ppi_dbzh                    = interp2(ppi_azi_grid,ppi_rng_grid,ppi_dbzh,vol_azi_grid,vol_rng_grid,'nearest',0); %interpolate and extrap to 0
+        ppi_vradh                   = interp2(ppi_azi_grid,ppi_rng_grid,ppi_vradh,vol_azi_grid,vol_rng_grid,'nearest',0); %interpolate and extrap to 0
     end
+    dbzh_vol(:,:,i)  = ppi_dbzh;
+    vradh_vol(:,:,i) = ppi_vradh;
 end
+
+keyboard
     
 function [ppi_elv,ppi_time]=read_dataset_atts(h5_ffn,dataset_no)
 %WHAT: reads scan and elv data from dataset_no from h5_ffn.
@@ -76,65 +80,59 @@ catch
 end
 
 
+function dataset_struct = read_ppi_data(h5_ffn,dataset_no)
 
-function [ppi_data,ppi_vars]=read_odimh5_data(h5_ffn,dataset_no,data_no,vol_rng_vec,vol_azi_vec)
-%WHAT: reads scan and elv data from dataset_no from h5_ffn.
-%INPUTS:
-%h5_ffn: path to h5 file
-%dataset_no: dataset number in h file
-%slant_r_vec: slant_r coordinate vector
-%a_vec: azimuth coordinates vector
-%OUTPUTS:
-%elv: elevation angle of radar beam
-%pol_data: polarmetric data
+%WHAT: reads ppi from odimh5 volumes into a struct included the required
+%variables
 
-ppi_data = [];
-ppi_vars = [];
-
+%init
+dataset_struct = [];
 try
-    %extract ppi dims
-    [ppi_azi_vec,ppi_rng_vec] = read_ppi_dims(h5_ffn,dataset_no);
-    %refl data (data no 1)
-    [ppi_data,ppi_vars] = extract_odimh5_ppi(h5_ffn,dataset_no,1,ppi_azi_vec,ppi_rng_vec,vol_azi_vec,vol_rng_vec);
-catch
+    %set dataset name
+    dataset_name = ['dataset',num2str(dataset_no)];
+    %index data groups
+    data_info = h5info(h5_ffn,['/',dataset_name,'/']);
+    num_data = length(data_info.Groups)-3; %remove index for what/where/how groups
+    %loop through all data sets
+    for i=1:num_data
+        %read data
+        data_name = ['data',num2str(i)];
+        data      = h5read(h5_ffn,['/',dataset_name,'/',data_name,'/data']);
+        quantity  = deblank(h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'quantity'));
+        offset    = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'offset');
+        gain      = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'gain');
+        nodata    = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'nodata');
+        undetect  = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'undetect');
+        %add to struct
+        dataset_struct.(data_name) = struct('data',data,'quantity',quantity,'offset',offset,'gain',gain,'nodata',nodata,'undetect',undetect);
+    end
+    %save nquist data
+    if i>=2
+        NI     = h5readatt(h5_ffn,['/',dataset_name,'/how'],'NI');
+    else
+        %dummy nyquist data
+        NI     = '';
+        dataset_struct.data2.data = zeros(size(data),'uint8');
+    end
+    %read dimensions
+    [azi_vec,rng_vec] = read_ppi_dims(h5_ffn,dataset_no);
+    dataset_struct.atts = struct('NI',NI,'azi_vec',azi_vec,'rng_vec',rng_vec);
+catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
-end
-
-
-
-
-function [ppi_data,ppi_vars] = extract_odimh5_ppi(h5_ffn,dataset_no,data_no,ppi_azi_vec,ppi_rng_vec,vol_azi_vec,vol_rng_vec)
-
-%TO FINISH
-
-%extract data and vars
-ppi_data   = double(h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data',num2str(data_no),'/data')));
-ppi_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'gain');
-ppi_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'offset');
-%collate variables
-ppi_vars = [ppi_gain,ppi_offset];
-%vel ni
-if data_no == 2
-    vel_ni = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
-    ppi_vars = [ppi_vars,vel_ni];
-end
-%wrap 0deg to 360deg ray
-ppi_data   = cat(2,ppi_data,ppi_data(:,1));
-%interpolate if dataset dims are different size from vol dim vecs
-if length(ppi_rng_vec)~=length(vol_rng_vec) || length(ppi_rng_vec)~=length(vol_azi_vec)
-    [data_az_grid,data_sl_grid] = meshgrid(data_a_vec,data_slant_r_vec);   %grid for dataset
-    [vol_az_grid, vol_sl_grid]  = meshgrid(vol_a_vec,vol_slant_r_vec);             %grid for volume
-    ppi_data                    = interp2(data_az_grid,data_sl_grid,ppi_data,vol_az_grid,vol_sl_grid,'nearest',0); %interpolate and extrap to 0
-end
-      
+end  
+        
 
 function [azi_vec,rng_vec] = read_ppi_dims(h5_ffn,dataset_no)
+
+%WHAT: reads dims variables from dataset and generates azimuth and rng
+%vectors
+
 dataset_no_str = num2str(dataset_no);
 %azimuth (deg)
-n_rays   = double(h5readatt(h5_ffn,'/dataset',dataset_no_str,'/where','nrays'));                     %number of rays
+n_rays   = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'nrays'));                     %number of rays
 azi_vec  = linspace(0,360,n_rays+1); azi_vec = azi_vec(1:end-1);                    %azimuth vector, without end point
 %slant range (km)
-r_bin    = double(h5readatt(h5_ffn,'/dataset',dataset_no_str,'/where','rscale'))./1000;              %range bin size
-r_start  = double(h5readatt(h5_ffn,'/dataset',dataset_no_str,'/where','rstart'));                    %starting range of radar
-r_range  = double(h5readatt(h5_ffn,'/dataset',dataset_no_str,'/where','nbins'))*r_bin+r_start-r_bin; %number of range bins
+r_bin    = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'rscale'))./1000;              %range bin size
+r_start  = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'rstart'));                    %starting range of radar
+r_range  = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'nbins'))*r_bin+r_start-r_bin; %number of range bins
 rng_vec  = r_start:r_bin:r_range; 
