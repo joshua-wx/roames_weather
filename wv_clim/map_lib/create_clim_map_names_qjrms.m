@@ -3,14 +3,14 @@
 %Brisbane
 temp_lat=-27.467917;
 temp_lon=153.027778;
-textm(temp_lat,temp_lon,{'BNE '},'HorizontalAlignment','right','VerticalAlignment','bottom','fontsize',16,'FontWeight','demi')
+textm(temp_lat,temp_lon,{'Brisbane '},'HorizontalAlignment','right','VerticalAlignment','middle','fontsize',16,'FontWeight','demi')
 geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','k','MarkerEdgeColor','k')
 
 %Ipswich
-% temp_lat=-27.616667;
-% temp_lon=152.766667;
-% textm(temp_lat,temp_lon,{'Ipswich '},'HorizontalAlignment','right','VerticalAlignment','baseline','fontsize',12,'FontWeight','demi')
-% plotm(temp_lat,temp_lon,'ko','MarkerSize',4,'MarkerFaceColor','k')
+temp_lat=-27.616667;
+temp_lon=152.766667;
+textm(temp_lat,temp_lon,{' Ipswich'},'HorizontalAlignment','left','VerticalAlignment','middle','fontsize',12,'FontWeight','bold')
+geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',5,'MarkerFaceColor','k','MarkerEdgeColor','k')
 
 %Toowoomba
 % temp_lat=-27.566667;
@@ -24,11 +24,11 @@ geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'Mar
 % textm(temp_lat,temp_lon,{'Warwick '},'HorizontalAlignment','right','VerticalAlignment','baseline','fontsize',12,'FontWeight','demi')
 % plotm(temp_lat,temp_lon,'ko','MarkerSize',4,'MarkerFaceColor','k')
 
-% %Archerfield
-temp_lat=-27.568333;
-temp_lon=153.024167;
-textm(temp_lat,temp_lon,{' AF'},'HorizontalAlignment','left','VerticalAlignment','top','fontsize',16,'FontWeight','demi')
-geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','k','MarkerEdgeColor','k')
+% %Greenbank
+temp_lat=-27.719;
+temp_lon=152.985;
+textm(temp_lat,temp_lon,{' Greenbank'},'HorizontalAlignment','left','VerticalAlignment','middle','fontsize',12,'FontWeight','bold')
+geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',5,'MarkerFaceColor','k','MarkerEdgeColor','k')
 % 
 % %Amberley
 % temp_lat=-27.633333;
@@ -39,8 +39,8 @@ geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'Mar
 %Esk
 temp_lat=-27.233333;
 temp_lon=152.416667;
-textm(temp_lat,temp_lon,{'ESK'},'HorizontalAlignment','right','VerticalAlignment','bottom','fontsize',16,'FontWeight','demi')
-geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','k','MarkerEdgeColor','k')
+textm(temp_lat,temp_lon,{'Esk '},'HorizontalAlignment','right','VerticalAlignment','middle','fontsize',12,'FontWeight','bold')
+geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',5,'MarkerFaceColor','k','MarkerEdgeColor','k')
 
 % %Gatton
 % temp_lat=-27.54;
@@ -51,8 +51,14 @@ geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'Mar
 %Boonah
 temp_lat=-27.99;
 temp_lon=152.683333;
-textm(temp_lat,temp_lon,{'BNH'},'HorizontalAlignment','left','VerticalAlignment','bottom','fontsize',16,'FontWeight','demi')
-geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','k','MarkerEdgeColor','k')
+textm(temp_lat,temp_lon,{' Boonah'},'HorizontalAlignment','left','VerticalAlignment','middle','fontsize',12,'FontWeight','bold')
+geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',5,'MarkerFaceColor','k','MarkerEdgeColor','k')
+
+%Chermside
+temp_lat=-27.386;
+temp_lon=153.029;
+textm(temp_lat,temp_lon,{'Chermside '},'HorizontalAlignment','right','VerticalAlignment','middle','fontsize',12,'FontWeight','bold')
+geoshow(temp_lat,temp_lon,'DisplayType','point','Marker','o','MarkerSize',5,'MarkerFaceColor','k','MarkerEdgeColor','k')
 
 %Beaudesert
 %temp_lat=-27.983333;

@@ -18,18 +18,18 @@ setm(ax, 'MLabelLocation', .5, 'PLabelLocation', .5,'MLabelRound',-1,'PLabelRoun
 geoshow(coast_lat,coast_lon,'DisplayType','line','color','k','LineWidth',1)
 
 %plot somerset
-geoshow(somerset_lat,somerset_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
+%geoshow(somerset_lat,somerset_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
 
 %plot wivenhow
-geoshow(wivenhoe_lat,wivenhoe_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
+%geoshow(wivenhoe_lat,wivenhoe_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
 
 %plot border lines
 %geoshow(border_lat,border_lon,'DisplayType','line','Linestyle','-.','color','k','LineWidth',1)
 
 %plot shaded topo
-h = fspecial('gaussian',[15,15]);
-topo_z = imfilter(topo_z,h);
-geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
+%h = fspecial('gaussian',[15,15]);
+%topo_z = imfilter(topo_z,h);
+%geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
 %%geoshow(topo_z,topo_refvec,'DisplayType','texturemap');
 
 

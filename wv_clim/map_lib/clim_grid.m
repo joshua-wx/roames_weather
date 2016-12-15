@@ -36,6 +36,8 @@ cell_mask_list          = [];
 cell_latloncent_list    = [];
 cell_pltmask_list       = [];
 cell_subsetid_list      = [];
+cell_latlonbox_list     = {};
+cell_mesh_grid          = {};
 
 %create waitbar for user info
 h = waitbar(0,'Building climatology, please wait');
@@ -193,7 +195,15 @@ for i=1:length(filt_ident_ffn)
         cell_subsetid_list   = [cell_subsetid_list,[curr_day_ident(track_ident_ind).subset_id]];
         cell_latloncent_list = [cell_latloncent_list;vertcat(curr_day_ident(track_ident_ind).dbz_latloncent)];
         cell_mask_list       = [cell_mask_list;track_mask];
-        
+        for l=1:length(track_ident_ind)
+            if track_mask(l)
+                cell_latlonbox_list  = [cell_latlonbox_list;curr_day_ident(track_ident_ind(l)).subset_latlonbox];
+                cell_mesh_grid       = [cell_mesh_grid;curr_day_ident(track_ident_ind(l)).MESH_grid];
+            else
+                cell_latlonbox_list  = [cell_latlonbox_list;[]];
+                cell_mesh_grid       = [cell_mesh_grid;[]];
+            end
+        end
         %coninue loop if no masked cells and SKIP THIS TRACK
         if ~any(track_mask)
             plot_mask               = false(size(track_mask));
@@ -266,7 +276,9 @@ delete(h);
 %save stats to struct
 
 cell_stat_list = cell2mat(cell_stat_list);
-stats_struct = struct('cell_date_list',cell_date_list,'cell_stat_list',cell_stat_list,'cell_trck_list',cell_trck_list,'cell_mask_list',cell_mask_list,'cell_latloncent_list',cell_latloncent_list,'cell_pltmask_list',cell_pltmask_list,'cell_subsetid_list',cell_subsetid_list);
+stats_struct = struct('cell_date_list',cell_date_list,'cell_stat_list',cell_stat_list,'cell_trck_list',cell_trck_list,'cell_mask_list',cell_mask_list,...
+    'cell_latloncent_list',cell_latloncent_list,'cell_pltmask_list',cell_pltmask_list,'cell_subsetid_list',cell_subsetid_list,...
+    'cell_mesh_grid',cell_mesh_grid,'cell_latlonbox_list',cell_latlonbox_list);
 
 
 

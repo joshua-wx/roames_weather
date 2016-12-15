@@ -176,15 +176,16 @@ end
 if opt_struct.proc_opt(5) %normalise by unique number of days
     %create list of unique sts days
     cell_date_list     = stats_struct.cell_date_list;
-    cell_sts_date_list = cell_date_list(logical(stats_struct.cell_mask_list));
+    cell_sts_date_list = cell_date_list(logical([stats_struct.cell_mask_list]));
     sts_day_count      = length(unique(floor(cell_sts_date_list)));
     %normalise
     max_plot_grid = max(max(plot_grid));
     plot_grid = plot_grid./sts_day_count;
 elseif opt_struct.proc_opt(8) %normalise by unique number of years
     %create count of years
+    mask               = stats_struct.cell_mask_list;
     cell_date_list     = stats_struct.cell_date_list;
-    cell_sts_year_list = seq_rain_year(cell_date_list(logical(stats_struct.cell_mask_list)));
+    cell_sts_year_list = seq_rain_year(cell_date_list(logical(mask)));
     sts_year_count     = length(unique(cell_sts_year_list));
     %normalise
     max_plot_grid = max(max(plot_grid));
@@ -266,9 +267,9 @@ if opt_struct.output_opt(3)
     %geoshow(border_lat,border_lon,'DisplayType','line','Linestyle','-.','color','k','LineWidth',1)
 
     %plot shaded topo
-    h = fspecial('gaussian',[15,15]);
-    topo_z = imfilter(topo_z,h);
-    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
+    %h = fspecial('gaussian',[15,15]);
+    %topo_z = imfilter(topo_z,h);
+    %geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
     %%geoshow(topo_z,topo_refvec,'DisplayType','texturemap');
 
 
@@ -333,7 +334,7 @@ end
 
 %% Save storm stats
 if opt_struct.output_opt(1)
-    save([opt_struct.clim_dir,'stats_struct.mat'],'stats_struct','-v7.3')
+    save([opt_struct.clim_dir,'stats_struct.mat'],'stats_struct')
 end
 %% Create log file is required
 if opt_struct.output_opt(2)
