@@ -5,11 +5,12 @@ function rw_merger
 %interpolate into output grid
 %create sparse storm objects in national grid
 
+addpath('bin')
 read_site_info('site_info.txt')
 load([tempdir,'site_info.txt','.mat'])
 
-h5_ffn = 'data/28_20161203_043200.h5';
-
+h5_ffn   = 'data/66_20161203_043000.h5';
+dbz_mask = 0;
 %% SETUP RADAR GRID
 
 %load radar id
@@ -24,7 +25,7 @@ dataset_count = length(dataset_list);
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
 [vol_azi_vec,vol_rng_vec] = read_ppi_dims(h5_ffn,1);
-empty_vol = zeros(length(vol_rng_vec),length(vol_azi_vec),dataset_count,'uint8');
+empty_vol = zeros(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
 empty_vec = zeros(dataset_count,1);
 dbzh_vol  = empty_vol;
 vradh_vol = empty_vol;
@@ -44,15 +45,40 @@ for i=1:dataset_count
     dataset_struct = read_ppi_data(h5_ffn,i);
     ppi_dbzh       = dataset_struct.data1.data;
     ppi_vradh      = dataset_struct.data2.data;
-    if ~any(size(ppi_dbzh)~=size(empty_vol(:,:,1)))
+    if any(size(ppi_dbzh)~=size(empty_vol(:,:,1)))
         [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for dataset
         [vol_azi_grid,vol_rng_grid] = meshgrid(vol_azi_vec,vol_rng_vec);                                 %grid for volume
-        ppi_dbzh                    = interp2(ppi_azi_grid,ppi_rng_grid,ppi_dbzh,vol_azi_grid,vol_rng_grid,'nearest',0); %interpolate and extrap to 0
-        ppi_vradh                   = interp2(ppi_azi_grid,ppi_rng_grid,ppi_vradh,vol_azi_grid,vol_rng_grid,'nearest',0); %interpolate and extrap to 0
+        ppi_dbzh                    = interp2(ppi_azi_grid,ppi_rng_grid,ppi_dbzh,vol_azi_grid,vol_rng_grid,'nearest',NaN); %interpolate and extrap to 0
+        ppi_vradh                   = interp2(ppi_azi_grid,ppi_rng_grid,ppi_vradh,vol_azi_grid,vol_rng_grid,'nearest',NaN); %interpolate and extrap to 0
     end
     dbzh_vol(:,:,i)  = ppi_dbzh;
     vradh_vol(:,:,i) = ppi_vradh;
 end
+
+%load transformation coords
+transform_fn = ['transforms/mosiac_transform_',num2str(r_id),'.mat'];
+load(transform_fn);
+r_coords     = double(r_coords)./100;
+
+%convert to pixel coords
+[pix_azi,pix_rng,pix_elv] = vec2pix(vol_azi_vec,vol_rng_vec,elv_vec,r_coords);
+
+%regrid dbzh
+dbzh_intp_vol  = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind);
+%regrid vradh
+vradh_intp_vol = run_mirt3D(vradh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind);
+
+%apply dbzh filter
+vol_filter     = dbzh_intp_vol>=dbz_mask;
+
+%allocate valid entries to index
+
+%index, radar_id, time, dbzh, vradh, weight
+
+%generate 3D grid ->
+%merge same index using weighting ->
+%allocate to grid
+%reassemble 3D grid (looks like it'll have to sit in memory...
 
 keyboard
     
@@ -97,14 +123,17 @@ try
     for i=1:num_data
         %read data
         data_name = ['data',num2str(i)];
-        data      = h5read(h5_ffn,['/',dataset_name,'/',data_name,'/data']);
+        data      = double(h5read(h5_ffn,['/',dataset_name,'/',data_name,'/data']));
         quantity  = deblank(h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'quantity'));
         offset    = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'offset');
         gain      = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'gain');
         nodata    = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'nodata');
         undetect  = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'undetect');
+        %unpack data
+        data(data == nodata | data == undetect) = nan;
+        data = data.*offset + gain;
         %add to struct
-        dataset_struct.(data_name) = struct('data',data,'quantity',quantity,'offset',offset,'gain',gain,'nodata',nodata,'undetect',undetect);
+        dataset_struct.(data_name) = struct('data',data,'quantity',quantity);
     end
     %save nquist data
     if i>=2
@@ -135,4 +164,31 @@ azi_vec  = linspace(0,360,n_rays+1); azi_vec = azi_vec(1:end-1);                
 r_bin    = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'rscale'))./1000;              %range bin size
 r_start  = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'rstart'));                    %starting range of radar
 r_range  = double(h5readatt(h5_ffn,['/dataset',dataset_no_str,'/where'],'nbins'))*r_bin+r_start-r_bin; %number of range bins
-rng_vec  = r_start:r_bin:r_range; 
+rng_vec  = r_start:r_bin:r_range;
+
+function [pix_azi,pix_rng,pix_elv]=vec2pix(azi_vec,rng_vec,elv_vec,r_coords)
+%Inputs: a_vec=1xn vector of azimuth values, slant_r_vec=1xn value of ray
+%distance value, elv_vec=1xn matrix of scan elevation of raw data volue,
+%eval: The interpolation points
+%Function: Converts the intperolation points from radar units into pixel
+%units using linear approaches
+%Output: azimuth, range and elevation from eval in pixel coordinates
+
+%y=mx+c approach (monotonic azi and range)
+azi_m   = (2-1)/(azi_vec(2)-azi_vec(1));
+azi_c   = 1-azi_m*azi_vec(1);
+pix_azi = r_coords(:,1).*azi_m+azi_c;
+
+rng_m   = (2-1)/(rng_vec(2)-rng_vec(1));
+rng_c   = 1-rng_m*rng_vec(1);
+pix_rng = r_coords(:,2).*rng_m+rng_c;
+
+%elevation vector is non-monotonic, use a 1D inteprolation method.
+pix_elv = interp1(elv_vec',1:length(elv_vec),r_coords(:,3),'linear');
+
+function intp_vol = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind)
+%WHAT: run linear interpolation
+intp_out = mirt3D_mexinterp(dbzh_vol,pix_azi,pix_rng,pix_elv);
+intp_vol = zeros(r_size(1)*r_size(2)*r_size(3),1);
+intp_vol(filter_ind) = intp_out;
+intp_vol = reshape(intp_vol,r_size(1),r_size(2),r_size(3));
