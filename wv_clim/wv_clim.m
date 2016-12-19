@@ -194,7 +194,7 @@ else
 end
 
 %apply cone mask to plot_grid
-plot_grid = plot_grid.*cone_mask;
+%plot_grid = plot_grid.*cone_mask;
 
 
 
@@ -231,12 +231,13 @@ end
 
 if opt_struct.output_opt(3)
     %inialise plot
-    create_clim_map_qjrms   
+    create_clim_map_uq  
     %primary grid
     if opt_struct.ci_opt || opt_struct.ce_opt
         geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');
     else
-        geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');%,'FaceAlpha','texturemap','AlphaData',double(cone_mask))
+        geoshow(plot_grid,R,'DisplayType','contour','LevelList',[0.1:0.1:1],'LineColor','none','Fill','on');
+        %geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');%,'FaceAlpha','texturemap','AlphaData',double(cone_mask))
     end
     %set clim
     if ~isnan(opt_struct.proc_opt(4))
@@ -255,37 +256,6 @@ if opt_struct.output_opt(3)
     load(subset_fn);
     %plot coast lines
     geoshow(coast_lat,coast_lon,'DisplayType','line','color','k','LineWidth',1)
-
-    %plot somerset
-    geoshow(somerset_lat,somerset_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
-
-    %plot wivenhow
-    geoshow(wivenhoe_lat,wivenhoe_lon,'DisplayType','polygon','FaceColor','w','LineWidth',1)
-
-    %plot border lines
-    %geoshow(border_lat,border_lon,'DisplayType','line','Linestyle','-.','color','k','LineWidth',1)
-
-    %plot shaded topo
-    h = fspecial('gaussian',[15,15]);
-    topo_z = imfilter(topo_z,h);
-    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
-    %%geoshow(topo_z,topo_refvec,'DisplayType','texturemap');
-
-
-    %add radar location and range rings
-    r_lat = -27.61;
-    r_lon = 152.54;
-    ring_r1 = 40;
-    ring_r2 = 80;
-    [lat,lon] = scircle1(r_lat,r_lon,km2deg(ring_r1));
-    plotm(lat,lon,'k')
-    [lat,lon] = scircle1(r_lat,r_lon,km2deg(ring_r2));
-    plotm(lat,lon,'k')
-    plotm(r_lat,r_lon,'kd','MarkerSize',10,'MarkerFaceColor','k')
-    
-    
-    
-    
     
     %generate driection plot
     if opt_struct.dir_opt
@@ -298,15 +268,15 @@ if opt_struct.output_opt(3)
         end
     end    
     %overlay place names
-    create_clim_map_names_qjrms
+    create_clim_map_names_uq
     
     %setup colorbar
     ch=colorbar('FontSize',12);
     set(get(ch,'ylabel'),'string','Annual Frequency','fontsize',16); %MODIFY LABEL ACCORDING TO SURFACE IMAGE UNITS
 
     %add cone of silence
-    [cone_lat,cone_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
-    geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor','w','edgecolor','k')
+    %[cone_lat,cone_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
+    %geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor','w','edgecolor','k')
     
     
     %set(get(ch,'ylabel'),'string','Density','fontsize',16);
