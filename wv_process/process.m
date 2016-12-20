@@ -29,11 +29,11 @@ unix('touch tmp/kill_process');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/dev/wv/lib/m_lib');
-    addpath('/home/meso/dev/wv/etc')
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/roames_weather/etc')
     addpath('/home/meso/dev/shared_lib/jsonlab');
-    addpath('/home/meso/dev/wv/bin/json_read');
-    addpath('/home/meso/dev/wv/bin/mirt3D');
+    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/bin/mirt3D');
     addpath('etc')
     addpath('tmp')
     unix('touch tmp/kill_process');
@@ -483,6 +483,7 @@ function data_out = png_transform(data_in,type,vars,min_value)
 data_out=double(data_in).*vars(1)+vars(2);
 if strcmp(type,'refl');
         %scale for colormapping
+        data_out(data_out<21) = min_value;
         data_out=(data_out-min_value)*2+1;
 else strcmp(type,'vel');
         %scale for colormapping

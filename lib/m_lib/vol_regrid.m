@@ -177,9 +177,8 @@ if sig_refl == 1
     %run interp C function
     refl_vol(refl_vol==0)=NaN;
     intp_refl = mirt3D_mexinterp(refl_vol,pix_a,pix_r,pix_e);
-    intp_refl = uint8(intp_refl);
     %resize to 3D array
-    vol_refl_out = zeros(eval_length,1,'uint8');
+    vol_refl_out = zeros(eval_length,1);
     vol_refl_out(inside_ind) = intp_refl;
     sizev        = size(aazi_grid);
     vol_refl_out = reshape(vol_refl_out,sizev(1),sizev(2),sizev(3));
@@ -193,9 +192,8 @@ if sig_refl == 1
         %run interp C function
         vel_vol(vel_vol==0) = NaN;
         intp_vel = mirt3D_mexinterp(vel_vol,pix_a,pix_r,pix_e);
-        intp_vel = uint8(intp_vel);
         %resize to 3D array
-        vol_vel_out = zeros(eval_length,1,'uint8');
+        vol_vel_out = zeros(eval_length,1);
         vol_vel_out(inside_ind) = intp_vel;
         sizev       = size(aazi_grid);
         vol_vel_out = reshape(vol_vel_out,sizev(1),sizev(2),sizev(3));
@@ -268,7 +266,8 @@ pix_r  = eval(:,2).*rang_m+rang_c;
 %elevation vector is non-monotonic, use a 1D inteprolation method.
 pix_e = interp1(elv_vec',1:length(elv_vec),eval(:,3),'pchip');
 
-function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,dataset_no,slant_r_vec,a_vec,vel_flag)
+
+function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,dataset_no,vol_slant_r_vec,vol_a_vec,vel_flag)
 %WHAT: reads scan and elv data from dataset_no from h5_ffn.
 %INPUTS:
 %h5_ffn: path to h5 file
@@ -279,51 +278,53 @@ function [elv,refl_data,refl_vars,vel_data,vel_vars]=read_radar_scan(h5_ffn,data
 %elv: elevation angle of radar beam
 %pol_data: polarmetric data
 try
+    %extract data dims
+    data_n_rays      = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'nrays'));                       %number of rays
+    data_a_vec       = linspace(0,360,data_n_rays+1);                                                                   %wrap to 360 by duplicating first ray
+    data_r_bin       = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'rscale'));                      %m, range bin size (range res)
+    data_r_start     = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'rstart'))*1000;                 %m, range of radar
+    data_r_range     = double(h5readatt(h5_ffn,['/dataset',num2str(dataset_no),'/where'],'nbins'))*data_r_bin+data_r_start-data_r_bin; %m, range of radar
+    data_slant_r_vec = data_r_start:data_r_bin:data_r_range;                                                            %m,   slant range (along ray)
     %extract constants from what group for the dataset
     elv      = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/where/'],'elangle');
-    vel_data = [];
-    vel_vars = [];
-    %read reflectivity data from hdf5 file, and scaling formula parameters, apply the forumla
-    refl_data   = h5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/data']);
-    refl_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'gain');
-    refl_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data1/what/'],'offset');
-    %keep transformation variables
-    refl_vars   = [refl_gain,refl_offset];
-    %ensure continuity
-    refl_data   = cat(2,refl_data,refl_data(:,1));
-
-    %pad refl range dim with zeros if scan is cut short (repair data) or too
-    %long
-    range_padding = length(slant_r_vec)-size(refl_data,1);
-    if range_padding>0
-        refl_data = [refl_data;zeros(range_padding,length(a_vec),'uint8')];
-    elseif range_padding<0
-        refl_data = refl_data(1:end+range_padding,:);
-    end
-    %vel data
+    %refl data (data no 1)
+    [refl_data,refl_vars,~] = extract_odimh5_ppi(h5_ffn,dataset_no,1,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec);
+    %vel data (data no 2)
     if vel_flag == 1
-        vel_data   = h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data2/data'));
-        vel_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'gain');
-        vel_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data2/what/'],'offset');
-        vel_ni     = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
-        %keep transformation variables
-        vel_vars   = [vel_gain,vel_offset,vel_ni];
-        %ensure continuity
-        vel_data   = cat(2,vel_data,vel_data(:,1));
-        %pad refl range dim with zeros if scan is cut short (repair data) or too
-        %long
-        range_padding = length(slant_r_vec)-size(vel_data,1);
-        if range_padding>0
-            vel_data = [vel_data;zeros(range_padding,length(a_vec),'uint8')];
-        elseif range_padding<0
-            vel_data = vel_data(1:end+range_padding,:);
-        end
+        [vel_data,vel_vars,vel_ni] = extract_odimh5_ppi(h5_ffn,dataset_no,2,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec);
+        vel_vars = [vel_vars,vel_ni];
+    else
+        vel_data = [];
+        vel_vars = [];
     end
-catch
+catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
     elv       = 0;
-    vel_data  = zeros(length(slant_r_vec),length(a_vec),'uint8');
-    vel_vars  = [];
-    refl_data = zeros(length(slant_r_vec),length(a_vec),'uint8');
+    vel_data  = zeros(length(vol_slant_r_vec),length(vol_a_vec));
+    vel_vars  = []; vel_ni = [];
+    refl_data = zeros(length(vol_slant_r_vec),length(vol_a_vec));
     refl_vars = [];
+end
+
+function [ppi_data,ppi_vars,vel_ni] = extract_odimh5_ppi(h5_ffn,dataset_no,data_no,data_a_vec,data_slant_r_vec,vol_a_vec,vol_slant_r_vec)
+
+%extract data and vars
+ppi_data   = double(h5read(h5_ffn,strcat('/dataset',num2str(dataset_no),'/data',num2str(data_no),'/data')));
+ppi_gain   = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'gain');
+ppi_offset = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/data',num2str(data_no),'/what/'],'offset');
+%collate variables
+ppi_vars = [ppi_gain,ppi_offset];
+%vel ni
+if data_no == 2
+    vel_ni = hdf5read(h5_ffn,['/dataset',num2str(dataset_no),'/how/'],'NI');
+else
+    vel_ni = [];
+end
+%wrap 0deg to 360deg ray
+ppi_data   = cat(2,ppi_data,ppi_data(:,1));
+%interpolate if dataset dims are different size from vol dim vecs
+if length(data_slant_r_vec)~=length(vol_slant_r_vec) || length(data_a_vec)~=length(vol_a_vec)
+    [data_az_grid,data_sl_grid] = meshgrid(data_a_vec,data_slant_r_vec);   %grid for dataset
+    [vol_az_grid, vol_sl_grid]  = meshgrid(vol_a_vec,vol_slant_r_vec);             %grid for volume
+    ppi_data                    = interp2(data_az_grid,data_sl_grid,ppi_data,vol_az_grid,vol_sl_grid,'linear',0); %interpolate and extrap to 0
 end

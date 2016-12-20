@@ -28,13 +28,13 @@ unix('touch tmp/kill_kml');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/wv/lib/ge_lib');
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-    addpath('/home/meso/Dropbox/dev/wv/etc')
-    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
-    addpath('/home/meso/Dropbox/dev/wv/wv_kml/etc')
-    addpath('/home/meso/Dropbox/dev/wv/wv_kml/tmp')
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/roames_weather/lib/ge_lib');
+    addpath('/home/meso/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/roames_weather/etc')
+    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/wv_kml/etc')
+    addpath('/home/meso/dev/roames_weather/wv_kml/tmp')
 else
     addpath('etc')
     addpath('tmp')
