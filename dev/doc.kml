@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+<name>RoamesWX</name>
+<Folder>
+<name>Overlays</name>
+<visibility>1</visibility>
+<description></description>
+<ScreenOverlay>
+<name>Vel Colorbar</name>
+<Icon>
+<href>overlays/vel_colorbar.png</href>
+</Icon>
+<overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+<screenXY x="0.92" y="0.1" xunits="fraction" yunits="fraction"/>
+<size x="0" y="0.4" xunits="fraction" yunits="fraction"/>
+</ScreenOverlay>
+<ScreenOverlay>
+<name>Refl Colorbar</name>
+<Icon>
+<href>overlays/refl_colorbar.png</href>
+</Icon>
+<overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+<screenXY x="0.96" y="0.1" xunits="fraction" yunits="fraction"/>
+<size x="0" y="0.4" xunits="fraction" yunits="fraction"/>
+</ScreenOverlay>
+<ScreenOverlay>
+<name>ROAMES Logo</name>
+<Icon>
+<href>overlays/ROAMES_logo.png</href>
+</Icon>
+<overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+<screenXY x="0.03" y="0.04" xunits="fraction" yunits="fraction"/>
+<size x="0" y="0.085" xunits="fraction" yunits="fraction"/>
+</ScreenOverlay>
+</Folder>
+<NetworkLink>
+<name>Scan Imagery</name>
+<visibility>1</visibility>
+<refreshVisibility>0</refreshVisibility>
+<flyToView>0</flyToView>
+<Link>
+<href>scan.kml</href>
+</Link>
+</NetworkLink>
+<NetworkLink>
+<name>Track Objects</name>
+<visibility>1</visibility>
+<refreshVisibility>0</refreshVisibility>
+<flyToView>0</flyToView>
+<Link>
+<href>track.kml</href>
+</Link>
+</NetworkLink>
+<NetworkLink>
+<name>Cell Objects</name>
+<visibility>1</visibility>
+<refreshVisibility>0</refreshVisibility>
+<flyToView>0</flyToView>
+<Link>
+<href>cell.kml</href>
+</Link>
+</NetworkLink>
+
+</Document>
+</kml>
