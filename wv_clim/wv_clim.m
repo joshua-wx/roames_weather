@@ -231,12 +231,17 @@ end
 
 if opt_struct.output_opt(3)
     %inialise plot
-    create_clim_map_uq  
+    create_clim_map_toowoomba 
+    
+    %filter
+    myfilter = fspecial('gaussian',[7 7], 0.5);
+    filt_plot_grid = imfilter(plot_grid, myfilter, 'replicate');
+    
     %primary grid
     if opt_struct.ci_opt || opt_struct.ce_opt
-        geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');
+        geoshow(filt_plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');
     else
-        geoshow(plot_grid,R,'DisplayType','contour','LevelList',[0.1:0.1:1],'LineColor','none','Fill','on');
+        geoshow(filt_plot_grid,R,'DisplayType','contour','LevelList',[0.1:0.1:1],'LineColor','none','Fill','on');
         %geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');%,'FaceAlpha','texturemap','AlphaData',double(cone_mask))
     end
     %set clim
@@ -268,15 +273,15 @@ if opt_struct.output_opt(3)
         end
     end    
     %overlay place names
-    create_clim_map_names_uq
+    create_clim_map_names_toowoomba
     
     %setup colorbar
     ch=colorbar('FontSize',12);
     set(get(ch,'ylabel'),'string','Annual Frequency','fontsize',16); %MODIFY LABEL ACCORDING TO SURFACE IMAGE UNITS
 
-    add cone of silence
+    %add cone of silence
     [cone_lat,cone_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
-    geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor','w','edgecolor','k')
+    geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor',[0.5 0.5 0.5],'edgecolor','k')
     
     
     %set(get(ch,'ylabel'),'string','Density','fontsize',16);
