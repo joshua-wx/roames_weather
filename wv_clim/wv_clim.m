@@ -274,9 +274,9 @@ if opt_struct.output_opt(3)
     ch=colorbar('FontSize',12);
     set(get(ch,'ylabel'),'string','Annual Frequency','fontsize',16); %MODIFY LABEL ACCORDING TO SURFACE IMAGE UNITS
 
-    %add cone of silence
-    %[cone_lat,cone_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
-    %geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor','w','edgecolor','k')
+    add cone of silence
+    [cone_lat,cone_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
+    geoshow(cone_lat,cone_lon,'DisplayType','polygon','facecolor','w','edgecolor','k')
     
     
     %set(get(ch,'ylabel'),'string','Density','fontsize',16);
