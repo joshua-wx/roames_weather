@@ -48,7 +48,7 @@ for i=1:length(r_id_list)
     
     %create radar grid
     [r_lon_grid,r_lat_grid,r_alt_grid] = meshgrid(r_lon_vec,r_lat_vec,alt_vec);
-    r_index_grid  = index_grid(y_ind,x_ind,:);
+    r_index_grid                       = index_grid(y_ind,x_ind,:);
     %earth distance grid
     r_gcdist_grid = earth_rad.*acos(sind(r_lat).*sind(r_lat_grid)+...
                         cosd(r_lat).*cosd(r_lat_grid).*cosd(abs(r_lon_grid-r_lon)));
@@ -71,20 +71,21 @@ for i=1:length(r_id_list)
     %range grid
     r_rng_grid    = sin(r_gcdist_grid./(ke.*r_earth_rad)).*(ke.*r_earth_rad+r_alt_grid-r_elv)./cosd(r_elv_grid);
 
-    %% precompute multi radar weighting
-    w_rng_grid = exp(-(r_gcdist_grid.^2)./2500); %2500 for non-S1 radars, 5000 for S1 radars
-
     %% bound and index
-    
-    r_coords     = [r_azi_grid(:),r_rng_grid(:),r_elv_grid(:),w_rng_grid(:)];
+    %create inital output vars
+    g_coords     = struct('r_lon_vec',r_lon_vec,'r_lat_vec',r_lat_vec,'alt_vec',alt_vec);
+    r_coords     = [r_azi_grid(:),r_rng_grid(:),r_elv_grid(:)];
     r_size       = size(r_azi_grid);
+    %apply boundary filter
     filter_ind   = boundary_filter(r_coords,elv_min,elv_max,rng_min,rng_max);
     r_coords     = r_coords(filter_ind,:);
+    %convert to more efficent types
     r_coords     = uint16(r_coords.*100);
+    global_index = uint32(r_index_grid(:));
     
     %save
     tmp_fn   = ['transforms/mosiac_transform_',num2str(r_id,'%02.0f'),'.mat'];
-    save(tmp_fn,'r_coords','r_size','filter_ind','r_index_grid')
+    save(tmp_fn,'r_coords','global_index','g_coords','r_size')
     
 end
 

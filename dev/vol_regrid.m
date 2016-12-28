@@ -1,4 +1,4 @@
-function rw_merger
+function out_mat = vol_regrid(h5_ffn)
 
 %load radar volume
 %load output transform
@@ -9,8 +9,7 @@ addpath('bin')
 read_site_info('site_info.txt')
 load([tempdir,'site_info.txt','.mat'])
 
-h5_ffn   = 'data/66_20161203_043000.h5';
-dbz_mask = 0;
+dbz_mask = 20;
 %% SETUP RADAR GRID
 
 %load radar id
@@ -25,18 +24,18 @@ dataset_count = length(dataset_list);
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
 [vol_azi_vec,vol_rng_vec] = read_ppi_dims(h5_ffn,1);
-empty_vol = zeros(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
-empty_vec = zeros(dataset_count,1);
+empty_vol = nan(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
+empty_vec = nan(dataset_count,1);
 dbzh_vol  = empty_vol;
 vradh_vol = empty_vol;
+time_vol  = empty_vol;
 elv_vec   = empty_vec;
-time_vec  = empty_vec;
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
     [ppi_elv,ppi_time] = read_dataset_atts(h5_ffn,i);
     elv_vec(i)         = ppi_elv;
-    time_vec(i)        = ppi_time;
+    time_vol(:,:,i)    = ones(length(vol_rng_vec),length(vol_azi_vec)).*ppi_time;
     
     if ppi_elv == 0
         log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
@@ -59,29 +58,47 @@ end
 transform_fn = ['transforms/mosiac_transform_',num2str(r_id),'.mat'];
 load(transform_fn);
 r_coords     = double(r_coords)./100;
-
 %convert to pixel coords
 [pix_azi,pix_rng,pix_elv] = vec2pix(vol_azi_vec,vol_rng_vec,elv_vec,r_coords);
 
 %regrid dbzh
-dbzh_intp_vol  = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind);
+dbzh_intp_vol  = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv);%,r_size,filter_ind);
 %regrid vradh
-vradh_intp_vol = run_mirt3D(vradh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind);
-
+vradh_intp_vol = run_mirt3D(vradh_vol,pix_azi,pix_rng,pix_elv);%,r_size,filter_ind);
+%regrid time
+time_intp_vol  = interp3(time_vol,pix_azi,pix_rng,pix_elv,'nearest');
 %apply dbzh filter
 vol_filter     = dbzh_intp_vol>=dbz_mask;
 
-%allocate valid entries to index
+%calculating weights
+if isempty(dataset_struct.atts.NI) %nonDoppler radars
+    weight1  = 3500;
+    weight2  = 4;
+else %Doppler Radars
+    weight1  = 7000;
+    weight2  = 1;  
+end
+r_weight = exp(-(r_coords(:,2).^2)./weight1)./weight2;
+%For Doppler radars use weight1 = 3500, weight2 = 4
+%this gives 0.25 @ 0km, 0.1 @ 55km, 0 @ 105km
+%For nonDoppler radars, use weight1 = 7000, weight2 = 1
+%this gives 1.0 @ 0 km, 0.25 @ 100km, 0.1 @ 125km, 0 @ 180km
 
-%index, radar_id, time, dbzh, vradh, weight
+%index, time, dbzh, vradh, weight
+out_dbzh       = dbzh_intp_vol(vol_filter);
+out_vradh      = vradh_intp_vol(vol_filter);
+out_global_idx = double(global_index(vol_filter));
+out_local_idx  = find(vol_filter);
+out_time       = time_intp_vol(vol_filter);
+out_weight     = r_weight(vol_filter);
+
+out_mat        = [out_global_idx,out_local_idx,out_dbzh,out_vradh,out_time,out_weight];
 
 %generate 3D grid ->
 %merge same index using weighting ->
 %allocate to grid
 %reassemble 3D grid (looks like it'll have to sit in memory...
 
-keyboard
-    
 function [ppi_elv,ppi_time]=read_dataset_atts(h5_ffn,dataset_no)
 %WHAT: reads scan and elv data from dataset_no from h5_ffn.
 %INPUTS:
@@ -131,7 +148,7 @@ try
         undetect  = h5readatt(h5_ffn,['/',dataset_name,'/',data_name,'/what'],'undetect');
         %unpack data
         data(data == nodata | data == undetect) = nan;
-        data = data.*offset + gain;
+        data = (data.*gain) + offset;
         %add to struct
         dataset_struct.(data_name) = struct('data',data,'quantity',quantity);
     end
@@ -141,7 +158,7 @@ try
     else
         %dummy nyquist data
         NI     = '';
-        dataset_struct.data2.data = zeros(size(data),'uint8');
+        dataset_struct.data2.data = nan(size(data));
     end
     %read dimensions
     [azi_vec,rng_vec] = read_ppi_dims(h5_ffn,dataset_no);
@@ -186,9 +203,9 @@ pix_rng = r_coords(:,2).*rng_m+rng_c;
 %elevation vector is non-monotonic, use a 1D inteprolation method.
 pix_elv = interp1(elv_vec',1:length(elv_vec),r_coords(:,3),'linear');
 
-function intp_vol = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv,r_size,filter_ind)
+function intp_out = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv)%,r_size,filter_ind)
 %WHAT: run linear interpolation
 intp_out = mirt3D_mexinterp(dbzh_vol,pix_azi,pix_rng,pix_elv);
-intp_vol = zeros(r_size(1)*r_size(2)*r_size(3),1);
-intp_vol(filter_ind) = intp_out;
-intp_vol = reshape(intp_vol,r_size(1),r_size(2),r_size(3));
+%intp_vol = zeros(r_size(1)*r_size(2)*r_size(3),1);
+%intp_vol(filter_ind) = intp_out;
+%intp_vol = reshape(intp_vol,r_size(1),r_size(2),r_size(3));
