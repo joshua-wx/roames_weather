@@ -82,10 +82,11 @@ for i=1:length(r_id_list)
     %convert to more efficent types
     r_coords     = uint16(r_coords.*100);
     global_index = uint32(r_index_grid(:));
-    
+    global_index = global_index(filter_ind);
+    filter_ind   = uint32(filter_ind);
     %save
     tmp_fn   = ['transforms/mosiac_transform_',num2str(r_id,'%02.0f'),'.mat'];
-    save(tmp_fn,'r_coords','global_index','g_coords','r_size')
+    save(tmp_fn,'r_coords','global_index','g_coords','r_size','filter_ind')
     
 end
 
