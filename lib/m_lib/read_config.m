@@ -37,7 +37,11 @@ for i=1:length(config_out{1})
         var_value=str2num(var_value);
     end
     %set string to be the variable name for that variable
+    try
     [~] = evalc([var_name '= var_value']);
+    catch
+        keyboard
+    end
     %save and append to mat file using append command if i~=1
     if i==1
         save(mat_output_path,var_name);

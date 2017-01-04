@@ -20,30 +20,34 @@ weight_vec  = empty_vec;
 
 %load data
 %this is a big loop that keeps constantly loading and replacing data
-h5_ffn   = 'data/66_20161203_043000.h5';
+h5_ffn                              = 'data/66_20161203_043000.h5';
 [out66_dbzh,out66_vradh,out66_atts] = vol_regrid(h5_ffn,dbz_thresh);
 
-h5_ffn   = 'data/28_20161203_043200.h5';
+h5_ffn                              = 'data/28_20161203_043200.h5';
 [out28_dbzh,out28_vradh,out28_atts] = vol_regrid(h5_ffn,dbz_thresh);
 
 %merge data
 
-tic
-%need to also compare time?
-global_weights = weight_vec(out66_atts(:,1));
-weight_mask    = out66_atts(:,3) > global_weights;
+global_weights                        = weight_vec(out66_atts(:,1));
+weight_mask                           = out66_atts(:,3) > global_weights;
 dbzh_vec(out66_atts(weight_mask,1))   = out66_dbzh(weight_mask);
 vradh_vec(out66_atts(weight_mask,1))  = out66_vradh(weight_mask);
 weight_vec(out66_atts(weight_mask,1)) = out66_atts(weight_mask,3);
-toc
 
-global_weights = weight_vec(out28_atts(:,1));
-weight_mask    = out28_atts(:,3) > global_weights;
-dbzh_vec(out28_atts(weight_mask,1)) = out28_dbzh(weight_mask);
+global_weights                        = weight_vec(out28_atts(:,1));
+weight_mask                           = out28_atts(:,3) > global_weights;
+dbzh_vec(out28_atts(weight_mask,1))   = out28_dbzh(weight_mask);
 weight_vec(out28_atts(weight_mask,1)) = out28_atts(weight_mask,3);
 
 %once merge is finished....
-dbzh_mat  = reshape(dbzh_vec,length(lat_vec),length(lon_vec),length(alt_vec));
+dbzh_vol         = reshape(dbzh_vec,length(lat_vec),length(lon_vec),length(alt_vec));
+ewt_refl_image   = max(dbzh_vol./10,[],3); %allows the assumption only shrinking is needed.
+ewt_refl_image   = medfilt2(ewt_refl_image, [9,9]);
+addpath('../etc')
+addpath('../lib/m_lib')
+[ewtBasinExtend] = process_wdss_ewt(ewt_refl_image);
+keyboard
+
 %then ready to run through the usual identification and tracking, just a
 %little slower than usual.
 %problems: need to remove regions which have not been updated from the
