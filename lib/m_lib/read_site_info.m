@@ -11,8 +11,8 @@ try
     radar_name_list   = site_info{2};
     radar_lat_list    = -cell2mat(site_info(3));
     radar_lon_list    = cell2mat(site_info(4));
-    radar_elv_list    = cell2mat(site_info(5));
-    radar_centroid    = [radar_lat_list,radar_lon_list,radar_elv_list];
+    radar_alt_list    = cell2mat(site_info(5));
+    radar_centroid    = [radar_lat_list,radar_lon_list,radar_alt_list];
     
     for i=1:length(radar_name_list)
         %remove trailing _
@@ -24,7 +24,7 @@ try
     end
     
     %write to file
-    save(['tmp/',site_info_fn,'.mat'],'radar_id_list','radar_name_list','radar_lat_list','radar_lon_list','radar_elv_list','radar_centroid')
+    save(['tmp/',site_info_fn,'.mat'],'radar_id_list','radar_name_list','radar_lat_list','radar_lon_list','radar_alt_list','radar_centroid')
 catch
     disp('site_info.txt not found or no tmp folder')
     return
