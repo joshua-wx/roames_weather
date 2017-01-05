@@ -4,19 +4,16 @@ function preallocate_radar_grid
 
 %% init
 %paths
-addpath('../lib/m_lib')
-addpath('../etc')
 global_config_fn  = 'global.config';
+priority_fn       = 'priority_list.txt';
 site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
 out_path          = 'transforms/';
 %load sites
-read_site_info(site_info_fn);
 load([tmp_config_path,site_info_fn,'.mat']);
 %load priority
-priority_id_list = dlmread('priority_list.txt');
+priority_id_list = dlmread(priority_fn);
 % Load global config files
-read_config(global_config_fn);
 load([tmp_config_path,global_config_fn,'.mat']);
 
 %% setup national latlon grid

@@ -6,15 +6,12 @@ function grid_obj = process_vol_regrid(h5_ffn)
 %create sparse storm objects in national grid
 
 %init paths and vars
-addpath('bin')
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
 
 %read configs
-%read_site_info(site_info_fn)
 load([tmp_config_path,site_info_fn,'.mat'])
-read_config(global_config_fn);
 load([tmp_config_path,global_config_fn,'.mat']);
 
 %% SETUP RADAR GRID

@@ -1,5 +1,16 @@
 function radar_merge
 
+addpath('bin')
+addpath('../lib/m_lib')
+addpath('../etc')
+
+global_config_fn  = 'global.config';
+site_info_fn      = 'site_info.txt';
+tmp_config_path   = 'tmp/';
+
+
+read_site_info(site_info_fn)
+read_config(global_config_fn);
 
 
 %load data

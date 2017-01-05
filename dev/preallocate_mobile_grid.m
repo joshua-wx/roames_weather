@@ -4,13 +4,10 @@ function preallocate_mobile_grid
 
 %% init
 %paths
-addpath('../lib/m_lib')
-addpath('../etc')
 global_config_fn  = 'global.config';
 tmp_config_path   = 'tmp/';
 out_path          = 'transforms/';
 % Load global config files
-read_config(global_config_fn);
 load([tmp_config_path,global_config_fn,'.mat']);
 
 %% Generate mapping coordinates
