@@ -324,10 +324,6 @@ if exist(tmp_h5_ffn,'file') == 2
     delete(tmp_h5_ffn)
 end
 
-if radar_id==46
-    keyboard
-end
-
 %cat scans into temp rapic volume 
 tmp_rapic_ffn = [tempname,'.rapic'];
 cmd = ['cat ',cell2mat(dled_files'),' > ',tmp_rapic_ffn];
