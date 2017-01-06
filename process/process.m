@@ -1,4 +1,5 @@
 function process
+try
 %WHAT: This modules takes odimh5 volumes (realtime or archive), regrids (cart_interpol6),
 %applies identification (wdss_ewt), tracking (wdss_tracking), then archives the data for 
 %use in climatology (wv_clim) or visualisation
@@ -49,8 +50,16 @@ load([tmp_config_path,process_config_fn,'.mat'])
 % check for restart or first start
 if exist(restart_cofig_fn,'file')==2
     %silent restart detected, load vars from reset and remove file
-    load(restart_cofig_fn);
-    delete(restart_cofig_fn);
+    try
+        load(restart_cofig_fn);
+    catch
+        %corrupt file
+        delete(restart_cofig_fn);
+        complete_h5_dt      = [];
+        complete_h5_fn_list = {};
+        gfs_extract_list    = [];
+        hist_oldest_restart = [];
+    end
 else
     %new start
     complete_h5_dt      = [];
@@ -97,7 +106,6 @@ end
 %profile clear
 %profile on
 %% Primary Loop
-try
 while exist('tmp/kill_process','file')==2
 
     % create time span
@@ -264,12 +272,18 @@ while exist('tmp/kill_process','file')==2
     
 end
 catch err
-    %save vars
     display(err)
+    %save vars
     hist_oldest_restart = date_list(d);
     save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    %save error and log
+    message = [err.identifier,' ',err.message];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
+    %send push notification
+    if pushover_flag == 1
+        pushover('process',message)
+    end
     rethrow(err)
 end
 

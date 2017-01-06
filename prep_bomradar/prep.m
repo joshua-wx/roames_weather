@@ -1,4 +1,5 @@
 function prep
+try
 % WHAT
 %BoM volumetric lftp download manager. Downloads complete volumes (all files
 %which make up one volume scan), rather than just new files, elimating the
@@ -204,6 +205,19 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
 end
 
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
+
+catch err
+    display(err)
+    %save error to file and log
+    message = [err.identifier,' ',err.message];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
+    save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
+    %send push notification
+    if pushover_flag == 1
+        pushover('prep',message)
+    end
+    rethrow(err)
+end
 
 function [fetch_volumes,fetch_h5_datetime,fetch_h5_r_id,fetch_h5_fn] = lftp_to_volumes(scan_filenames,min_offset)
 %WHAT

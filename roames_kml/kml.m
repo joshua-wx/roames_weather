@@ -1,5 +1,5 @@
 function kml
-
+try
 %WHAT: This module pulls data from storm_archive and create kml objects for
 %GE
 
@@ -84,10 +84,19 @@ radar_id_hide = dlmread(site_info_hide_fn); save([tmp_config_path,site_info_hide
 % check for restart or first start
 if exist(restart_vars_fn,'file')==2
     %silent restart detected, load vars from reset and remove file
-    load(restart_vars_fn);
+    try
+        %attempt to load restart vars
+        load(restart_vars_fn);
+        delete(restart_vars_fn);
+    catch
+        %corrupt file
+        delete(restart_vars_fn);
+        kml_build_root(dest_root,radar_id_list,local_dest_flag);
+        object_struct = [];
+    end
 else
     %build root kml
-    kml_build_root(dest_root,radar_id_list,local_dest_flag)
+    kml_build_root(dest_root,radar_id_list,local_dest_flag);
     %new start
     object_struct = [];
 end
@@ -96,7 +105,6 @@ end
 %% Primary code
 %cat daily databases for times between oldest and newest time,
 %allows for mulitple days to be joined
-try
 while exist('tmp/kill_kml','file')==2
     
     % Calculate time limits from time options
@@ -215,8 +223,13 @@ end
 catch err
     %display and log error
     display(err)
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    message = [err.identifier,' ',err.message];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
+    %push notification
+    if pushover_flag == 1
+        pushover('kml',message)
+    end
     rethrow(err)
 end
 
