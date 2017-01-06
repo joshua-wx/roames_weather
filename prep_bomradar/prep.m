@@ -9,10 +9,10 @@ function prep
 %move to dynamodb for remote?)
 
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/etc');
-    addpath('/home/meso/Dropbox/dev/wv/bin/json_read');
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/roames_weather/etc');
+    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/shared_lib/jsonlab');
     unix('touch tmp/kill_prep');
 end
 
@@ -303,10 +303,10 @@ function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,staging_dd
 load(['tmp/site_info.txt.mat']);
 load(['tmp/global.config.mat']);
 %find radar lat lon
-site_idx  = find(radar_id==site_id_list);
-radar_lat = site_lat_list(site_idx);
-radar_lon = site_lon_list(site_idx);
-radar_h   = site_elv_list(site_idx);
+site_idx  = find(radar_id==radar_id_list);
+radar_lat = radar_lat_list(site_idx);
+radar_lon = radar_lon_list(site_idx);
+radar_h   = radar_alt_list(site_idx);
 
 %create full path filenames
 dled_files = strcat( repmat({[' ',local_mirror_path,'/']},length(file_list),1),file_list);
@@ -407,11 +407,16 @@ function lftp_mirror_coder(ftp_address,ftp_un,ftp_pass,ftp_path,local_mirror_pat
 % ftp_path: string of ftp folder
 % local_mirror_path: 
 
+%          'set ftp:use-mlsd on;',...
 
 %creat standard header and footer of code
+display('net settings applied')
 script = ['#!/bin/bash',10,...
           'lftp -e ',...
           '''set ftp:sync-mode off;',...
+          'set net:timeout 5;',...
+          'set net:max-retries 10;',...
+          'set net:reconnect-interval-base 6;',...
           'mirror --delete --parallel=10 ',...
           ftp_path,' ',...
           local_mirror_path,'; ',...
