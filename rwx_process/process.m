@@ -1,5 +1,5 @@
 function process
-try
+
 %WHAT: This modules takes odimh5 volumes (realtime or archive), regrids (cart_interpol6),
 %applies identification (wdss_ewt), tracking (wdss_tracking), then archives the data for 
 %use in climatology (wv_clim) or visualisation
@@ -16,12 +16,29 @@ restart_cofig_fn  = 'temp_process_vars.mat';
 process_config_fn = 'process.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
-tmp_config_path   = 'tmp/';
+local_tmp_path    = 'tmp/';
 download_path     = [tempdir,'h5_download/'];
+transform_path    = [local_tmp_path,'transforms/'];
 
-if exist(tmp_config_path,'file') ~= 7
-    mkdir(tmp_config_path)
+%load blank vars
+complete_h5_dt      = [];
+complete_h5_fn_list = {};
+gfs_extract_list    = [];
+hist_oldest_restart = [];
+date_list           = now;
+d                   = 1;
+pushover_flag       = 1;
+
+%start try
+try
+
+%create paths
+if exist(local_tmp_path,'file') == 7
+    rmdir(local_tmp_path,'s');
 end
+mkdir(local_tmp_path)
+mkdir(transform_path)
+
 
 % setup kill time (restart program to prevent memory fragmentation)
 kill_wait  = 60*60*2; %kill time in seconds
@@ -46,7 +63,7 @@ end
 
 % load process_config
 read_config(process_config_fn);
-load([tmp_config_path,process_config_fn,'.mat'])
+load([local_tmp_path,process_config_fn,'.mat'])
 % check for restart or first start
 if exist(restart_cofig_fn,'file')==2
     %silent restart detected, load vars from reset and remove file
@@ -55,31 +72,21 @@ if exist(restart_cofig_fn,'file')==2
     catch
         %corrupt file
         delete(restart_cofig_fn);
-        complete_h5_dt      = [];
-        complete_h5_fn_list = {};
-        gfs_extract_list    = [];
-        hist_oldest_restart = [];
     end
-else
-    %new start
-    complete_h5_dt      = [];
-    complete_h5_fn_list = {};
-    gfs_extract_list    = [];
-    hist_oldest_restart = [];
 end
 
 % Load global config files
 read_config(global_config_fn);
-load([tmp_config_path,global_config_fn,'.mat']);
+load([local_tmp_path,global_config_fn,'.mat']);
 
 %load colourmaps for png generation
 colormap_interp('refl24bit.txt','vel24bit.txt');
 
 % site_info.txt
-read_site_info(site_info_fn); load([tmp_config_path,site_info_fn,'.mat']);
+read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
 % check if all sites are needed
 if strcmp(radar_id_list,'all')
-    radar_id_list = site_id_list;
+    radar_id_list = siteinfo_id_list;
 end
 
 %break if processing climatology for more than one radar
@@ -101,15 +108,19 @@ else
     src_root = s3_src_root;
 end
 
-%% Preallocate cartesian regridding coordinates
-[aazi_grid,sl_rrange_grid,eelv_grid] = process_create_inv_grid(['tmp/',global_config_fn,'.mat']);
+%% Preallocate regridding coordinates
+if radar_id_list==99
+    preallocate_mobile_grid(transform_path,force_transform_update)
+else
+    preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
+end
 %profile clear
 %profile on
 %% Primary Loop
 while exist('tmp/kill_process','file')==2
 
     % create time span
-    if realtime_flag == 1
+    if realtime_flag == 1 == 1
         date_list = utc_time;
     elseif isempty(hist_oldest_restart) %new climatology processing instance
         date_list = datenum(hist_oldest,'yyyy_mm_dd'):datenum(hist_newest,'yyyy_mm_dd');
@@ -138,7 +149,7 @@ while exist('tmp/kill_process','file')==2
             newest_time                           = addtodate(date_list(d)+1,-1,'minute');            
             fetch_h5_ffn_list                     = ddb_filter_s3h5(odimh5_ddb_table,'start_timestamp',oldest_time,newest_time,radar_id_list);
             %update user
-            disp(['Climatology processing downloading files from ',s3_path]);
+            disp(['Climatology processing downloading files from ',datestr(date_list),' for radar ',num2str(radar_id_list)]);
         end
         %loop through and download files
         for i=1:length(fetch_h5_ffn_list)
@@ -171,46 +182,39 @@ while exist('tmp/kill_process','file')==2
             end
 
             %run regridding/interpolation
-            [vol_obj,refl_vol,vel_vol] = process_vol_regrid(h5_ffn,aazi_grid,sl_rrange_grid,eelv_grid,no_groups,vel_flag);
-            if isempty(vol_obj)
-                disp(['Volume datasets missing: ' pending_h5_fn_list{i}])
-                complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt      = [complete_h5_dt;start_dt];
-                continue
-            end
+            grid_obj = process_vol_regrid(h5_ffn,transform_path);
+            
             %run cell identify if sig_refl has been detected
-            if vol_obj.sig_refl==1
-
-                %extract ewt image for processing using radar transform
-                ewt_refl_image = max(refl_vol,[],3); %allows the assumption only shrinking is needed.
-                ewt_refl_image = medfilt2(ewt_refl_image, [ewt_kernel_size,ewt_kernel_size]);       
+            if grid_obj.sig_refl==1
                 %run EWT
-                ewtBasinExtend = process_wdss_ewt(ewt_refl_image);
+                [ewtBasinExtend,ewt_refl_image] = process_wdss_ewt(grid_obj.dbzh_grid);
                 %extract sounding level data
                 if realtime_flag == 1
                     %extract radar lat lon
                     %retrieve current GFS temperature data for above radar site
-                    [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,vol_obj.r_lat,vol_obj.r_lon);
+                    [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,grid_obj.radar_lat,grid_obj.radar_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    [nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
+                    [nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(grid_obj.start_dt,radar_id,eraint_ddb_table);
                 end
                 %run ident
-                prc_obj = process_ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                proc_obj = process_ewt2ident(grid_obj,ewt_refl_image,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
-                prc_obj = {};
+                proc_obj = {};
             end
             
-            update_archive(src_root,dest_root,vol_obj,prc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,h5_ffn)
-
+            %update storm and odimh5 index ddb, plus create storm object h5
+            %as needed
+            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,h5_ffn)
+            
             %run tracking algorithm if sig_refl has been detected
-            if vol_obj.sig_refl==1 && ~isempty(prc_obj)
+            if grid_obj.sig_refl==1 && ~isempty(proc_obj)
                 %tracking
-                updated_storm_jstruct = process_wdss_tracking(vol_obj.start_timedate,vol_obj.radar_id);
+                updated_storm_jstruct = process_wdss_tracking(grid_obj.start_dt,grid_obj.radar_id);
                 %generate nowcast json on s3 for realtime data
                 if realtime_flag == 1
-                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,vol_obj);
-                     %storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,vol_obj);
+                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,grid_obj);
+                     %storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,grid_obj);
                 end
             else
                 %remove nowcast files is no prc_objects exist anymore
@@ -226,10 +230,10 @@ while exist('tmp/kill_process','file')==2
                 complete_h5_dt      = [complete_h5_dt;start_dt];
                 clean_idx           = complete_h5_dt < oldest_time;
                 complete_h5_fn_list(clean_idx) = [];
-                complete_h5_dt(clean_idx)   = [];
+                complete_h5_dt(clean_idx)      = [];
             end
             
-            disp(['Added ',num2str(length(prc_obj)),' objects from ',pending_h5_fn_list{i},' Volume ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
+            disp(['Added ',num2str(length(proc_obj)),' objects from ',pending_h5_fn_list{i},' Volume ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
 
             %Kill function
             if toc(kill_timer)>kill_wait
@@ -275,7 +279,7 @@ catch err
     display(err)
     %save vars
     hist_oldest_restart = date_list(d);
-    save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
     %save error and log
     message = [err.identifier,' ',err.message];
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
@@ -292,13 +296,13 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_ti
 %profile off
 %profile viewer
 
-function update_archive(src_root,dest_root,vol_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn)
+function update_archive(dest_root,grid_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
 %INPUT:
 %archive_dest: path to archive destination
-%vol_obj: new entires for vol_obj from cart_interpol6
+%start_dt: new entires for start_dt from cart_interpol6
 %storm_obj: new entires for storm_obj from ewt2ident
 
 %% Update vol_db and vol_data
@@ -307,54 +311,55 @@ load('tmp/global.config.mat')
 load('tmp/interp_cmaps.mat')
 
 %setup paths and tags
-date_vec     = datevec(vol_obj.start_timedate);
-radar_id     = vol_obj.radar_id;
+date_vec     = datevec(grid_obj.start_dt);
+radar_id     = grid_obj.radar_id;
+start_dt     = grid_obj.start_dt;
 radar_id_str = num2str(radar_id,'%02.0f');
-arch_path = [radar_id_str,...
+arch_path    = [radar_id_str,...
     '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
-dest_path = [dest_root,arch_path];
-src_path  = [src_root,arch_path];
-data_tag  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_obj.start_timedate,r_tfmt)];
+dest_path    = [dest_root,arch_path];
+data_tag     = [num2str(radar_id,'%02.0f'),'_',datestr(start_dt,r_tfmt)];
+storm_flag   = 0;
 %create local data path
 if ~strcmp(dest_root(1:2),'s3')
     mkdir(dest_path)
 end
 
-%% volume data
-tar_fn      = [data_tag,'.wv.tar'];
-tmp_tar_ffn = [tempdir,tar_fn];
-h5_fn       = [data_tag,'.storm.h5'];
-tmp_h5_ffn  = [tempdir,h5_fn];
-stormh5_ffn = '';
+if ~isempty(storm_obj)
 
-%delete h5 if exists
-if exist(tmp_h5_ffn,'file') == 2
-    delete(tmp_h5_ffn)
-end
+    %% volume data
+    tar_fn          = [data_tag,'.wv.tar'];
+    tmp_tar_ffn     = [tempdir,tar_fn];
+    h5_fn           = [data_tag,'.storm.h5'];
+    tmp_h5_ffn      = [tempdir,h5_fn];
+    stormh5_ffn     = [dest_path,tar_fn];
+    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
+    tar_ffn_list    = {};
+    track_id        = 0; %default for no track
 
-%append to odimh5_ddb_table (replaces any previous entries)
-%get-item
-jstruct = ddb_get_item(odimh5_ddb_table,...
-    'radar_id','N',radar_id_str,...
-    'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'');
-%update init_sig_relf_flag
-if ~isempty(jstruct)
-    storm_flag    = jstruct.Item.storm_flag.N;
-else
-    storm_flag    = 0;
-    jstruct       = struct;
-end
+    %delete h5 if exists
+    if exist(tmp_h5_ffn,'file') == 2
+        delete(tmp_h5_ffn)
+    end
 
-%skip if storm_obj is empty
-if isempty(storm_obj)
-    storm_flag = 0;
-else
+    %append to odimh5_ddb_table (replaces any previous entries)
+    %get-item
+    odimh5_jstruct = ddb_get_item(odimh5_ddb_table,...
+        'radar_id','N',radar_id_str,...
+        'start_timestamp','S',datestr(start_dt,ddb_tfmt),'');
+    %update init_sig_relf_flag
+    if ~isempty(odimh5_jstruct)
+        storm_flag    = odimh5_jstruct.Item.storm_flag.N;
+    else
+        odimh5_jstruct = struct;
+    end
+
     %delete storm ddb entries for this volume if they already exist
     if storm_flag == 1 %since indicates volumes was previous processed for storms
         storm_atts      = 'radar_id,subset_id';
-        oldest_time_str = datestr(vol_obj.start_timedate,ddb_tfmt);
-        newest_time_str = datestr(addtodate(vol_obj.start_timedate,1,'second'),ddb_tfmt); %duffer time for between function
+        oldest_time_str = datestr(start_dt,ddb_tfmt);
+        newest_time_str = datestr(addtodate(start_dt,1,'second'),ddb_tfmt); %duffer time for between function
         %query for storm_ddb entries
         delete_jstruct  = ddb_query('radar_id',num2str(radar_id,'%02.0f'),'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
         for i=1:length(delete_jstruct)
@@ -362,11 +367,7 @@ else
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);
         end
     end
-    %init vars
-    stormh5_ffn     = [dest_path,tar_fn];
-    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
-    tar_ffn_list    = '';
-    track_id        = 0; %default for no track
+    
     %init struct
     ddb_put_struct  = struct;
     for i=1:length(storm_obj)
@@ -378,10 +379,10 @@ else
         storm_stats    = round(storm_obj(i).stats*stats_scale);
         %append and write db
         tmp_jstruct                     = struct;
-        tmp_jstruct.radar_id.N          = num2str(vol_obj.radar_id);
-        tmp_jstruct.subset_id.S         = [datestr(vol_obj.start_timedate,ddb_tfmt),'_',num2str(i,'%03.0f')];
-        tmp_jstruct.data_ffn.S          = stormh5_ffn;
-        tmp_jstruct.start_timestamp.S   = datestr(vol_obj.start_timedate,ddb_tfmt);
+        tmp_jstruct.radar_id.N          = num2str(radar_id);
+        tmp_jstruct.subset_id.S         = [datestr(start_dt,ddb_tfmt),'_',num2str(i,'%03.0f')];
+        tmp_jstruct.h5_ffn.S            = stormh5_ffn;
+        tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
         tmp_jstruct.track_id.N          = num2str(track_id);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb');
@@ -404,12 +405,12 @@ else
             %clear ddb_put_struct
             ddb_put_struct  = struct;
         end
-        %write data to h5   
+        %write data to h5
         data_struct = struct('refl_vol',storm_obj(i).subset_refl,...
-                            'tops_h_grid',storm_obj(i).tops_h_grid,'sts_h_grid',storm_obj(i).sts_h_grid,...
-                            'MESH_grid',storm_obj(i).MESH_grid,'POSH_grid',storm_obj(i).POSH_grid,...
-                            'max_dbz_grid',storm_obj(i).max_dbz_grid,'vil_grid',storm_obj(i).vil_grid);      
-        if ~isempty(vol_obj.vol_vel_out)
+            'tops_h_grid',storm_obj(i).tops_h_grid,'sts_h_grid',storm_obj(i).sts_h_grid,...
+            'MESH_grid',storm_obj(i).MESH_grid,'POSH_grid',storm_obj(i).POSH_grid,...
+            'max_dbz_grid',storm_obj(i).max_dbz_grid,'vil_grid',storm_obj(i).vil_grid);
+        if ~isempty(grid_obj.vradh_grid)
             data_struct.vel_vol = storm_obj(i).subset_vel;
         end
         h5_data_write(h5_fn,tempdir,subset_id,data_struct,r_scale);
@@ -433,29 +434,30 @@ else
     %remove files
     for i=1:length(tar_ffn_list)
         delete([tempdir,tar_ffn_list{i}]);
-    end  
+    end
 end
 
 %update dynamodb odimh5 table
-ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(vol_obj.start_timedate,ddb_tfmt),'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
+ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',start_dt,'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
-    data_id                          = [datestr(vol_obj.start_timedate,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
+    data_id                          = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
     %process odimh5
     ddb_staging                      = struct;
     ddb_staging.data_type.S          = 'process_odimh5';
     ddb_staging.data_id.S            = data_id;
-    ddb_staging.data_ffn.S           = odimh5_ffn;
+    ddb_staging.h5_ffn.S             = odimh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)
     %stormh5
-    ddb_staging                      = struct;
-    ddb_staging.data_type.S          = 'stormh5';
-    ddb_staging.data_id.S            = data_id;
-    ddb_staging.data_ffn.S           = stormh5_ffn;
-    ddb_put_item(ddb_staging,staging_ddb_table)
+    if ~isempty(storm_obj)
+        ddb_staging                      = struct;
+        ddb_staging.data_type.S          = 'stormh5';
+        ddb_staging.data_id.S            = data_id;
+        ddb_staging.h5_ffn.S             = stormh5_ffn;
+        ddb_put_item(ddb_staging,staging_ddb_table)
+    end
 end
-
 
 
 function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct,item_id)

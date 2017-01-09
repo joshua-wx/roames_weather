@@ -1,4 +1,4 @@
-function [ewtBasinExtend] = process_wdss_ewt(filt_refl_image)
+function [ewtBasinExtend,filt_refl_image] = process_wdss_ewt(dbzh_grid)
 %WHAT: Implementation of the extended watershed transform (ewt) described in
 %Lakshamanan et al 2009. Using a local dual threshold method to find
 %regions which meet the saliency criteria
@@ -7,36 +7,27 @@ function [ewtBasinExtend] = process_wdss_ewt(filt_refl_image)
 %Cells in Geospatial Images, Lakshmanan, Hondl and Rabin, March 2009,
 %Journal of Atmospheric and Oceanic Technology
 
-%INPUT: refl_image: image of regridded refl data in dBZ at height index of
-%ewt_refl_h
+%INPUT: refl_image: image of regridded refl data in dBZ
 
 %OUTPUT:
 %ewtBasin:       label matrix of regions identified as cells by EWT (uses a
 %local threshold between ewt_a and ewt_b
 %ewtBasinExtend: label matrix of ewtBasin regions extended to etw_a
 
-ewtBasin       = zeros(size(filt_refl_image));
-ewtBasinExtend = zeros(size(filt_refl_image));
-%Profiling Code...
-%tic
-%profile clear
-%profile on
 %% Initalise variables
 load('tmp/global.config.mat');
 ewt_max_level = (ewt_b-ewt_a)/ewt_del;
 %transform refl data to double...
-%% SMOOTHING
-%WHAT: Applies selected smoothing function with kernel ewt_kernel_size
 
-%median filter
-%filt_refl_image = medfilt2(refl_image, [ewt_kernel_size,ewt_kernel_size]);
+%% transform grid to image
 
-%gaussian filter
-%h = fspecial('gaussian', ewt_kernel_size, .5)
-%filt_refl_image = imfilter(refl_image,h);
+%extract ewt image for processing using radar transform
+filt_refl_image = max(dbzh_grid,[],3); %allows the assumption only shrinking is needed.
+filt_refl_image = medfilt2(filt_refl_image, [ewt_kernel_size,ewt_kernel_size]); %smooth using median filter
 
-%wiener apadtive filter
-%filt_refl_image = wiener2(refl_image,ewt_kernel_size);
+%preallocate basins
+ewtBasin       = zeros(size(filt_refl_image));
+ewtBasinExtend = zeros(size(filt_refl_image));
 
 %% QUANTISATION into Q
 %WHAT: Quantises data according to upper and lower limits, and scaling.
@@ -59,7 +50,7 @@ Q  = Q2+Q3;
 %NOTE: level+1 index applies for matlab non zero indexing
 
 %declare max level
-max_level_ind=ewt_max_level+1;
+max_level_ind = ewt_max_level+1;
 %create blank cell array for index matrix
 pixels = cell(1,max_level_ind);
 size_Q=size(Q);
@@ -201,14 +192,6 @@ for i=1:max(max(ewtBasin))
     etw_dist(replace_ind)       = geoD(replace_ind);
 end
 
-
-%% Final Options
-
-%Profiling options
-% profile off
-% profile viewer
-% toc
-
 function [ewtBasin,foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,basin_no,ewtBasin,h_grid)
 %WHAT: starts with ewt_a local maximum pixel and adds this to the basin. All
 %contigous pixels to this pixel are identified. If the Q intensity of these
@@ -267,7 +250,7 @@ while ~isempty(neighbours)
     
 end
 %check if basin size in km is smaller than ewt_saliency threshold
-if size(basin,1)*h_grid^2/10^6 < ewt_saliency
+if size(basin,1)*(h_grid*1000)^2/10^6 < ewt_saliency
     %Basin has not been caputred
     basin     = []; %empty stack
     foothills = [];

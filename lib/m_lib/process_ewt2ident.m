@@ -1,7 +1,11 @@
-function ident_obj = process_ewt2ident(intp_obj,refl_img,refl_vol,vel_vol,ewtBasinExtend,snd_fz_h,snd_minus20_h)
+function ident_obj = process_ewt2ident(grid_obj,refl_img,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
 load('tmp/global.config.mat');
+
+%extract data
+refl_vol = grid_obj.dbzh_grid;
+vel_vol  = grid_obj.vradh_grid;
 
 %create blank ident_obj
 ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
@@ -10,7 +14,7 @@ ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
     'MESH_grid',[],'POSH_grid',[],'max_dbz_grid',[],'vil_grid',[],'stats_labels',{});
 
 %extract z vec
-h_asl_vec            = intp_obj.z_vec_amsl;
+radar_alt_vec        = grid_obj.alt_vec;
 
 %2D regionation
 extended_basin_stats = regionprops(ewtBasinExtend,refl_img,'MajorAxisLength',...
@@ -29,8 +33,8 @@ for i=1:length(extended_basin_stats)
     lower_b = floor([bb(2),bb(1)])-1; lower_b(lower_b<=0)=1;
     upper_b = ceil([bb(2)+bb(4),bb(1)+bb(3)])+1;
     %limit upper bounds to length of dimensions
-    if upper_b(1)>length(intp_obj.lat_vec); upper_b(1)=length(intp_obj.lat_vec); end
-    if upper_b(2)>length(intp_obj.lon_vec); upper_b(2)=length(intp_obj.lon_vec); end
+    if upper_b(1)>length(grid_obj.lat_vec); upper_b(1)=length(grid_obj.lat_vec); end
+    if upper_b(2)>length(grid_obj.lon_vec); upper_b(2)=length(grid_obj.lon_vec); end
     %create pixel list
     i_subset = lower_b(1):upper_b(1);
     j_subset = lower_b(2):upper_b(2);
@@ -50,18 +54,18 @@ for i=1:length(extended_basin_stats)
     ss_region_mask  = repmat(storm_mask,[1,1,size(refl_vol,3)]);
     
     %set outside region to min_dbz
-    subset_refl(~ss_region_mask) = min_dbz;
+    subset_refl(~ss_region_mask) = nan;
     if ~isempty(subset_vel)
-        subset_vel(~ss_region_mask)  = min_vel;
+        subset_vel(~ss_region_mask)  = nan;
     end
     %create max_dbz_grid for extraction
     max_dbz_grid        = max(subset_refl,[],3);
     
     %calc lakshamanan_tops
     %creat h_ind_vol for region (height index volume)
-    len_z_vec             = length(h_asl_vec);
+    len_z_vec             = length(radar_alt_vec);
     size_vol              = size(subset_refl);
-    rot_h_vec             = reshape(h_asl_vec,1,1,len_z_vec);
+    rot_h_vec             = reshape(radar_alt_vec,1,1,len_z_vec);
     h_vol                 = repmat(rot_h_vec,[size_vol(1:2),1]);
     tops_h_grid           = lakshamanan_tops3(subset_refl,h_vol,tops_thresh);
     
@@ -92,7 +96,7 @@ for i=1:length(extended_basin_stats)
     max_tops        =   max(tops_h_grid(:));
     max_dbz         =   max(subset_refl_vec);
     [~,md_idx]      =   max(subset_refl(:)); [~,~,md_k] = ind2sub(size(subset_refl),md_idx);
-    max_dbz_h       =   h_asl_vec(md_k);
+    max_dbz_h       =   radar_alt_vec(md_k);
     mean_dbz        =   mean(subset_refl_vec);
     max_g_vil       =   max(subset_vil(:)); %units of kg/m2
     mass            =   sum(subset_vil(:))*area; %units of kt
@@ -105,11 +109,11 @@ for i=1:length(extended_basin_stats)
     
     %dbz_latloncent
     dbz_cent        = round(extended_basin_stats(i).WeightedCentroid);
-    dbz_latloncent  = [intp_obj.lat_vec(dbz_cent(2)),intp_obj.lon_vec(dbz_cent(1))];
+    dbz_latloncent  = [grid_obj.lat_vec(dbz_cent(2)),grid_obj.lon_vec(dbz_cent(1))];
     
     %calculate geometry
-    subset_lat_vec   = intp_obj.lat_vec(i_subset);
-    subset_lon_vec   = intp_obj.lon_vec(j_subset);
+    subset_lat_vec   = grid_obj.lat_vec(i_subset);
+    subset_lon_vec   = grid_obj.lon_vec(j_subset);
     subset_lat_edge  = subset_lat_vec(storm_edge_mask(:,1));
     subset_lon_edge  = subset_lon_vec(storm_edge_mask(:,2));
     subset_latlonbox = [max(subset_lat_vec);min(subset_lat_vec);max(subset_lon_vec);min(subset_lon_vec)];
@@ -187,7 +191,7 @@ intp_h(isinf(intp_h)) = -999;
 intp_h(remove_data_mask) = -999;
 
 
-function [MESH,POSH] = mesh_algorthim(z_vol,h_vol,snd_fzh_height,snd_minus_20_h,v_grid)
+function [MESH,POSH] = mesh_algorthim(dbzh_grid,h_grid,snd_fzh_height,snd_minus_20_h,v_grid)
 %WHAT: Hail grids adapted fromWitt et al. 1998 and Cintineo et al. 2012.
 %Exapnded to grids (adapted from wdss-ii)
 
@@ -206,37 +210,41 @@ function [MESH,POSH] = mesh_algorthim(z_vol,h_vol,snd_fzh_height,snd_minus_20_h,
 %SHI: Severe Hail Index (J/m/s)
 
 %abort if no fz data
-if isempty(snd_minus_20_h) | isempty(snd_fzh_height)
+if isempty(snd_minus_20_h) || isempty(snd_fzh_height)
     POSH = [];
     MESH = [];
     return
 end
+
+%convert heights from km to m
+snd_fzh_height = snd_fzh_height./1000;
+snd_minus_20_h = snd_minus_20_h./1000;
 
 %reflectivity weighting function boundary
 z_l = 40;
 z_u = 50;
 
 %calc reflectivity weighting function
-w_z             = (z_vol - z_l)./(z_u - z_l);
-w_z(z_vol<=z_l) = 0;
-w_z(z_vol>=z_u) = 1;
+w_z             = (dbzh_grid - z_l)./(z_u - z_l);
+w_z(dbzh_grid<=z_l) = 0;
+w_z(dbzh_grid>=z_u) = 1;
 
 %calc hail kenitic energy
-E = (5*10^-6).*10.^(.084.*z_vol).*w_z;
+E = (5*10^-6).*10.^(0.084.*dbzh_grid).*w_z;
 
 %calc temperature based weighting function
-w_h = (h_vol - snd_fzh_height) ./ (snd_minus_20_h - snd_fzh_height);
-w_h(h_vol<=snd_fzh_height) = 0;
-w_h(h_vol>=snd_minus_20_h) = 1;
+w_h = (h_grid - snd_fzh_height) ./ (snd_minus_20_h - snd_fzh_height);
+w_h(h_grid<=snd_fzh_height) = 0;
+w_h(h_grid>=snd_minus_20_h) = 1;
 
 %calc severe hail index
-SHI = .1.*sum(w_h.*E,3).*v_grid;
+SHI = 0.1.*sum(w_h.*E,3).*v_grid;
 
 %calc maximum estimated severe hail (mm)
-MESH = 2.54.*SHI.^.5;
+MESH = 2.54.*SHI.^0.5;
 
 %calc warning threshold (J/m/s) NOTE: freezing height must be in meters
-WT   = 57.5*snd_fzh_height/1000-121;
+WT   = 57.5*snd_fzh_height-121;
 
 %calc probability of severe hail (POSH) (%)
 POSH           = 29.*log(SHI./WT)+50;

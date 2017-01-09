@@ -77,12 +77,6 @@ for i = 1:length(rapic_fn_groups)
                     num2str(date_vec(3),'%02.0f'),'/',radar_id_str,'_',datestr(start_timedate,'yyyymmdd_HHMMSS'),'.h5'];
                 cmd     = [prefix_cmd,'aws s3 mv ',tmp_h5_ffn,' ',s3_odimh5_ffn,' &'];
                 [~,~]   = unix(cmd);
-                %write to ddb
-                ddb_struct = struct;
-                ddb_struct.radar_id.N        = radar_id_str;
-                ddb_struct.start_timestamp.S = datestr(start_timedate,'yyyy-mm-ddTHH:MM:SS');
-                ddb_struct.h5_ffn.S          = s3_odimh5_ffn;
-                ddb_put_item(ddb_struct,broken_vol_ddb)
                 %success
                 success_count = success_count + 1;
             catch err

@@ -8,8 +8,8 @@ load(['tmp/',config_input_path,'.mat'])
 
 %check if is deployed
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-    addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/shared_lib/jsonlab');
 end
 
 %init vars
@@ -18,7 +18,7 @@ ddb_table      = 'wxradar_odimh5_index';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
 s3_bucket      = 's3://roames-wxradar-archive/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f')];
-year_list      = [2015:2015];
+year_list      = [2014:2014];
 
 %ensure temp directory exists
 mkdir('tmp')
@@ -27,7 +27,7 @@ mkdir('tmp')
 %run an aws ls -r
 for i=1:length(year_list)
     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),'/',num2str(year_list(i)),'/'])
-    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/12/15/',' --recursive'];
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/11/27/',' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
     C           = textscan(eout,'%*s %*s %u %s');
@@ -71,10 +71,10 @@ end
 item_id            = ['item_',radar_id,'_',datestr(radar_timestamp,'yyyymmddHHMMSS')];
 
 %build ddb struct
-ddb_struct.(item_id).radar_id.N           = radar_id;
-ddb_struct.(item_id).start_timestamp.S    = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
-ddb_struct.(item_id).h5_size.N            = num2str(h5_size);
-ddb_struct.(item_id).h5_ffn.S             = h5_ffn;
-ddb_struct.(item_id).sig_refl_flag.N      = '0';
+ddb_struct.(item_id).radar_id.N             = radar_id;
+ddb_struct.(item_id).start_timestamp.S      = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
+ddb_struct.(item_id).data_size.N            = num2str(h5_size);
+ddb_struct.(item_id).data_ffn.S             = h5_ffn;
+ddb_struct.(item_id).storm_flag.N           = '-1';
 
 tmp_sz =  length(fieldnames(ddb_struct));

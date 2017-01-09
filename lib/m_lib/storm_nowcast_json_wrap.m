@@ -1,4 +1,4 @@
-function storm_nowcast_json_wrap(dest_root,storm_jstruct,vol_obj)
+function storm_nowcast_json_wrap(dest_root,storm_jstruct,grid_obj)
 
 %(track_idx,storm_jstruct,kml_dir,region,start_td,stop_td,cur_vis,radar_id)
 
@@ -27,8 +27,8 @@ load('tmp/process.config.mat');
 
 %blank nl strings
 jstruct        = '';
-radar_id       = vol_obj.radar_id;
-timestamp      = vol_obj.start_timedate;
+radar_id       = grid_obj.radar_id;
+timestamp      = grid_obj.start_dt;
 
 %list tracks
 track_id               = jstruct_to_mat([storm_jstruct.track_id],'N');
