@@ -1,0 +1,22 @@
+%wv_prep CONFIG FILE
+%WHAT: controls the input parameters of the FTP config module
+%
+%
+%destionation of fetched files
+%
+local_flag      0
+%
+local_path      /WeatherShare/odimh5_archive/
+%
+s3_path         s3://roames-wxradar-archive/odimh5_archive/
+%
+ftp_address     ftp-reg.cloud.bom.gov.au
+%
+ftp_un          bom776
+%
+ftp_pass        Bo7A74o2
+%
+ftp_path        radar
+%
+%oldest filename to keep in ftp_latest_vol.mat
+ftp_oldest      -30

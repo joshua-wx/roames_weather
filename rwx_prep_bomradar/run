@@ -1,0 +1,8 @@
+#! /bin/bash
+
+mkdir tmp
+touch tmp/kill_prep
+
+while [ -e tmp/kill_prep ]; do
+    ./run_prep.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
+done
