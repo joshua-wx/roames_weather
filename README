@@ -1,22 +1,5 @@
-11/4/14: Finish development and testing of ewt methods with working climatology and vis modules
-23/4/14: fixed issues with tops/vild thresholds and refined tracking towards optimal performance stats
-24/4/14: core: Fixed compass angle averaging bug and added max azi tracking diff criteria. vis: fixed iso issues
-26/4/14: Fixed error assocatied with calculating the azi between target tn1 and all tn in tracking pass1 (originally used tn1_proj_lat/lon instead of true tn1 lat lon). Change sorting from track length to vil in wdss_tracking.
-28/4/14: Added azi diff check to pass2 in wdss_tracking. Fixed angle wrapping code in wdss_trac. Added maximum track length in project_storm
-29/4/14 - 1: Fixed storm projection when timesteps is large. Corrected bug in max_search_dist in wdss_tracking
-29/4/14 - 2: Fixed broken nowcast visualisation kml layer
-13/5/14 - Removed smooth3 applications in ewt2ident function to prevent smoothing in stats. Moved smooth3 to kml generation scripts. Changed calculation of mean and max dbz in ewtident to use entire 3d volume
-21/5/14: Fixed log stats code to give true percentages
-22/5/14: Added scripts for generating a subset list of QLD vol files using the log stats (gaps) in the utilities folder. Created script to processed qld arch files into h5.tar daily files.
-23/5/14: Added h5.tar.lz4 functionality to wv_process
-29/5/14: Added image output for climatology plots
-01/6/14: Normalised climatology image outputs (storms/day)
-12/6/14: Changes to climatology stat output mat file (not struct arrays). Stats also include track information
-13/6/14: remove rainfall stats. changed stats to use extended basin rather than wdss basin.
-21/6/14: MAJOR CHANGES: Added cell vil, POSH,MESH (wdss-ii hail grids), snd_data for wv_process
-27/6/14: MAJOR CHANGES: clim rebuild for hail
-30/6/14: Fixed remaining bugs for clim
-10/10/14: Fixing errors in realtime vis (variables etc)
-16/02/15: Climatology vis tweak and realtime kml debugging 2
-28/10/15: Created matwrapper2 to fix issues with job que. Fixed minor bugs
-01/09/16: Started work on new roames project to implement into roames-world and finish national climatology
+![roames_weather](https://cloud.githubusercontent.com/assets/16043083/21796098/0da43a7a-d752-11e6-8666-085c3a29f723.png)
+
+ROAMES Weather Platform
+
+See Wiki for detailed guide
