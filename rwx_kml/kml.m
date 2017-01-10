@@ -13,9 +13,10 @@ try
 kml_config_fn     = 'kml.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
-site_info_hide_fn = 'site_info_hide.txt';
 restart_vars_fn   = 'tmp/kml_restart_vars.mat';
 tmp_config_path   = 'tmp/';
+pushover_flag     = 1;
+
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
     mkdir(tmp_config_path)
@@ -28,13 +29,13 @@ unix('touch tmp/kill_kml');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/dev/wv/lib/m_lib');
-    addpath('/home/meso/dev/wv/lib/ge_lib');
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/roames_weather/lib/ge_lib');
     addpath('/home/meso/dev/shared_lib/jsonlab');
-    addpath('/home/meso/dev/wv/etc')
-    addpath('/home/meso/dev/wv/bin/json_read');
-    addpath('/home/meso/dev/wv/wv_kml/etc')
-    addpath('/home/meso/dev/wv/wv_kml/tmp')
+    addpath('/home/meso/dev/roames_weather/etc')
+    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/rwx_kml/etc')
+    addpath('/home/meso/dev/roames_weather/rwx_kml/tmp')
 else
     addpath('etc')
     addpath('tmp')
@@ -51,11 +52,11 @@ end
 
 %build paths strings
 if local_src_flag==1
-    src_odimh5_root  = local_src_odimh5_root;
-    src_stormh5_root = local_src_stormh5_root;
+    src_odimh5_root  = local_odimh5_src_root;
+    src_stormh5_root = local_stormh5_src_root;
 else
-    src_odimh5_root  = s3_src_odimh5_root;
-    src_stormh5_root = s3_src_stormh5_root;
+    src_odimh5_root  = s3_odimh5_src_root;
+    src_stormh5_root = s3_stormh5_src_root;
 end
 if local_dest_flag==1
     dest_root = local_dest_root;
@@ -76,9 +77,6 @@ read_site_info(site_info_fn); load([tmp_config_path,site_info_fn,'.mat']);
 if strcmp(radar_id_list,'all')
     radar_id_list = site_id_list;
 end
-
-% site_info_mask.txt
-radar_id_hide = dlmread(site_info_hide_fn); save([tmp_config_path,site_info_hide_fn,'.mat']);
 
 %init vars
 % check for restart or first start
@@ -115,8 +113,6 @@ while exist('tmp/kill_kml','file')==2
         oldest_time = datenum(hist_oldest,ddb_tfmt);
         newest_time = datenum(hist_newest,ddb_tfmt);
     end
-    oldest_time_str = datestr(oldest_time,ddb_tfmt);
-    newest_time_str = datestr(newest_time,ddb_tfmt);
     
     %% download realtime data
     %empty download path
@@ -126,8 +122,9 @@ while exist('tmp/kill_kml','file')==2
         download_odimh5_ffn_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
         download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
     else
-        download_odimh5_ffn_list   = ddb_filter_s3h5(odimh5_ddb_table,'start_timestamp',oldest_time_str,newest_time_str,radar_id_list);
-        download_stormh5_ffn_list  = ddb_filter_s3h5(storm_ddb_table,'subset_id',oldest_time_str,newest_time_str,radar_id_list);
+        date_id_list               = round(oldest_time):1:round(newest_time);
+        download_odimh5_ffn_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time);
+        download_stormh5_ffn_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time);
     end
     download_ffn_list = [download_odimh5_ffn_list;download_stormh5_ffn_list];
     for i=1:length(download_ffn_list)
@@ -138,10 +135,12 @@ while exist('tmp/kill_kml','file')==2
     %wait for aws processes to finish
     wait_aws_finish
     %untar stormh5 files and create list
+    download_r_id_list = [];
     for i=1:length(download_stormh5_ffn_list)
         [~,storm_name,ext] = fileparts(download_stormh5_ffn_list{i});
         download_ffn       = [download_path,storm_name,ext];
         if exist(download_ffn,'file') == 2
+            download_r_id_list = [download_r_id_list;str2num(storm_name(1:2))];
             untar(download_ffn,download_path);
         end
     end
@@ -164,9 +163,13 @@ while exist('tmp/kill_kml','file')==2
         end
     end
     
+    %% run tracking
+    %perhaps run it within the kml_storm_obj script
+    
+    
     %% process volumes to kml objects
     %merge removed radar_id list and download list for updating in
-    %storm_to_kml
+    %storm_to_kml (ie removing old data from the kml)
     kml_radar_list = unique([download_r_id_list;remove_radar_id]);
     %loop through radar id list
     for i=1:length(kml_radar_list)
@@ -174,8 +177,6 @@ while exist('tmp/kill_kml','file')==2
         object_struct = kml_storm_obj(object_struct,radar_id,oldest_time,newest_time,download_path,dest_root,options);
         object_struct = kml_odimh5_obj(object_struct,radar_id,download_path,dest_root,options);
     end
-    
-    %% generate kml nl layer
     
     %Update user
     disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
@@ -223,8 +224,8 @@ end
 catch err
     %display and log error
     display(err)
-    message = [err.identifier,' ',err.message];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
+    message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %push notification
     if pushover_flag == 1

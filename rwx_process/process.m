@@ -32,14 +32,12 @@ pushover_flag       = 1;
 
 %start try
 try
-
+    
 %create paths
-if exist(local_tmp_path,'file') == 7
-    rmdir(local_tmp_path,'s');
+if exist(local_tmp_path,'file') ~= 7
+    mkdir(local_tmp_path)
+    mkdir(transform_path)
 end
-mkdir(local_tmp_path)
-mkdir(transform_path)
-
 
 % setup kill time (restart program to prevent memory fragmentation)
 kill_wait  = 60*60*2; %kill time in seconds
@@ -251,6 +249,7 @@ while exist('tmp/kill_process','file')==2
     %break loop if cts_loop=0
     if realtime_flag==0
         delete('tmp/kill_process')
+        pushover('process',['Completed radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'])
         break
     end
     
@@ -264,8 +263,8 @@ catch err
     hist_oldest_restart = date_list(date_idx);
     save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
     %save error and log
-    message = [err.identifier,' ',err.message];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
+    message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %send push notification
     if pushover_flag == 1
@@ -352,7 +351,7 @@ if ~isempty(storm_obj)
         storm_stats    = roundn(storm_obj(i).stats,-1);
         %append and write db
         tmp_jstruct                     = struct;
-        tmp_jstruct.date_id.S           = datestr(start_dt,ddb_dateid_tfmt);
+        tmp_jstruct.date_id.N           = datestr(start_dt,ddb_dateid_tfmt);
         tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(i,'%03.0f'),'_',num2str(radar_id,'%02.0f')];
         tmp_jstruct.radar_id.N          = num2str(radar_id,'%02.0f');
         tmp_jstruct.subset_id.N         = num2str(i,'%03.0f');
@@ -439,7 +438,7 @@ function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct,item_id)
 %init
 data_name_list  = fieldnames(data_struct);
 
-for i = 1:length(data_name_list);
+for i = 1:length(data_name_list)
     %read from data_struct
     data_name  = data_name_list{i};
     data_type  = fieldnames(data_struct.(data_name)); data_type = data_type{1};

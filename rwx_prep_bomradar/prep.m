@@ -210,8 +210,8 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer)
 catch err
     display(err)
     %save error to file and log
-    message = [err.identifier,' ',err.message];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
+    message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
+    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %send push notification
     if pushover_flag == 1
