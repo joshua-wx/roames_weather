@@ -11,6 +11,7 @@ function process
 %ident and intp databases (no overheads).
 
 %%Load VARS
+clear all
 % general vars
 restart_cofig_fn  = 'temp_process_vars.mat';
 process_config_fn = 'process.config';
@@ -23,10 +24,10 @@ transform_path    = [local_tmp_path,'transforms/'];
 %load blank vars
 complete_h5_dt      = [];
 complete_h5_fn_list = {};
-gfs_extract_list    = [];
+nwp_extract_list    = [];
 hist_oldest_restart = [];
 date_list           = now;
-d                   = 1;
+date_idx            = 1;
 pushover_flag       = 1;
 
 %start try
@@ -102,11 +103,12 @@ if local_dest_flag == 1
 else
     dest_root = s3_dest_root;
 end
-if local_src_flag == 1 %only used for climatology processing
-    src_root = local_src_root;
-else
-    src_root = s3_src_root;
-end
+% if local_src_flag == 1 %only used for climatology processing
+%     src_root = local_src_root;
+% else
+%     src_root = s3_src_root;
+% end
+src_root = s3_src_root;
 
 %% Preallocate regridding coordinates
 if radar_id_list==99
@@ -128,7 +130,7 @@ while exist('tmp/kill_process','file')==2
         date_list = hist_oldest_restart:datenum(hist_newest,'yyyy_mm_dd');
     end
     %loop through target ffn's
-    for d = 1:length(date_list)
+    for date_idx = 1:length(date_list)
         %init download dir
         if exist(download_path,'file')==7
             delete([download_path,'*']);
@@ -144,19 +146,17 @@ while exist('tmp/kill_process','file')==2
             fetch_h5_ffn_list                     = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'prep_odimh5');
             %update user
             disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
+            %loop through and download files
+            for i=1:length(fetch_h5_ffn_list)
+                file_cp(fetch_h5_ffn_list{i},download_path,0,1)
+            end
+            %wait for aws process to finish
+            wait_aws_finish
         else
-            oldest_time                           = date_list(d);
-            newest_time                           = addtodate(date_list(d)+1,-1,'minute');            
-            fetch_h5_ffn_list                     = ddb_filter_s3h5(odimh5_ddb_table,'start_timestamp',oldest_time,newest_time,radar_id_list);
-            %update user
             disp(['Climatology processing downloading files from ',datestr(date_list),' for radar ',num2str(radar_id_list)]);
+            %sync day of data from radar_id from s3 to local
+            file_s3sync(src_root,download_path,date_list(date_idx),radar_id_list)
         end
-        %loop through and download files
-        for i=1:length(fetch_h5_ffn_list)
-             file_cp(fetch_h5_ffn_list{i},download_path,0,1)
-        end
-        %wait for aws process to finish
-        wait_aws_finish
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
         pending_h5_fn_list = {download_path_dir.name};
@@ -192,13 +192,13 @@ while exist('tmp/kill_process','file')==2
                 if realtime_flag == 1
                     %extract radar lat lon
                     %retrieve current GFS temperature data for above radar site
-                    [gfs_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(gfs_extract_list,grid_obj.radar_lat,grid_obj.radar_lon);
+                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(nwp_extract_list,grid_obj.radar_lat,grid_obj.radar_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    [nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(grid_obj.start_dt,radar_id,eraint_ddb_table);
+                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.start_dt,radar_id,eraint_ddb_table);
                 end
                 %run ident
-                proc_obj = process_ewt2ident(grid_obj,ewt_refl_image,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                proc_obj = process_storm_stats(grid_obj,ewt_refl_image,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
                 proc_obj = {};
             end
@@ -206,23 +206,6 @@ while exist('tmp/kill_process','file')==2
             %update storm and odimh5 index ddb, plus create storm object h5
             %as needed
             update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,h5_ffn)
-            
-            %run tracking algorithm if sig_refl has been detected
-            if grid_obj.sig_refl==1 && ~isempty(proc_obj)
-                %tracking
-                updated_storm_jstruct = process_wdss_tracking(grid_obj.start_dt,grid_obj.radar_id);
-                %generate nowcast json on s3 for realtime data
-                if realtime_flag == 1
-                     storm_nowcast_json_wrap(dest_root,updated_storm_jstruct,grid_obj);
-                     %storm_nowcast_svg_wrap(dest_root,updated_storm_jstruct,grid_obj);
-                end
-            else
-                %remove nowcast files is no prc_objects exist anymore
-                nowcast_root = [dest_root,num2str(radar_id,'%02.0f'),'/nowcast.'];
-                file_rm([nowcast_root,'json'],0,1)
-                %file_rm([nowcast_root,'wtk'],0)
-                %file_rm([nowcast_root,'svg'],0)
-            end
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
@@ -237,8 +220,8 @@ while exist('tmp/kill_process','file')==2
 
             %Kill function
             if toc(kill_timer)>kill_wait
-                hist_oldest_restart = date_list(d);
-                save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+                hist_oldest_restart = date_list(date_idx);
+                save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
                 %update user
                 disp(['@@@@@@@@@ wv_process restarted at ',datestr(now)])
                 %restart
@@ -278,8 +261,8 @@ end
 catch err
     display(err)
     %save vars
-    hist_oldest_restart = date_list(d);
-    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','gfs_extract_list')
+    hist_oldest_restart = date_list(date_idx);
+    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
     %save error and log
     message = [err.identifier,' ',err.message];
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],message);
@@ -321,8 +304,9 @@ arch_path    = [radar_id_str,...
 dest_path    = [dest_root,arch_path];
 data_tag     = [num2str(radar_id,'%02.0f'),'_',datestr(start_dt,r_tfmt)];
 storm_flag   = 0;
+
 %create local data path
-if ~strcmp(dest_root(1:2),'s3')
+if ~strcmp(dest_root(1:2),'s3') && exist(dest_path,'file') ~= 7
     mkdir(dest_path)
 end
 
@@ -336,32 +320,20 @@ if ~isempty(storm_obj)
     stormh5_ffn     = [dest_path,tar_fn];
     storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
     tar_ffn_list    = {};
-    track_id        = 0; %default for no track
 
     %delete h5 if exists
     if exist(tmp_h5_ffn,'file') == 2
         delete(tmp_h5_ffn)
     end
 
-    %append to odimh5_ddb_table (replaces any previous entries)
-    %get-item
-    odimh5_jstruct = ddb_get_item(odimh5_ddb_table,...
-        'radar_id','N',radar_id_str,...
-        'start_timestamp','S',datestr(start_dt,ddb_tfmt),'');
-    %update init_sig_relf_flag
-    if ~isempty(odimh5_jstruct)
-        storm_flag    = odimh5_jstruct.Item.storm_flag.N;
-    else
-        odimh5_jstruct = struct;
-    end
-
     %delete storm ddb entries for this volume if they already exist
-    if storm_flag == 1 %since indicates volumes was previous processed for storms
-        storm_atts      = 'radar_id,subset_id';
+    %since indicates volumes was previous processed for storms
+    if clean_stormobj_index == 1
+        storm_atts      = 'date_id,sort_id';
         oldest_time_str = datestr(start_dt,ddb_tfmt);
         newest_time_str = datestr(addtodate(start_dt,1,'second'),ddb_tfmt); %duffer time for between function
         %query for storm_ddb entries
-        delete_jstruct  = ddb_query('radar_id',num2str(radar_id,'%02.0f'),'subset_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+        delete_jstruct  = ddb_query('date_id',num2str(start_dt,ddb_dateid_tfmt),'sort_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
         for i=1:length(delete_jstruct)
             %remove items
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);
@@ -372,24 +344,26 @@ if ~isempty(storm_obj)
     ddb_put_struct  = struct;
     for i=1:length(storm_obj)
         subset_id  = i;
-        storm_llb      = round(storm_obj(i).subset_latlonbox*geo_scale);
-        storm_dcent    = round(storm_obj(i).dbz_latloncent*geo_scale);
-        storm_edge_lat = round(storm_obj(i).subset_lat_edge*geo_scale);
-        storm_edge_lon = round(storm_obj(i).subset_lon_edge*geo_scale);
-        storm_stats    = round(storm_obj(i).stats*stats_scale);
+        %round datasets
+        storm_llb      = roundn(storm_obj(i).subset_latlonbox,-4);
+        storm_dcent    = roundn(storm_obj(i).dbz_latloncent,-4);
+        storm_edge_lat = roundn(storm_obj(i).subset_lat_edge,-4);
+        storm_edge_lon = roundn(storm_obj(i).subset_lon_edge,-4);
+        storm_stats    = roundn(storm_obj(i).stats,-1);
         %append and write db
         tmp_jstruct                     = struct;
-        tmp_jstruct.radar_id.N          = num2str(radar_id);
-        tmp_jstruct.subset_id.S         = [datestr(start_dt,ddb_tfmt),'_',num2str(i,'%03.0f')];
-        tmp_jstruct.h5_ffn.S            = stormh5_ffn;
+        tmp_jstruct.date_id.S           = datestr(start_dt,ddb_dateid_tfmt);
+        tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(i,'%03.0f'),'_',num2str(radar_id,'%02.0f')];
+        tmp_jstruct.radar_id.N          = num2str(radar_id,'%02.0f');
+        tmp_jstruct.subset_id.N         = num2str(i,'%03.0f');
+        tmp_jstruct.data_ffn.S          = stormh5_ffn;
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
-        tmp_jstruct.track_id.N          = num2str(track_id);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
-        tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb');
-        tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat);
-        tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon);
-        tmp_jstruct.storm_dbz_centlat.N = num2str(storm_dcent(1));
-        tmp_jstruct.storm_dbz_centlon.N = num2str(storm_dcent(2));
+        tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb','%03.4f ');
+        tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat,'%03.4f ');
+        tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon,'%03.4f ');
+        tmp_jstruct.storm_dbz_centlat.N = num2str(storm_dcent(1),'%03.4f ');
+        tmp_jstruct.storm_dbz_centlon.N = num2str(storm_dcent(2),'%03.4f ');
         tmp_jstruct.h_grid.N            = num2str(h_grid);
         tmp_jstruct.v_grid.N            = num2str(v_grid);
         %append stats

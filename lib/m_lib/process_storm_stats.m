@@ -1,4 +1,4 @@
-function ident_obj = process_ewt2ident(grid_obj,refl_img,ewtBasinExtend,snd_fz_h,snd_minus20_h)
+function ident_obj = process_storm_stats(grid_obj,refl_img,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
 load('tmp/global.config.mat');
@@ -54,9 +54,9 @@ for i=1:length(extended_basin_stats)
     ss_region_mask  = repmat(storm_mask,[1,1,size(refl_vol,3)]);
     
     %set outside region to min_dbz
-    subset_refl(~ss_region_mask) = nan;
+    subset_refl(~ss_region_mask) = min_dbzh;
     if ~isempty(subset_vel)
-        subset_vel(~ss_region_mask)  = nan;
+        subset_vel(~ss_region_mask)  = min_dbzh;
     end
     %create max_dbz_grid for extraction
     max_dbz_grid        = max(subset_refl,[],3);
@@ -77,9 +77,9 @@ for i=1:length(extended_basin_stats)
     
     %calc grid vil
     z_v             = 10.^(subset_refl(:,:,1:end)./10); 
-    subset_vil      = 3.44*10^-6.*v_grid.*sum(((z_v(:,:,1:end-1)+z_v(:,:,2:end))./2).^(4/7),3);
+    subset_vil      = 3.44*10^-6.*v_grid.*1000.*sum(((z_v(:,:,1:end-1)+z_v(:,:,2:end))./2).^(4/7),3);
     max_ij_z_v      = max(max(z_v,[],1),[],2); 
-    cell_vil        = 3.44*10^-6*v_grid*sum(((max_ij_z_v(1:end-1)+max_ij_z_v(2:end))./2).^(4/7));
+    cell_vil        = 3.44*10^-6*v_grid.*1000*sum(((max_ij_z_v(1:end-1)+max_ij_z_v(2:end))./2).^(4/7));
     
     %Shrink to ewt_a for volume calc
     shink_mask      = subset_refl>=ewt_a;
@@ -88,8 +88,8 @@ for i=1:length(extended_basin_stats)
     
     %compile stats
     %note all stats are from extended basin except for area_wdss
-    volume          =   sum(shink_mask(:))*h_grid^2*v_grid/10^9;
-    area            =   extended_basin_stats(i).Area*h_grid^2/10^6;
+    volume          =   sum(shink_mask(:))*h_grid^2*v_grid;
+    area            =   extended_basin_stats(i).Area*h_grid^2;
     maj_axis        =   extended_basin_stats(i).MajorAxisLength;
     min_axis        =   extended_basin_stats(i).MinorAxisLength;
     orient          =   extended_basin_stats(i).Orientation;

@@ -21,7 +21,7 @@ source_att   = h5readatt(h5_ffn,'/what','source');
 radar_id     = str2num(source_att(7:8));
 
 %init transform
-transform_fn = [transform_path,'regrid_transform_',num2str(radar_id),'.mat'];
+transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
 load(transform_fn,'img_azi','img_rng','grid_size','geo_coords');
 empty_grid    = nan(grid_size);
 dbzh_grid     = empty_grid;
