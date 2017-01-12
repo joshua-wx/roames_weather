@@ -58,11 +58,11 @@ if exist('tmp/site_info.txt.mat','file')~=2
     read_site_info('site_info.txt')
 end
 load('tmp/site_info.txt.mat')
-for i=1:length(site_s_name_list)
-    site_s_name_list{i}=['IDR_',num2str(site_id_list(i)),'_',site_s_name_list{i}];
+for i=1:length(siteinfo_name_list)
+    siteinfo_name_list{i}=['IDR_',num2str(siteinfo_id_list(i)),'_',siteinfo_name_list{i}];
 end
 
-set(handles.site_dlg,'string',site_s_name_list)
+set(handles.site_dlg,'string',siteinfo_name_list)
 
 %LOAD GUI CONFIG
 if exist('clim_gui_config.mat','file')~=2
@@ -253,7 +253,7 @@ if years_normalise && days_normalise
 end
 
 %extract site_id
-site_id         = site_id_list(site_selection);
+site_id         = siteinfo_id_list(site_selection);
 if ~isempty(latlon)
     latlon_box = str2num(latlon);
 else

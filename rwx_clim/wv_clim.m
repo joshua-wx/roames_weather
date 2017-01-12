@@ -4,7 +4,8 @@ function wv_clim(opt_struct)
 %profile clear
 
 silence_radius = 16;
-
+x_range_custom = 150;
+x_grid_custom  = 1;
 
 %% Add folders to path
 addpath('../etc');
@@ -24,8 +25,8 @@ load(['tmp/',config_input_path,'.mat']);
 %% load site info and mapping coordinates
 %load radar site lat, long and name
 load('tmp/site_info.txt.mat')
-r_ind=find(opt_struct.site_id==site_id_list);
-site_lat=site_lat_list(r_ind); site_lon=site_lon_list(r_ind);
+r_ind=find(opt_struct.site_id==siteinfo_id_list);
+site_lat=siteinfo_lat_list(r_ind); site_lon=siteinfo_lon_list(r_ind);
 
 %mapping coordinates, working in ij coordinates
 mstruct = defaultm('mercator');
@@ -34,8 +35,7 @@ mstruct.geoid = almanac('earth','wgs84','kilometers');
 mstruct = defaultm(mstruct);
 
 %transform x,y into lat long using centroid
-x_vec=-h_range:h_grid:h_range; %m, X domain vector
-x_vec=x_vec./1000;
+x_vec=-x_range_custom:x_grid_custom:x_range_custom; %m, X domain vector
 [lat_vec, lon_vec] = minvtran(mstruct, x_vec, x_vec);
 
 %compute lat matrix
@@ -231,7 +231,7 @@ end
 
 if opt_struct.output_opt(3)
     %inialise plot
-    create_clim_map_toowoomba 
+    create_clim_map_logan
     
     %filter
     myfilter = fspecial('gaussian',[7 7], 0.5);
@@ -241,7 +241,7 @@ if opt_struct.output_opt(3)
     if opt_struct.ci_opt || opt_struct.ce_opt
         geoshow(filt_plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');
     else
-        geoshow(filt_plot_grid,R,'DisplayType','contour','LevelList',[0.1:0.1:1],'LineColor','none','Fill','on');
+        geoshow(filt_plot_grid,R,'DisplayType','contour','LevelList',[0.1:0.05:1],'LineColor','none','Fill','on');
         %geoshow(plot_grid,R,'DisplayType','texturemap','CDataMapping','scaled');%,'FaceAlpha','texturemap','AlphaData',double(cone_mask))
     end
     %set clim
@@ -273,7 +273,11 @@ if opt_struct.output_opt(3)
         end
     end    
     %overlay place names
-    create_clim_map_names_toowoomba
+    create_clim_map_names_logan
+    
+    %plot logan LGA
+    S = shaperead('/run/media/meso/DATA/mapping/Logan_LGA/QLD_LGA_POLYGON_shp.shp');
+    plotm(S.Y,S.X,'k','linewidth',3)
     
     %setup colorbar
     ch=colorbar('FontSize',12);
