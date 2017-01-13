@@ -1,4 +1,4 @@
-function object_struct = kml_stormh5(kmlobj_struct,storm_jstruct,vol_struct,radar_id,oldest_time,newest_time,download_ffn_list,dest_root,options)
+function kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,radar_id,oldest_time,newest_time,download_ffn_list,dest_root,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure for a single radar_id

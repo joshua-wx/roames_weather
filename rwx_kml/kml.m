@@ -46,7 +46,7 @@ read_config(kml_config_fn);
 load([tmp_config_path,kml_config_fn,'.mat'])
 
 %init download path
-if exist(download_path,'file')~=7;
+if exist(download_path,'file')~=7
     mkdir(download_path);
 end
 
@@ -90,13 +90,15 @@ if exist(restart_vars_fn,'file')==2
         %corrupt file
         delete(restart_vars_fn);
         kml_build_root(dest_root,radar_id_list,local_dest_flag);
-        object_struct = [];
+        kmlobj_struct = [];
+        vol_struct    = [];
     end
 else
     %build root kml
     kml_build_root(dest_root,radar_id_list,local_dest_flag);
     %new start
-    object_struct = [];
+    kmlobj_struct = [];
+    vol_struct    = [];
 end
 
 
@@ -123,8 +125,8 @@ while exist('tmp/kill_kml','file')==2
         download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
     else
         date_id_list               = round(oldest_time):1:round(newest_time);
-        download_odimh5_ffn_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time);
-        download_stormh5_ffn_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time);
+        download_odimh5_ffn_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,[]);
+        download_stormh5_ffn_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
     download_ffn_list = [download_odimh5_ffn_list;download_stormh5_ffn_list];
     for i=1:length(download_ffn_list)
@@ -135,48 +137,73 @@ while exist('tmp/kill_kml','file')==2
     %wait for aws processes to finish
     wait_aws_finish
     %untar stormh5 files and create list
-    download_r_id_list = [];
     for i=1:length(download_stormh5_ffn_list)
-        [~,storm_name,ext] = fileparts(download_stormh5_ffn_list{i});
-        download_ffn       = [download_path,storm_name,ext];
-        if exist(download_ffn,'file') == 2
-            download_r_id_list = [download_r_id_list;str2num(storm_name(1:2))];
+        if exist(download_stormh5_ffn_list{i},'file') == 2
             untar(download_ffn,download_path);
         end
     end
-    
-    %% clean object_struct and remove old files
+    %add new volumes to vol_struct
+    for i=1:length(download_ffn_list)
+        [~,storm_name,ext] = fileparts(download_ffn_list{i});
+        download_ffn       = [download_path,storm_name,ext];
+        download_rid       = str2num(storm_name(1:2));
+        download_start_td  = datenum(storm_name(4:18),r_tfmt);
+        %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
+        %BEFORE KMLOBJ_STRUCT
+        tmp_struct        = struct('radar_id',download_rid,'start_timestamp',download_start_td);
+        vol_struct        = [vol_struct,tmp_struct];
+    end
+ 
+    %% clean kmlobj_struct and remove kml old files
     remove_radar_id = [];
-    if ~isempty(object_struct)
+    if ~isempty(kmlobj_struct)
         %find old files
-        remove_idx      = find([object_struct.start_timestamp]<oldest_time);
+        remove_idx      = find([kmlobj_struct.start_timestamp]<oldest_time);
         if ~isempty(remove_idx)
-            remove_ffn_list = {object_struct(remove_idx).ffn};
+            remove_ffn_list = {kmlobj_struct(remove_idx).ffn};
             %clean out files
             for i=1:length(remove_ffn_list)
                  file_rm(remove_ffn_list{i},0,1);
             end
             %preserve removed radar_ids
-            remove_radar_id           = [object_struct(remove_idx).radar_id]';
+            remove_radar_id           = [kmlobj_struct(remove_idx).radar_id]';
             %remove entries
-            object_struct(remove_idx) = [];
+            kmlobj_struct(remove_idx) = [];
         end
     end
     
-    %% run tracking
-    %perhaps run it within the kml_storm_obj script
+    %% clean vol_struct
+    if ~isempty(vol_struct)
+        %find old entries
+        remove_idx      = find([vol_struct.start_timestamp]<oldest_time);
+        if ~isempty(remove_idx)
+            vol_struct(remove_idx) = [];
+        end
+    end
     
+    %% query storm ddb
+    %query storm ddb
+    date_list         = floor(oldest_time):floor(newest_time);
+    storm_atts        = 'radar_id,start_timestamp,subset_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+    storm_jstruct     = [];
+    %collate multiple date_id's (these must be unique in query request)
+    for i=1:length(date_list)
+        date_id       = datestr(date_list(i),ddb_dateid_tfmt);
+        temp_jstruct  = ddb_query('date_id',date_id,'sort_id',datestr(oldest_time,ddb_tfmt),datestr(newest_time,ddb_tfmt),storm_atts,storm_ddb_table);
+        storm_jstruct = [storm_jstruct,temp_jstruct];
+    end
     
     %% process volumes to kml objects
     %merge removed radar_id list and download list for updating in
     %storm_to_kml (ie removing old data from the kml)
-    kml_radar_list = unique([download_r_id_list;remove_radar_id]);
+    kml_radar_list    = unique([[vol_struct.radar_id],remove_radar_id]);
     %loop through radar id list
     for i=1:length(kml_radar_list)
         radar_id      = kml_radar_list(i);
-        object_struct = kml_storm_obj(object_struct,radar_id,oldest_time,newest_time,download_path,dest_root,options);
-        object_struct = kml_odimh5_obj(object_struct,radar_id,download_path,dest_root,options);
+        kmlobj_struct = kml_odimh5(kmlobj_struct,storm_jstruct,vol_struct,radar_id,download_odimh5_ffn_list,dest_root,options);
+        kmlobj_struct = kml_stormh5(kmlobj_struct,storm_jstruct,vol_struct,radar_id,oldest_time,newest_time,download_stormh5_ffn_list,dest_root,options);
     end
+    kmlobj_struct     = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
     
     %Update user
     disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
@@ -188,7 +215,7 @@ while exist('tmp/kill_kml','file')==2
     elseif ~isempty(kml_radar_list) && save_object_struct == 1
         %update restart_vars_fn on kml update for realtime processing
         try
-            save(restart_vars_fn,'object_struct')
+            save(restart_vars_fn,'kmlobj_struct')
         catch err
             display(err)
         end

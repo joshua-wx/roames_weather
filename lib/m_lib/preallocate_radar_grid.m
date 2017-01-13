@@ -26,14 +26,12 @@ weight_grid         = zeros(length(lat_vec),length(lon_vec));
 weight_id_grid      = zeros(length(lat_vec),length(lon_vec));
 
 %loop through radar id list from input
-for i=1:length(radar_id_list)
+for i=1:length(siteinfo_id_list)
 
-	%find radar_id index from config file
-	siteinfo_idx    = find(radar_id_list==siteinfo_id_list);
     %extract current ids
-    radar_id        = siteinfo_id_list(siteinfo_idx);
-    radar_lat       = siteinfo_lat_list(siteinfo_idx);
-    radar_lon       = siteinfo_lon_list(siteinfo_idx);
+    radar_id        = siteinfo_id_list(i);
+    radar_lat       = siteinfo_lat_list(i);
+    radar_lon       = siteinfo_lon_list(i);
     
     %subset to radar using radar_mask_r
     [x_ind,y_ind,radar_lat_vec,radar_lon_vec] = radar_grid(radar_lat,radar_lon,lat_vec,lon_vec,radar_mask_rng);

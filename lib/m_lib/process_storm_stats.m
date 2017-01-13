@@ -110,7 +110,7 @@ for i=1:length(extended_basin_stats)
     %dbz_latloncent
     dbz_cent        = round(extended_basin_stats(i).WeightedCentroid);
     dbz_latloncent  = [grid_obj.lat_vec(dbz_cent(2)),grid_obj.lon_vec(dbz_cent(1))];
-    
+    radarmask_id    = double(grid_obj.radar_weight_id(dbz_cent(2),dbz_cent(1)));
     %calculate geometry
     subset_lat_vec   = grid_obj.lat_vec(i_subset);
     subset_lon_vec   = grid_obj.lon_vec(j_subset);
@@ -129,6 +129,7 @@ for i=1:length(extended_basin_stats)
     ident_obj(i).subset_refl      = subset_refl;
     ident_obj(i).subset_vel       = subset_vel;
     ident_obj(i).subset_id        = i;
+    ident_obj(i).radarmask_id     = radarmask_id;
     ident_obj(i).dbz_latloncent   = dbz_latloncent;
     ident_obj(i).subset_latlonbox = subset_latlonbox;
     ident_obj(i).subset_lat_edge  = subset_lat_edge;

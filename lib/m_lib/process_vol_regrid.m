@@ -22,7 +22,7 @@ radar_id     = str2num(source_att(7:8));
 
 %init transform
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-load(transform_fn,'img_azi','img_rng','grid_size','geo_coords');
+load(transform_fn,'img_azi','img_rng','grid_size','geo_coords','radar_weight_id');
 empty_grid    = nan(grid_size);
 dbzh_grid     = empty_grid;
 vradh_grid    = empty_grid;
@@ -123,7 +123,7 @@ grid_obj = struct('dbzh_grid',dbzh_grid,'vradh_grid',vradh_grid,...
     'lon_vec',geo_coords.radar_lon_vec,'lat_vec',geo_coords.radar_lat_vec,'alt_vec',geo_coords.radar_alt_vec,...
     'radar_id',radar_id,'start_dt',start_dt,...
     'radar_lat',geo_coords.radar_lat,'radar_lon',geo_coords.radar_lon,'radar_alt',geo_coords.radar_alt,...
-    'sig_refl',sig_flag);
+    'sig_refl',sig_flag,'radar_weight_id',radar_weight_id);
 
 function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid)
 %WHAT: takes a ppi volume and checks for significant reflectivity using

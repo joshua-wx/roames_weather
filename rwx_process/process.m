@@ -72,6 +72,7 @@ if exist(restart_cofig_fn,'file')==2
         %corrupt file
         delete(restart_cofig_fn);
     end
+    delete(restart_cofig_fn);
 end
 
 % Load global config files
@@ -120,7 +121,7 @@ end
 while exist('tmp/kill_process','file')==2
 
     % create time span
-    if realtime_flag == 1 == 1
+    if realtime_flag == 1
         date_list = utc_time;
     elseif isempty(hist_oldest_restart) %new climatology processing instance
         date_list = datenum(hist_oldest,'yyyy_mm_dd'):datenum(hist_newest,'yyyy_mm_dd');
@@ -352,8 +353,9 @@ if ~isempty(storm_obj)
         %append and write db
         tmp_jstruct                     = struct;
         tmp_jstruct.date_id.N           = datestr(start_dt,ddb_dateid_tfmt);
-        tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(i,'%03.0f'),'_',num2str(radar_id,'%02.0f')];
+        tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(i,'%03.0f')];
         tmp_jstruct.radar_id.N          = num2str(radar_id,'%02.0f');
+        tmp_jstruct.radarmask_id.N      = num2str(storm_obj(i).radarmask_id,'%02.0f');
         tmp_jstruct.subset_id.N         = num2str(i,'%03.0f');
         tmp_jstruct.data_ffn.S          = stormh5_ffn;
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
