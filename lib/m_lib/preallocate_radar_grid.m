@@ -75,7 +75,7 @@ end
 for i=1:length(radar_id_list)
 
 	%find radar_id index from config file
-	siteinfo_idx       = find(radar_id_list==siteinfo_id_list);
+	siteinfo_idx    = find(radar_id_list(i)==siteinfo_id_list);
 	%extract current ids
     radar_id        = siteinfo_id_list(siteinfo_idx);
     radar_lat       = siteinfo_lat_list(siteinfo_idx);
