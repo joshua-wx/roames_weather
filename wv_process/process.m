@@ -29,11 +29,11 @@ unix('touch tmp/kill_process');
 
 % Add folders to path and read config files
 if ~isdeployed
-    addpath('/home/meso/dev/wv/lib/m_lib');
-    addpath('/home/meso/dev/wv/etc')
+    addpath('/home/meso/dev/roames_weather/lib/m_lib');
+    addpath('/home/meso/dev/roames_weather/etc')
     addpath('/home/meso/dev/shared_lib/jsonlab');
-    addpath('/home/meso/dev/wv/bin/json_read');
-    addpath('/home/meso/dev/wv/bin/mirt3D');
+    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/bin/mirt3D');
     addpath('etc')
     addpath('tmp')
     unix('touch tmp/kill_process');

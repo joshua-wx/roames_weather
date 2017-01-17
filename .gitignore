@@ -8,3 +8,4 @@ wv_process/build/
 wv_prep/tmp/
 wv_prep/build/
 dev/data/
+rwx*

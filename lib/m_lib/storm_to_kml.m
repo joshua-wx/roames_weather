@@ -47,7 +47,11 @@ jstruct_out   = ddb_query('radar_id',radar_id_str,'start_timestamp',oldest_time_
 jstruct_out   = clean_jstruct(jstruct_out,6);
 if ~isempty(jstruct_out)
     radar_ts       = datenum(jstruct_to_mat([jstruct_out.start_timestamp],'S'),ddb_tfmt);
+    try
     vol_latlonbox  = str2num(jstruct_out(1).img_latlonbox.S)./geo_scale;
+    catch
+        keyboard
+    end
     vol_vel_ni     = str2num(jstruct_out(1).vel_ni.N);
     vol_tilt1_str  = jstruct_out(1).tilt1.N;
     vol_tilt2_str  = jstruct_out(1).tilt2.N;
