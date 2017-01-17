@@ -16,6 +16,7 @@ site_info_fn      = 'site_info.txt';
 restart_vars_fn   = 'tmp/kml_restart_vars.mat';
 tmp_config_path   = 'tmp/';
 pushover_flag     = 1;
+transform_path    = [tmp_config_path,'transforms/'];
 
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
@@ -101,6 +102,13 @@ else
     vol_struct    = [];
 end
 
+% Preallocate regridding coordinates
+if radar_id_list==99
+    preallocate_mobile_grid(transform_path,force_transform_update)
+else
+    preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
+end
+
 
 %% Primary code
 %cat daily databases for times between oldest and newest time,
@@ -116,35 +124,39 @@ while exist('tmp/kill_kml','file')==2
         newest_time = datenum(hist_newest,ddb_tfmt);
     end
     
-    %% download realtime data
+    %% download odimh5/storm data
     %empty download path
     delete([download_path,'*'])
     %read staging index
     if realtime_kml == 1
-        download_odimh5_ffn_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
-        download_stormh5_ffn_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
+        download_odimh5_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
+        download_stormh5_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
     else
-        date_id_list               = round(oldest_time):1:round(newest_time);
-        download_odimh5_ffn_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,[]);
-        download_stormh5_ffn_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
+        date_id_list           = round(oldest_time):1:round(newest_time);
+        download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,[]);
+        download_stormh5_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
-    download_ffn_list = [download_odimh5_ffn_list;download_stormh5_ffn_list];
-    for i=1:length(download_ffn_list)
+    download_list = [download_odimh5_list;download_stormh5_list];
+    for i=1:length(download_list)
         %download data file and untar into download_path
-        display(['s3 cp of ',download_ffn_list{i}])
-        file_cp(download_ffn_list{i},download_path,0,1);
+        display(['s3 cp of ',download_list{i}])
+        file_cp(download_list{i},download_path,0,1);
     end 
     %wait for aws processes to finish
     wait_aws_finish
+    
+    %% extract storm data
     %untar stormh5 files and create list
-    for i=1:length(download_stormh5_ffn_list)
-        if exist(download_stormh5_ffn_list{i},'file') == 2
+    for i=1:length(download_stormh5_list)
+        if exist(download_stormh5_list{i},'file') == 2
             untar(download_ffn,download_path);
         end
     end
+    
+    %% update vol object
     %add new volumes to vol_struct
-    for i=1:length(download_ffn_list)
-        [~,storm_name,ext] = fileparts(download_ffn_list{i});
+    for i=1:length(download_list)
+        [~,storm_name,ext] = fileparts(download_list{i});
         download_ffn       = [download_path,storm_name,ext];
         download_rid       = str2num(storm_name(1:2));
         download_start_td  = datenum(storm_name(4:18),r_tfmt);
@@ -156,6 +168,7 @@ while exist('tmp/kill_kml','file')==2
  
     %% clean kmlobj_struct and remove kml old files
     remove_radar_id = [];
+    remove_idx      = [];
     if ~isempty(kmlobj_struct)
         %find old files
         remove_idx      = find([kmlobj_struct.start_timestamp]<oldest_time);
@@ -173,7 +186,7 @@ while exist('tmp/kill_kml','file')==2
     end
     
     %% clean vol_struct
-    if ~isempty(vol_struct)
+    if ~isempty(vol_struct) && ~isempty(remove_idx)
         %find old entries
         remove_idx      = find([vol_struct.start_timestamp]<oldest_time);
         if ~isempty(remove_idx)
@@ -199,12 +212,15 @@ while exist('tmp/kill_kml','file')==2
     kml_radar_list    = unique([[vol_struct.radar_id],remove_radar_id]);
     %loop through radar id list
     for i=1:length(kml_radar_list)
-        radar_id      = kml_radar_list(i);
-        kmlobj_struct = kml_odimh5(kmlobj_struct,storm_jstruct,vol_struct,radar_id,download_odimh5_ffn_list,dest_root,options);
-        kmlobj_struct = kml_stormh5(kmlobj_struct,storm_jstruct,vol_struct,radar_id,oldest_time,newest_time,download_stormh5_ffn_list,dest_root,options);
+        radar_id       = kml_radar_list(i);
+        [~,radar_step] = ddb_filter_odimh5_kml(odimh5_ddb_table,radar_id,oldest_time,newest_time);
+        kmlobj_struct  = kml_odimh5(kmlobj_struct,vol_struct,radar_id,radar_step,download_odimh5_list,dest_root,transform_path,options);
+        %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
     end
-    kmlobj_struct     = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
+    %kmlobj_struct     = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
     
+    keyboard
+    %% ending loop
     %Update user
     disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
     

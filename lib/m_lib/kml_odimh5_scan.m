@@ -1,47 +1,48 @@
-function [link,ffn] = kml_scan(dest_root,dest_path,download_path,odimh5_ffn)
+function [link,ffn] = kml_odimh5_scan(dest_path,data_tag,img_atts,ppi_struct,data_number)
 
-%transfer odimh5 volume to local storage
+load('tmp/interp_cmaps.mat')
+load('tmp/kml.config.mat')
+load('tmp/global.config.mat')
 
-%extract sweep and regrid
+%generate png
+if data_number == 1
+    ppi_data  = ppi_struct.data1.data;
+    img_cmap  = interp_refl_cmap;
+    min_value = min_dbzh;
+    ppi_data(ppi_data<ppi_dbzh_mask) = min_value;
+elseif data_number == 2
+    ppi_data  = ppi_struct.data2.data;
+    img_cmap  = interp_vel_cmap;
+    min_value = min_vradh;
+end
 
+%regrid into cartesian
+[ppi_azi_grid,ppi_rng_grid] = meshgrid(ppi_struct.atts.azi_vec,ppi_struct.atts.rng_vec); %grid for dataset
+ppi_img                     = interp2(ppi_azi_grid,ppi_rng_grid,ppi_data,img_atts.img_azi,img_atts.img_rng,'nearest');
 
+png_ffn     = [tempdir,data_tag,'.png'];
+alpha_map   = ones(length(img_cmap),1); alpha_map(1) = 0;
+ppi_img_png = png_transform(ppi_img,'refl',min_value);
+imwrite(ppi_img_png,img_cmap,png_ffn,'Transparency',alpha_map);
 
-%init filename
-png_ffn        = [download_path,scan_tag,'.png'];
-%interpolate png to a larger size
-resize_png(png_ffn,4);
+%wrap in kmz and generate link
 %generate groundoverlay_kml
-scan_name       = [scan_tag,'_tilt_',tilt_str];
-scan1_refl_kml  = ge_groundoverlay('',scan_name,[scan_tag,'.png'],vol_latlonbox,'','','clamped','',1);
+ppi_img_kml  = ge_groundoverlay('',data_tag,[data_tag,'.png'],img_atts.img_latlonbox,'','','clamped','',1);
 %size kmlstr and png into a kmz
-kmz_fn  = [scan_name,'.kmz'];
-ge_kmz_out(kmz_fn,scan1_refl_kml,[dest_root,dest_path],png_ffn);
+kmz_fn  = [data_tag,'.kmz'];
+ge_kmz_out(kmz_fn,ppi_img_kml,dest_path,png_ffn); %TO FIX
 %create link
 link = kmz_fn;
-ffn  = [dest_root,dest_path,kmz_fn];
+ffn  = [dest_path,kmz_fn];
 
-% refl_transp  = ones(length(interp_refl_cmap),1); refl_transp(1) = 0;
-% vel_transp   = ones(length(interp_vel_cmap),1);   vel_transp(1) = 0;
-% s1_refl_png  = png_transform(vol_obj.scan1_refl,'refl',vol_obj.refl_vars,min_dbz);
-% s2_refl_png  = png_transform(vol_obj.scan2_refl,'refl',vol_obj.refl_vars,min_dbz);
-% s1_refl_ffn  = [tempdir,data_tag,'.scan1_refl.png'];
-% s2_refl_ffn  = [tempdir,data_tag,'.scan2_refl.png'];
-% imwrite(s1_refl_png,interp_refl_cmap,s1_refl_ffn,'Transparency',refl_transp);
-% imwrite(s2_refl_png,interp_refl_cmap,s2_refl_ffn,'Transparency',refl_transp);
-% 
-% function data_out = png_transform(data_in,type,vars,min_value)
-% 
-% %find no data regions
-% %scale to true value using transformation constants
-% data_out=double(data_in).*vars(1)+vars(2);
-% if strcmp(type,'refl');
-%         %scale for colormapping
-%         data_out=(data_out-min_value)*2+1;
-% else strcmp(type,'vel');
-%         %scale for colormapping
-%         data_out=(data_out-min_value)+1;
-% end
-% 
-% %extract ppi sweep 2 to check sig_refl
-% scan2_refl_out = interp2(imgrid_a,imgrid_sr,scan2_refl,rad2deg(imgrid_intp_a+pi),imgrid_intp_sr,'nearest'); %interpolate scan2 into convereted regridded coord
-% scan2_refl_out = rot90(scan2_refl_out,3); %orientate
+function data_out = png_transform(data_in,type,min_value)
+
+%find no data regions
+%scale to true value using transformation constants
+if strcmp(type,'refl');
+        %scale for colormapping
+        data_out=(data_in-min_value)*2+1;
+else strcmp(type,'vel');
+        %scale for colormapping
+        data_out=(data_in-min_value)+1;
+end

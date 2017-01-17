@@ -14,7 +14,10 @@ load([tmp_config_path,site_info_fn,'.mat']);
 priority_id_list = dlmread(priority_fn);
 % Load global config files
 load([tmp_config_path,global_config_fn,'.mat']);
-
+%create output path
+if exist(out_path,'file')~=7
+    mkdir(out_path)
+end
 %% setup national latlon grid
 [max_lat,~] = reckon(min_lat,min_lon,km2deg(dist_y_km),180);
 [~,max_lon] = reckon(min_lat,min_lon,km2deg(dist_x_km),90);
@@ -110,9 +113,10 @@ for i=1:length(radar_id_list)
     radar_weight_id  = uint8(radar_weight_id);
     img_azi          = radar_azi_grid(:,:,1);
     img_rng          = radar_rng_grid(:,:,1);
+    img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
     %save
     tmp_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-    save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng')
+    save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng','img_latlonbox')
     
 end
 

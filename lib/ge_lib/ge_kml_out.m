@@ -10,7 +10,7 @@ header = ['<?xml version="1.0" encoding="UTF-8"?>',10,...
 footer = [10,'</Document>',10,...
     '</kml>',10];
 
-temp_ffn = [tempname,'kml'];
+temp_ffn = [tempname,'.kml'];
 
 fid = fopen(temp_ffn, 'wt');
 

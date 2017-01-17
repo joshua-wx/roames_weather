@@ -9,7 +9,10 @@ tmp_config_path   = 'tmp/';
 out_path          = 'transforms/';
 % Load global config files
 load([tmp_config_path,global_config_fn,'.mat']);
-
+%create output path
+if exist(out_path,'file')~=7
+    mkdir(out_path)
+end
 %% Generate mapping coordinates
 mobile_rng_vec     = -mobile_h_rng:mobile_h_grid:mobile_h_rng;
 mobile_alt_vec     = mobile_v_grid:mobile_v_grid:mobile_v_rng;
@@ -48,8 +51,9 @@ filter_ind       = uint32(filter_ind);
 radar_weight_id  = ones(size(radar_azi_grid,1),size(radar_azi_grid,2));
 img_azi          = radar_azi_grid(:,:,1);
 img_rng          = radar_rng_grid(:,:,1);
+img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
 %save
-save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng')
+save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng','img_latlonbox')
 
 
 

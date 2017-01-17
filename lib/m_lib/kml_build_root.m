@@ -41,11 +41,11 @@ master_str   = '';
 if local_dest_flag==1
     rmdir(dest_root,'s');
     mkdir(dest_root);
-    mkdir([dest_root,scan_obj_path]);
+    mkdir([dest_root,ppi_obj_path]);
     mkdir([dest_root,track_obj_path]);
     mkdir([dest_root,cell_obj_path]);
 else
-    file_rm([dest_root,scan_obj_path],1,0)
+    file_rm([dest_root,ppi_obj_path],1,0)
     file_rm([dest_root,track_obj_path],1,0)
     file_rm([dest_root,cell_obj_path],1,0)
 end
@@ -58,8 +58,8 @@ else
 end
 
 %% Scan Styles
-scan_style_str = '';
-scan_style_str = ge_line_style(scan_style_str,'coverage_style',html_color(0.5,[1,1,1]),1);
+ppi_style_str = '';
+ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1,1]),1);
 
 %% Track Styles
 
@@ -137,25 +137,25 @@ file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,
 %% build scan groups kml
 
 %scan.kml
-display('building scan nl kml')
-scan_str  = scan_style_str;
+display('building ppi nl kml')
+ppi_str  = ppi_style_str;
 if options(1)==1
-    tmp_str   = generate_radar_nl('ppi_refl',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    scan_str  = ge_folder(scan_str,tmp_str,'PPI Reflectivity','',1);
+    tmp_str   = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI Reflectivity','',1);
 end
 if options(2)==1
-    tmp_str   = generate_radar_nl('ppi_vel',dest_root,scan_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    scan_str  = ge_folder(scan_str,tmp_str,'PPI Doppler Velocity','',1);
+    tmp_str   = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI Doppler Velocity','',1);
 end
 
 if any(options(1:2))
     display('building offline images')
-    generate_offline_radar(dest_root,scan_obj_path,site_no_selection,site_latlonbox)
+    generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
-scan_str  = ge_networklink(scan_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
+ppi_str  = ge_networklink(ppi_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
 
 temp_ffn = tempname;
-ge_kml_out(temp_ffn,'Scan Objects',scan_str);
+ge_kml_out(temp_ffn,'Scan Objects',ppi_str);
 file_mv(temp_ffn,[dest_root,'scan.kml']);
 wait_aws_finish
 
@@ -185,11 +185,11 @@ wait_aws_finish
 display('building cell nl kml')
 cell_str  = cell_style_str;
 if options(3)==1
-    tmp_str   = generate_radar_nl('xsec_refl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
+    tmp_str   = generate_radar_nl('xsec_dbhz',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
     cell_str  = ge_folder(cell_str,tmp_str,'XSection Reflectivity','',1);
 end
 if options(4)==1
-    tmp_str   = generate_radar_nl('xsec_dopl',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
+    tmp_str   = generate_radar_nl('xsec_vradh',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
     cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
 end
 if options(5)==1
