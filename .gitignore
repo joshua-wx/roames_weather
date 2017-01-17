@@ -9,3 +9,4 @@ wv_prep/tmp/
 wv_prep/build/
 dev/data/
 rwx*
+dev*
