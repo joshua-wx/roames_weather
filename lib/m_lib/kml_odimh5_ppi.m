@@ -25,8 +25,8 @@ if data_number == 1
 end
 
 %apply domain mask
-domain_mask = img_atts.radar_mask;
-ppi_img     = ppi_img.*domain_mask;
+domain_mask          = img_atts.radar_mask;
+ppi_img(~domain_mask) = min_value;
 
 %build png
 png_ffn     = [tempdir,data_tag,'.png'];

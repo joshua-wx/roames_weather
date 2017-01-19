@@ -155,16 +155,22 @@ while exist('tmp/kill_kml','file')==2
     
     %% update vol object
     %add new volumes to vol_struct
-    for i=1:length(download_list)
-        [~,storm_name,ext] = fileparts(download_list{i});
-        download_ffn       = [download_path,storm_name,ext];
-        download_rid       = str2num(storm_name(1:2));
-        download_start_td  = datenum(storm_name(4:18),r_tfmt);
-        %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
-        %BEFORE KMLOBJ_STRUCT
-        tmp_struct        = struct('radar_id',download_rid,'start_timestamp',download_start_td);
-        vol_struct        = [vol_struct,tmp_struct];
+    cur_vol_struct = [];
+    for i=1:length(download_odimh5_list)
+        [~,vol_name,ext]   = fileparts(download_odimh5_list{i});
+        local_odimh5_fn = [download_path,vol_name,ext];
+        if exist(local_odimh5_fn,'file') == 2
+            download_ffn       = [download_path,vol_name,ext];
+            download_rid       = str2num(vol_name(1:2));
+            download_start_td  = datenum(vol_name(4:18),r_tfmt);
+            %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
+            %BEFORE KMLOBJ_STRUCT
+            %check if file exists
+            tmp_struct     = struct('radar_id',download_rid,'start_timestamp',download_start_td,'local_odimh5_fn',local_odimh5_fn);
+            cur_vol_struct = [cur_vol_struct,tmp_struct];
+        end
     end
+    vol_struct        = [vol_struct,cur_vol_struct];
  
     %% clean kmlobj_struct and remove kml old files
     remove_radar_id = [];
@@ -213,8 +219,12 @@ while exist('tmp/kill_kml','file')==2
     %loop through radar id list
     for i=1:length(kml_radar_list)
         radar_id       = kml_radar_list(i);
+        %extract radar timestep
         [~,radar_step] = ddb_filter_odimh5_kml(odimh5_ddb_table,radar_id,oldest_time,newest_time);
-        kmlobj_struct  = kml_odimh5(kmlobj_struct,vol_struct,radar_id,radar_step,download_odimh5_list,dest_root,transform_path,options);
+        %create domain mask
+        mask_grid      = process_radar_mask(radar_id,kml_radar_list,transform_path);
+        %create ppi kml
+        kmlobj_struct  = kml_odimh5(kmlobj_struct,mask_grid,radar_id,radar_step,cur_vol_struct,dest_root,transform_path,options);
         %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
     end
     %kmlobj_struct     = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);

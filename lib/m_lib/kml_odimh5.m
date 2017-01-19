@@ -1,4 +1,4 @@
-function kmlobj_struct = kml_odimh5(kmlobj_struct,vol_struct,radar_id,radar_step,download_odimh5_list,dest_root,transform_path,options)
+function kmlobj_struct = kml_odimh5(kmlobj_struct,mask_grid,radar_id,radar_step,cur_vol_struct,dest_root,transform_path,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure
@@ -13,36 +13,22 @@ load('tmp/kml.config.mat')
 scan_path    = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
 
-%list check odimh5 files
-local_odimh5_list = {};
-for i=1:length(download_odimh5_list)
-    [~,fn,ext]      = fileparts(download_odimh5_list{i});
-    local_odimh5_fn = [download_path,fn,ext];
-    if exist(local_odimh5_fn,'file')==2
-        local_odimh5_list = [local_odimh5_list;local_odimh5_fn];
-    end
-end
-
 %% scan ground overlays ########### CHANGE LOOP TO RUN odimh5_fn_list
-if ~isempty(local_odimh5_list)
+if ~isempty(cur_vol_struct)
     
     %load transform
-    load(transform_fn,'img_azi','img_rng','img_latlonbox','radar_weight_id')
+    load(transform_fn,'img_azi','img_rng','img_latlonbox')
     img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox);
     
-    %create domain mask
-    other_rid_list = unique([vol_struct.radar_id]);
-    other_rid_list(other_rid_list==radar_id) = []; %remove current radar id
-    if ~isempty(other_rid_list)
-        radar_mask = ~ismember(radar_weight_id,other_rid_list);
-    else
-        radar_mask     = true(size(radar_weight_id));
-    end
     %struct up atts
-    img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',radar_mask);
+    img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
     %loop through new odimh5 files
-    for i=1:length(local_odimh5_list)
-        odimh5_ffn               = local_odimh5_list{i};
+    for i=1:length(cur_vol_struct)
+        %skip if not correct radar_id
+        if cur_vol_struct(i).radar_id ~= radar_id
+            continue
+        end
+        odimh5_ffn               = cur_vol_struct(i).local_odimh5_fn;
         ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
         [ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep,radar_id);
         vol_stop_time            = addtodate(vol_start_time,radar_step,'minute');

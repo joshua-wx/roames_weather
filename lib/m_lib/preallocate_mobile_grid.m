@@ -48,12 +48,11 @@ radar_coords     = radar_coords(filter_ind,:);
 %convert to more efficent types
 radar_coords     = uint16(radar_coords.*100);
 filter_ind       = uint32(filter_ind);
-radar_weight_id  = ones(size(radar_azi_grid,1),size(radar_azi_grid,2));
 img_azi          = radar_azi_grid(:,:,1);
 img_rng          = radar_rng_grid(:,:,1);
 img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
 %save
-save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng','img_latlonbox')
+save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','img_azi','img_rng','img_latlonbox')
 
 
 

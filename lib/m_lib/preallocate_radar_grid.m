@@ -5,13 +5,10 @@ function preallocate_radar_grid(radar_id_list,out_path,force_update)
 %% init
 %paths
 global_config_fn  = 'global.config';
-priority_fn       = 'priority_list.txt';
 site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
 %load sites
 load([tmp_config_path,site_info_fn,'.mat']);
-%load priority
-priority_id_list = dlmread(priority_fn);
 % Load global config files
 load([tmp_config_path,global_config_fn,'.mat']);
 %create output path
@@ -24,52 +21,6 @@ end
 lat_vec     = linspace(min_lat,max_lat,dist_y_km/h_grid);
 lon_vec     = linspace(min_lon,max_lon,dist_x_km/h_grid);
 alt_vec     = v_grid:v_grid:v_tops;
-%% build global radar weights
-weight_grid         = zeros(length(lat_vec),length(lon_vec));
-weight_id_grid      = zeros(length(lat_vec),length(lon_vec));
-
-%loop through radar id list from input
-for i=1:length(siteinfo_id_list)
-
-    %extract current ids
-    radar_id        = siteinfo_id_list(i);
-    radar_lat       = siteinfo_lat_list(i);
-    radar_lon       = siteinfo_lon_list(i);
-    
-    %subset to radar using radar_mask_r
-    [x_ind,y_ind,radar_lat_vec,radar_lon_vec] = radar_grid(radar_lat,radar_lon,lat_vec,lon_vec,radar_mask_rng);
-    
-    %calculate earth distance from radar
-    [radar_lon_grid,radar_lat_grid] = meshgrid(radar_lon_vec,radar_lat_vec);
-    radar_gcdist_grid               = earth_rad.*acos(sind(radar_lat).*sind(radar_lat_grid)+...
-                        cosd(radar_lat).*cosd(radar_lat_grid).*cosd(abs(radar_lon_grid-radar_lon)));   
-
-    %calculating weights
-    if ismember(radar_id,priority_id_list) %priority radars
-        weight1  = 7000;
-        weight2  = 1;
-    else %nonpriority Radars
-        weight1  = 3500;
-        weight2  = 10;
-    end
-    %For priority radars use weight1 = 3500, weight2 = 10
-    %this gives 0.1 @ 0km
-    %For nonpriority radars, use weight1 = 7000, weight2 = 1
-    %this gives 1.0 @ 0 km, 0.25 @ 100km, 0.1 @ 125km, 0 @ 180km
-    
-    %compare radar weights with global weights
-    radar_weight   = exp(-(radar_gcdist_grid.^2)./weight1)./weight2;
-    radar_id       = ones(length(radar_lat_grid),length(radar_lon_grid)).*radar_id;
-    g_weight       = weight_grid(y_ind,x_ind);
-    g_id           = weight_id_grid(y_ind,x_ind);
-    %mask radar weights
-    mask           = radar_weight>g_weight;
-    %update global subsets
-    g_weight(mask) = radar_weight(mask);
-    g_id(mask)     = radar_id(mask);
-    weight_grid(y_ind,x_ind) = g_weight;
-    weight_id_grid(y_ind,x_ind) = g_id;
-end
 
 %% generate radar grids
 for i=1:length(radar_id_list)
@@ -95,9 +46,6 @@ for i=1:length(radar_id_list)
     %generate regrid coords
     [radar_azi_grid,radar_elv_grid,radar_rng_grid] = preallocate_transform(radar_lat,radar_lon,radar_alt,radar_lat_vec,radar_lon_vec,radar_alt_vec,earth_rad,ke);
     
-    %extract weight ids
-    radar_weight_id                                = weight_id_grid(y_ind,x_ind);
-
     %% bound and index
     %create inital output vars
     geo_coords       = struct('radar_lon_vec',radar_lon_vec,'radar_lat_vec',radar_lat_vec,'radar_alt_vec',radar_alt_vec,...
@@ -110,13 +58,12 @@ for i=1:length(radar_id_list)
     %convert to more efficent types
     radar_coords     = uint16(radar_coords.*100);
     filter_ind       = uint32(filter_ind);
-    radar_weight_id  = uint8(radar_weight_id);
     img_azi          = radar_azi_grid(:,:,1);
     img_rng          = radar_rng_grid(:,:,1);
     img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
     %save
     tmp_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-    save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','radar_weight_id','img_azi','img_rng','img_latlonbox')
+    save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','img_azi','img_rng','img_latlonbox')
     
 end
 
