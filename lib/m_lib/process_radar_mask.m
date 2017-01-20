@@ -1,4 +1,4 @@
-function mask_grid = process_radar_mask(radar_id,rid_list,transform_path)
+function [mask_grid,geo_coords] = process_radar_mask(radar_id,start_timestep,vol_struct,transform_path)
 
 %% init
 %paths
@@ -13,16 +13,19 @@ load(transform_fn,'geo_coords')
 %preallocate
 [radar_lon_grid,radar_lat_grid] = meshgrid(geo_coords.radar_lon_vec,geo_coords.radar_lat_vec);
 weight_grid                     = zeros(size(radar_lon_grid));
-rid_grid                        = zeros(size(radar_lon_grid));
+rid_grid                        = ones(size(radar_lon_grid)).*radar_id;
 %extract current ids
 radar_idx     = find(radar_id==siteinfo_id_list);
 cur_radar_lat = siteinfo_lat_list(radar_idx);
 cur_radar_lon = siteinfo_lon_list(radar_idx);
 
-%break for no list
-if length(rid_list)==1
-    mask_grid = true(size(radar_lon_grid));
-end
+%extract rid_list from vol_struct and filter out recent radars from
+%start_timedate
+rid_list    = [vol_struct.radar_id];
+time_list   = [vol_struct.start_timestamp];
+%filter out unique radar ids by radar_mask_time
+time_filter = minute(start_timestep - time_list) <= radar_mask_time;
+rid_list    = unique(rid_list(time_filter));
 
 %loop through radar id list from input
 for i=1:length(rid_list)
@@ -43,7 +46,7 @@ for i=1:length(rid_list)
                         cosd(other_radar_lat).*cosd(radar_lat_grid).*cosd(abs(radar_lon_grid-other_radar_lon)));
 
     %calculating weights
-    if ismember(radar_id,priority_id_list) %priority radars
+    if ismember(rid_list(i),priority_id_list) %priority radars
         weight1  = 7000;
         weight2  = 1;
     else %nonpriority Radars
@@ -57,7 +60,7 @@ for i=1:length(rid_list)
     
     %compare radar weights with global weights
     other_weight_grid = exp(-(radar_gcdist_grid.^2)./weight1)./weight2;
-    other_rid_grid    = ones(length(radar_lat_grid),length(radar_lon_grid)).*rid_list(i);
+    other_rid_grid    = ones(size(radar_lon_grid)).*rid_list(i);
     %mask other radar weights
     mask               = other_weight_grid>weight_grid;
     %update global grids
@@ -66,5 +69,4 @@ for i=1:length(rid_list)
 end
 
 %create mask grid
-mask_grid = rid_grid==radar_id;
-
+mask_grid   = rid_grid==radar_id;

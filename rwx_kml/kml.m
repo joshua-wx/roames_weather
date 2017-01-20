@@ -133,7 +133,7 @@ while exist('tmp/kill_kml','file')==2
         download_stormh5_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
     else
         date_id_list           = round(oldest_time):1:round(newest_time);
-        download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,[]);
+        download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
         download_stormh5_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
     download_list = [download_odimh5_list;download_stormh5_list];
@@ -160,13 +160,20 @@ while exist('tmp/kill_kml','file')==2
         [~,vol_name,ext]   = fileparts(download_odimh5_list{i});
         local_odimh5_fn = [download_path,vol_name,ext];
         if exist(local_odimh5_fn,'file') == 2
-            download_ffn       = [download_path,vol_name,ext];
+            %read basic atts
             download_rid       = str2num(vol_name(1:2));
-            download_start_td  = datenum(vol_name(4:18),r_tfmt);
+            if download_rid == 99
+                download_start_td  = datenum([vol_name(4:18)],r_tfmt); %keep seconds for radar 99
+            else
+                download_start_td  = datenum([vol_name(4:16),'00'],r_tfmt); %remove seconds
+            end
+            %read range for masking
+            [~,rng_vec]        = process_read_ppi_dims(local_odimh5_fn,1);
+            radar_rng          = floor(max(rng_vec)/10)*10;
             %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
             %BEFORE KMLOBJ_STRUCT
             %check if file exists
-            tmp_struct     = struct('radar_id',download_rid,'start_timestamp',download_start_td,'local_odimh5_fn',local_odimh5_fn);
+            tmp_struct     = struct('radar_id',download_rid,'start_timestamp',download_start_td,'local_odimh5_fn',local_odimh5_fn,'radar_rng',radar_rng);
             cur_vol_struct = [cur_vol_struct,tmp_struct];
         end
     end
@@ -213,22 +220,35 @@ while exist('tmp/kill_kml','file')==2
     end
     
     %% process volumes to kml objects
-    %merge removed radar_id list and download list for updating in
-    %storm_to_kml (ie removing old data from the kml)
-    kml_radar_list    = unique([[vol_struct.radar_id],remove_radar_id]);
     %loop through radar id list
-    for i=1:length(kml_radar_list)
-        radar_id       = kml_radar_list(i);
+    storm_mask = false(length(storm_jstruct),1);
+    for i=1:length(cur_vol_struct)
+        %extract file vars
+        radar_id               = cur_vol_struct(i).radar_id;
+        start_timestep         = cur_vol_struct(i).start_timestamp;
+        odimh5_fn              = cur_vol_struct(i).local_odimh5_fn;
         %extract radar timestep
-        [~,radar_step] = ddb_filter_odimh5_kml(odimh5_ddb_table,radar_id,oldest_time,newest_time);
+        radar_step             = calc_radar_step(vol_struct,radar_id);
         %create domain mask
-        mask_grid      = process_radar_mask(radar_id,kml_radar_list,transform_path);
+        [ppi_mask,geo_coords]  = process_radar_mask(radar_id,start_timestep,vol_struct,transform_path);
         %create ppi kml
-        kmlobj_struct  = kml_odimh5(kmlobj_struct,mask_grid,radar_id,radar_step,cur_vol_struct,dest_root,transform_path,options);
-        %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
+        kmlobj_struct          = kml_odimh5(kmlobj_struct,odimh5_fn,ppi_mask,radar_id,radar_step,dest_root,transform_path,options);
+        %create mask information for storm cells
+        storm_mask             = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords);
     end
-    %kmlobj_struct     = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
+    keyboard
+    %% process storm and track objects
+    %build tracks using storm_mask and storm_jstruct!!!
+    %use tracks, cell masks to generate storm and track kml
+    %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
+    %kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
+
+    %% update kml network links
     
+    %storm_to_kml (ie removing old data from the kml)
+    update_radar_list    = unique([[cur_vol_struct.radar_id],remove_radar_id]);
+    kml_update_nl(kmlobj_struct)
+       
     keyboard
     %% ending loop
     %Update user
@@ -289,3 +309,48 @@ end
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
+
+function radar_step = calc_radar_step(vol_struct,radar_id)
+%init
+radar_id_list   = [vol_struct.radar_id];
+radar_time_list = [vol_struct.start_timestamp];
+%filter my radar id
+filter_mask     = radar_id_list==radar_id;
+radar_time_list = radar_time_list(filter_mask);
+%sort time
+radar_time_list = sort(radar_time_list);
+%calc time step
+if length(radar_time_list) == 1
+    radar_step = 10; %minutes
+else
+    all_steps  = round((radar_time_list(2:end)-radar_time_list(1:end-1))*24*60);
+    radar_step = mode(all_steps);
+end
+
+function storm_mask = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords)
+load('tmp/global.config.mat')
+
+%init
+storm_radar_id        = jstruct_to_mat([storm_jstruct.radar_id],'N');
+storm_start_timestamp = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+storm_lat             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
+storm_lon             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
+
+%filter out radar_id and start_timestep
+filter_idx            = find(storm_radar_id==radar_id & storm_start_timestamp==start_timestep);
+
+%loop through cells at correct time and site
+for i=1:length(filter_idx)
+    %find nearest lat lon grid point in ppi mask
+    target_lat = storm_lat(filter_idx(i));
+    target_lon = storm_lon(filter_idx(i));
+    [~,i_idx]  = min(abs(geo_coords.radar_lat_vec - target_lat));
+    [~,j_idx]  = min(abs(geo_coords.radar_lon_vec - target_lon));
+    %extract ppi mask and update storm_mask
+    target_mask = ppi_mask(i_idx,j_idx);
+    storm_mask(filter_idx) = logical(target_mask);
+end
+    
+
+
+

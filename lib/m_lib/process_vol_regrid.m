@@ -22,7 +22,7 @@ radar_id     = str2num(source_att(7:8));
 
 %init transform
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-load(transform_fn,'img_azi','img_rng','grid_size','geo_coords','radar_weight_id');
+load(transform_fn,'img_azi','img_rng','grid_size','geo_coords');
 empty_grid    = nan(grid_size);
 dbzh_grid     = empty_grid;
 vradh_grid    = empty_grid;
@@ -41,6 +41,7 @@ dbzh_vol   = empty_vol;
 vradh_vol  = empty_vol;
 elv_vec    = empty_vec;
 start_dt   = [];
+
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
@@ -95,6 +96,9 @@ if sig_flag
     load(transform_fn,'radar_coords','filter_ind');
     radar_coords     = double(radar_coords)./100;
 
+    %apply boundary filter
+    filter_ind       = boundary_filter(radar_coords,min(elv_vec),max(elv_vec),min(vol_rng_vec),max_range);
+    radar_coords     = radar_coords(filter_ind,:);
     %convert to pixel coords
     [pix_azi,pix_rng,pix_elv] = vec2pix(vol_azi_vec,vol_rng_vec,elv_vec,radar_coords);
 
@@ -123,7 +127,7 @@ grid_obj = struct('dbzh_grid',dbzh_grid,'vradh_grid',vradh_grid,...
     'lon_vec',geo_coords.radar_lon_vec,'lat_vec',geo_coords.radar_lat_vec,'alt_vec',geo_coords.radar_alt_vec,...
     'radar_id',radar_id,'start_dt',start_dt,...
     'radar_lat',geo_coords.radar_lat,'radar_lon',geo_coords.radar_lon,'radar_alt',geo_coords.radar_alt,...
-    'sig_refl',sig_flag,'radar_weight_id',radar_weight_id);
+    'sig_refl',sig_flag);
 
 function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid)
 %WHAT: takes a ppi volume and checks for significant reflectivity using
@@ -167,3 +171,13 @@ pix_elv = interp1(elv_vec',1:length(elv_vec),r_coords(:,3),'linear');
 function intp_out = run_mirt3D(dbzh_vol,pix_azi,pix_rng,pix_elv)
 %WHAT: run linear interpolation
 intp_out = mirt3D_mexinterp(dbzh_vol,pix_azi,pix_rng,pix_elv);
+
+function filter_ind = boundary_filter(radar_coords,elv_min,elv_max,rng_min,rng_max)
+%Function: identifies the indicies of bins outsite the natural radar domain
+%and also selects the inside values
+%Outputs: inside_ind: linear index marix of values of eval inside bounds,
+%filteradar_eval: values inside the bounds
+%find ind of data points inside bounds (eval(1) is elevation, eval(2) is
+%range)
+filter_ind = find(radar_coords(:,3)>= elv_min & radar_coords(:,3)<=elv_max...
+    & radar_coords(:,2)>=rng_min & radar_coords(:,2)<=rng_max);

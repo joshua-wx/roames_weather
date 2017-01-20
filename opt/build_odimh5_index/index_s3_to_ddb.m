@@ -1,33 +1,35 @@
 function index_s3_to_ddb
 %WHAT: builds an index for the odimh5 s3 archive.
 
-%load global config file
-config_input_path = 'config';
-read_config(config_input_path);
-load(['tmp/',config_input_path,'.mat'])
-
 %check if is deployed
 if ~isdeployed
     addpath('/home/meso/dev/roames_weather/lib/m_lib');
     addpath('/home/meso/dev/shared_lib/jsonlab');
 end
 
+%load global config file
+config_input_path = 'config';
+read_config(config_input_path);
+load(['tmp/',config_input_path,'.mat'])
+
+
 %init vars
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
-ddb_table      = 'wxradar_odimh5_index';
+ddb_table      = 'wxradar_odimh52_index';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
 s3_bucket      = 's3://roames-wxradar-archive/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f')];
-year_list      = [2014:2014];
+year_list      = [2014:2016];
 
 %ensure temp directory exists
 mkdir('tmp')
-
+display('CHECK WRITE CAPACITY, PAUSED')
+pause
 % BUILD INDEX
 %run an aws ls -r
 for i=1:length(year_list)
     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),'/',num2str(year_list(i)),'/'])
-    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/11/27/',' --recursive'];
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/',' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
     C           = textscan(eout,'%*s %*s %u %s');
@@ -63,11 +65,9 @@ function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,h5_ffn,h5_size)
 %init
 h5_fn              = h5_ffn(end-20:end);
 radar_id           = h5_fn(1:2);
-try
+
 radar_timestamp    = datenum(h5_fn(4:end-5),'yyyymmdd_HHMM');
-catch
-    keyboard
-end
+
 item_id            = ['item_',radar_id,'_',datestr(radar_timestamp,'yyyymmddHHMMSS')];
 
 %build ddb struct
@@ -75,6 +75,7 @@ ddb_struct.(item_id).radar_id.N             = radar_id;
 ddb_struct.(item_id).start_timestamp.S      = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
 ddb_struct.(item_id).data_size.N            = num2str(h5_size);
 ddb_struct.(item_id).data_ffn.S             = h5_ffn;
+ddb_struct.(item_id).data_rng.S             = '250';
 ddb_struct.(item_id).storm_flag.N           = '-1';
 
 tmp_sz =  length(fieldnames(ddb_struct));

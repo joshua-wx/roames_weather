@@ -52,30 +52,16 @@ for i=1:length(radar_id_list)
         'radar_lat',radar_lat,'radar_lon',radar_lon,'radar_alt',radar_alt);
     radar_coords     = [radar_azi_grid(:),radar_rng_grid(:),radar_elv_grid(:)];
     grid_size         = size(radar_azi_grid);
-    %apply boundary filter
-    filter_ind       = boundary_filter(radar_coords,elv_min,elv_max,rng_min,rng_max);
-    radar_coords     = radar_coords(filter_ind,:);
     %convert to more efficent types
     radar_coords     = uint16(radar_coords.*100);
-    filter_ind       = uint32(filter_ind);
     img_azi          = radar_azi_grid(:,:,1);
     img_rng          = radar_rng_grid(:,:,1);
     img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
     %save
     tmp_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-    save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','img_azi','img_rng','img_latlonbox')
+    save(out_fn,'radar_coords','geo_coords','grid_size','img_azi','img_rng','img_latlonbox')
     
 end
-
-function filter_ind = boundary_filter(radar_coords,elv_min,elv_max,rng_min,rng_max)
-%Function: identifies the indicies of bins outsite the natural radar domain
-%and also selects the inside values
-%Outputs: inside_ind: linear index marix of values of eval inside bounds,
-%filteradar_eval: values inside the bounds
-%find ind of data points inside bounds (eval(1) is elevation, eval(2) is
-%range)
-filter_ind = find(radar_coords(:,3)>= elv_min & radar_coords(:,3)<=elv_max...
-    & radar_coords(:,2)>=rng_min & radar_coords(:,2)<=rng_max);
 
 function [x_ind,y_ind,radar_lat_vec,radar_lon_vec] = radar_grid(radar_lat,radar_lon,g_lat_vec,g_lon_vec,radar_mask_rng)
 %WHAT: extracts subset/index from global lat lon vec using range mask

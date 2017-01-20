@@ -70,17 +70,14 @@ if exist(restart_cofig_fn,'file')==2
         load(restart_cofig_fn);
     catch
         %corrupt file
-        delete(restart_cofig_fn);
+        delete([local_tmp_path,restart_cofig_fn]);
     end
-    delete(restart_cofig_fn);
+    delete([local_tmp_path,restart_cofig_fn]);
 end
 
 % Load global config files
 read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat']);
-
-%load colourmaps for png generation
-colormap_interp('refl24bit.txt','vel24bit.txt');
 
 % site_info.txt
 read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
@@ -152,7 +149,7 @@ while exist('tmp/kill_process','file')==2
             %wait for aws process to finish
             wait_aws_finish
         else
-            disp(['Climatology processing downloading files from ',datestr(date_list),' for radar ',num2str(radar_id_list)]);
+            disp(['Climatology processing downloading files from ',datestr(date_list(date_idx)),' for radar ',num2str(radar_id_list)]);
             %sync day of data from radar_id from s3 to local
             file_s3sync(src_root,download_path,date_list(date_idx),radar_id_list)
         end
@@ -250,7 +247,7 @@ while exist('tmp/kill_process','file')==2
     %break loop if cts_loop=0
     if realtime_flag==0
         delete('tmp/kill_process')
-        pushover('process',['Completed radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'])
+        pushover('process',['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'])
         break
     end
     
@@ -291,7 +288,6 @@ function update_archive(dest_root,grid_obj,storm_obj,odimh5_ddb_table,storm_ddb_
 %% Update vol_db and vol_data
 
 load('tmp/global.config.mat')
-load('tmp/interp_cmaps.mat')
 
 %setup paths and tags
 date_vec     = datevec(grid_obj.start_dt);
@@ -355,7 +351,6 @@ if ~isempty(storm_obj)
         tmp_jstruct.date_id.N           = datestr(start_dt,ddb_dateid_tfmt);
         tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(i,'%03.0f')];
         tmp_jstruct.radar_id.N          = num2str(radar_id,'%02.0f');
-        tmp_jstruct.radarmask_id.N      = num2str(storm_obj(i).radarmask_id,'%02.0f');
         tmp_jstruct.subset_id.N         = num2str(i,'%03.0f');
         tmp_jstruct.data_ffn.S          = stormh5_ffn;
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);

@@ -1,8 +1,8 @@
 function repro_3_rename
 
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib')
-    addpath('/home/meso/Dropbox/dev/wv/etc')
+    addpath('/home/meso/dev/roames_weather/lib/m_lib')
+    addpath('/home/meso/dev/roames_weather/etc')
 end
 
 %type3: VOL (but no ext) or .gz
@@ -22,10 +22,9 @@ mkdir('tmp')
 %convert dates
 dnum_start = datenum(date_start,'yyyymmdd');
 dnum_stop  = datenum(date_stop,'yyyymmdd');
-
-for i=1:length(site_id_list)
-    radar_id    = site_id_list(i);
-    s3_path     = [s3_in,num2str(radar_id,'%02.0f'),'/',num2str(s3_year),'/'];
+for i=1:length(siteinfo_id_list)
+    radar_id    = siteinfo_id_list(i);
+    s3_path     = [s3_in,num2str(radar_id,'%02.0f'),'/',num2str(s3_year),'/12/31/'];
     cmd         = [prefix_cmd,'aws s3 ls ',s3_path,' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
@@ -45,11 +44,11 @@ for i=1:length(site_id_list)
         h5_path    = h5_ffn(1:h5_fn_idx(end));
         h5_fn      = h5_ffn(h5_fn_idx(end)+1:end);
         if strcmp(h5_fn(3),'_')
-            display('file already renamed, skipping')
+            %display('file already renamed, skipping')
             continue
         end
         h5_date    = datenum(h5_fn(1:12),'yyyymmddHHMM');
-        if h5_date<dnum_start || h5_date>dnum_stop
+        if floor(h5_date)<dnum_start || floor(h5_date)>dnum_stop
             msg = ['skipping ',h5_fn,' r_date outside stop/start dates'];
             continue
         end

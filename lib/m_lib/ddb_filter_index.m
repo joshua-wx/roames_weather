@@ -17,7 +17,7 @@ pending_ffn_list = {};
 %read staging index
 oldest_time_str = datestr(oldest_time,ddb_tfmt);
 newest_time_str = datestr(newest_time,ddb_tfmt);
-storm_atts      = 'data_ffn,radar_id'; %attributes to return
+ddb_atts        = 'data_ffn,radar_id'; %attributes to return
 
 for i = 1:length(part_key_value)
     %run query for radar id
@@ -26,7 +26,7 @@ for i = 1:length(part_key_value)
     else
         part_key_str = datestr(part_key_value(i),ddb_dateid_tfmt);
     end
-    jstruct          = ddb_query(part_key_name,part_key_str,sort_key_name,oldest_time_str,newest_time_str,storm_atts,ddb_table);
+    jstruct          = ddb_query(part_key_name,part_key_str,sort_key_name,oldest_time_str,newest_time_str,ddb_atts,ddb_table);
     %if not empty
     if ~isempty(jstruct)
         %extract data ffn list
