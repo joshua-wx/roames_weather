@@ -24,7 +24,7 @@ tar(tar_fn,{'run_process.sh','process','run','etc/'})
 
 display('scp')
 %historical
-ec2_ip      = '13.55.184.224';
+ec2_ip      = '13.55.80.127';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_process'])
 % %realtime
 % ec2_ip      = '52.64.180.181';
