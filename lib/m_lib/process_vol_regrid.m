@@ -93,11 +93,11 @@ dualpol_flag = false;
 %regrid if sig_refl
 if sig_flag
     %load transformation coords
-    load(transform_fn,'radar_coords','filter_ind');
+    load(transform_fn,'radar_coords');
     radar_coords     = double(radar_coords)./100;
 
     %apply boundary filter
-    filter_ind       = boundary_filter(radar_coords,min(elv_vec),max(elv_vec),min(vol_rng_vec),max_range);
+    filter_ind       = boundary_filter(radar_coords,min(elv_vec),max(elv_vec),min(vol_rng_vec),max(vol_rng_vec));
     radar_coords     = radar_coords(filter_ind,:);
     %convert to pixel coords
     [pix_azi,pix_rng,pix_elv] = vec2pix(vol_azi_vec,vol_rng_vec,elv_vec,radar_coords);
