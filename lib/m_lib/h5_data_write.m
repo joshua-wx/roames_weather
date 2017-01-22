@@ -58,12 +58,8 @@ deflate_scal = 9;
 %setup data variable
 dataspace_id = H5S.create_simple(length(h5_size), h5_size, h5_size);
 plist        = H5P.create('H5P_DATASET_CREATE');
-try
 H5P.set_chunk(plist, chunk_size);
 H5P.set_deflate(plist, deflate_scal);
-catch
-    keyboard
-end
 
 %create data variable
 dataset_id = H5D.create(group_id,data_name,'H5T_STD_I16LE',dataspace_id, 'H5P_DEFAULT', plist, 'H5P_DEFAULT');

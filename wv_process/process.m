@@ -192,7 +192,7 @@ while exist('tmp/kill_process','file')==2
                     [nn_snd_fz_h,nn_snd_minus20_h] = eraint_ddb_extract(vol_obj.start_timedate,radar_id,eraint_ddb_table);
                 end
                 %run ident
-                prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                  prc_obj = ewt2ident(vol_obj,ewt_refl_image,refl_vol,vel_vol,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
                 prc_obj = {};
             end
