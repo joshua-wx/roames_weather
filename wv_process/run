@@ -4,5 +4,5 @@ mkdir tmp
 touch tmp/kill_process
 
 while [ -e tmp/kill_process ]; do
-    ./run_process.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+    ./run_process.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
 done
