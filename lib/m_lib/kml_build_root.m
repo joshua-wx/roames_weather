@@ -90,7 +90,7 @@ end
 %% Overlay Images
 
 %Build kml for screen Overlays (logos)
-overlay_str = ge_screenoverlay(overlay_str,'ROAMES Logo',[url_prefix,overlays_path,'ROAMES_logo.png'],.03,.04,0,.085,'','');
+overlay_str = ge_screenoverlay(overlay_str,'ROAMES Logo',[url_prefix,overlays_path,'ROAMES_logo.png'],.03,.04,0,.1,'','');
 overlay_str = ge_screenoverlay(overlay_str,'Refl Colorbar',[url_prefix,overlays_path,'refl_colorbar.png'],.96,.1,0,.4,'','');
 overlay_str = ge_screenoverlay(overlay_str,'Vel Colorbar',[url_prefix,overlays_path,'vel_colorbar.png'],.92,.1,0,.4,'','');
 master_str  = ge_folder(master_str,overlay_str,'Overlays','',1);

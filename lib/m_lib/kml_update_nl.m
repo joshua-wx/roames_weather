@@ -1,16 +1,23 @@
-function kml_update_nl(kmlobj_struct)
+function kml_update_nl(kmlobj_struct,dest_root,radar_id_list,options)
 
+%init
+load('tmp/global.config.mat')
+load('tmp/kml.config.mat')
 
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
-
-%PPI Reflectivity
-if options(1)==1
-    generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',scan_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-end
-%PPI Velcoity
-if options(2)==1
-    generate_nl_ppi(radar_id,kmlobj_struct,'ppi_vradh',scan_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+for i=1:length(radar_id_list)
+    %set radar_id
+    radar_id = radar_id_list(i);
+    ppi_path = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
+    %PPI Reflectivity
+    if options(1)==1
+        generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+    end
+    %PPI Velcoity
+    if options(2)==1
+        generate_nl_ppi(radar_id,kmlobj_struct,'ppi_vradh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+    end
 end
 
 

@@ -21,15 +21,19 @@ cur_radar_lon = siteinfo_lon_list(radar_idx);
 
 %extract rid_list from vol_struct and filter out recent radars from
 %start_timedate
-rid_list    = [vol_struct.radar_id];
-time_list   = [vol_struct.start_timestamp];
+rid_list        = [vol_struct.radar_id];
+r_rng_list      = [vol_struct.radar_rng];
+time_list       = [vol_struct.start_timestamp];
 %filter out unique radar ids by radar_mask_time
-time_filter = minute(start_timestep - time_list) <= radar_mask_time;
-rid_list    = unique(rid_list(time_filter));
-
+time_filter     = minute(start_timestep - time_list) <= radar_mask_time;
+rid_list        = rid_list(time_filter);
+r_rng_list      = r_rng_list(time_filter);
+%extract unique radar_ids
+[rid_list,ia,~] = unique(rid_list);
+r_rng_list      = r_rng_list(ia);
 %loop through radar id list from input
 for i=1:length(rid_list)
-
+    
     %extract other radar id location
     radar_idx       = find(rid_list(i)==siteinfo_id_list);
     other_radar_lat = siteinfo_lat_list(radar_idx);
@@ -58,9 +62,11 @@ for i=1:length(rid_list)
     %For nonpriority radars, use weight1 = 7000, weight2 = 1
     %this gives 1.0 @ 0 km, 0.25 @ 100km, 0.1 @ 125km, 0 @ 180km
     
-    %compare radar weights with global weights
-    other_weight_grid = exp(-(radar_gcdist_grid.^2)./weight1)./weight2;
-    other_rid_grid    = ones(size(radar_lon_grid)).*rid_list(i);
+    %calculate weights of other radar
+    other_weight_grid  = exp(-(radar_gcdist_grid.^2)./weight1)./weight2;
+    dist_mask          = radar_gcdist_grid<=r_rng_list(i);
+    other_weight_grid  = other_weight_grid.*dist_mask; %apply dist mask
+    other_rid_grid     = ones(size(radar_lon_grid)).*rid_list(i);
     %mask other radar weights
     mask               = other_weight_grid>weight_grid;
     %update global grids

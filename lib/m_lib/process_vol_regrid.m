@@ -34,7 +34,7 @@ dataset_count = length(dataset_list);
 
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
-[vol_azi_vec,vol_rng_vec] = process_read_ppi_dims(h5_ffn,1);
+[vol_azi_vec,vol_rng_vec] = process_read_ppi_dims(h5_ffn,1,true);
 empty_vol  = nan(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
 empty_vec  = nan(dataset_count,1);
 dbzh_vol   = empty_vol;
@@ -99,6 +99,7 @@ if sig_flag
     %apply boundary filter
     filter_ind       = boundary_filter(radar_coords,min(elv_vec),max(elv_vec),min(vol_rng_vec),max(vol_rng_vec));
     radar_coords     = radar_coords(filter_ind,:);
+    
     %convert to pixel coords
     [pix_azi,pix_rng,pix_elv] = vec2pix(vol_azi_vec,vol_rng_vec,elv_vec,radar_coords);
 

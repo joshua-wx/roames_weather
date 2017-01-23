@@ -168,7 +168,7 @@ while exist('tmp/kill_kml','file')==2
                 download_start_td  = datenum([vol_name(4:16),'00'],r_tfmt); %remove seconds
             end
             %read range for masking
-            [~,rng_vec]        = process_read_ppi_dims(local_odimh5_fn,1);
+            [~,rng_vec]        = process_read_ppi_dims(local_odimh5_fn,1,true);
             radar_rng          = floor(max(rng_vec)/10)*10;
             %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
             %BEFORE KMLOBJ_STRUCT
@@ -236,6 +236,8 @@ while exist('tmp/kill_kml','file')==2
         %create mask information for storm cells
         storm_mask             = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords);
     end
+    update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
+    kml_update_nl(kmlobj_struct,dest_root,update_radar_list,options)
     keyboard
     %% process storm and track objects
     %build tracks using storm_mask and storm_jstruct!!!
@@ -244,10 +246,6 @@ while exist('tmp/kill_kml','file')==2
     %kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
 
     %% update kml network links
-    
-    %storm_to_kml (ie removing old data from the kml)
-    update_radar_list    = unique([[cur_vol_struct.radar_id],remove_radar_id]);
-    kml_update_nl(kmlobj_struct)
        
     keyboard
     %% ending loop

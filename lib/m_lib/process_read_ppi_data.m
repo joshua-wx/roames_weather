@@ -24,6 +24,8 @@ try
         %unpack data
         data(data == nodata | data == undetect) = nan;
         data = (data.*gain) + offset;
+        %wrap data (first azimuth = last azimuth)
+        data = [data,data(:,1)];
         %add to struct
         dataset_struct.(data_name) = struct('data',data,'quantity',quantity);
     end
@@ -36,7 +38,7 @@ try
         dataset_struct.data2.data = nan(size(data));
     end
     %read dimensions
-    [azi_vec,rng_vec] = process_read_ppi_dims(h5_ffn,dataset_no);
+    [azi_vec,rng_vec] = process_read_ppi_dims(h5_ffn,dataset_no,true);
     dataset_struct.atts = struct('NI',NI,'azi_vec',azi_vec,'rng_vec',rng_vec);
 catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
