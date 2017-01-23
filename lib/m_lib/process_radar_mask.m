@@ -13,7 +13,7 @@ load(transform_fn,'geo_coords')
 %preallocate
 [radar_lon_grid,radar_lat_grid] = meshgrid(geo_coords.radar_lon_vec,geo_coords.radar_lat_vec);
 weight_grid                     = zeros(size(radar_lon_grid));
-rid_grid                        = ones(size(radar_lon_grid)).*radar_id;
+rid_grid                        = zeros(size(radar_lon_grid));
 %extract current ids
 radar_idx     = find(radar_id==siteinfo_id_list);
 cur_radar_lat = siteinfo_lat_list(radar_idx);
@@ -36,8 +36,8 @@ for i=1:length(rid_list)
     
     %extract other radar id location
     radar_idx       = find(rid_list(i)==siteinfo_id_list);
-    other_radar_lat = siteinfo_lat_list(radar_idx);
-    other_radar_lon = siteinfo_lon_list(radar_idx);
+    other_radar_lat = roundn(siteinfo_lat_list(radar_idx),-2);
+    other_radar_lon = roundn(siteinfo_lon_list(radar_idx),-2);
     
     %skip for distant other sites
     [check_dist,~] = distance(cur_radar_lat,cur_radar_lon,other_radar_lat,other_radar_lon);
@@ -45,10 +45,9 @@ for i=1:length(rid_list)
         continue
     end
     
-    %create distance grid
+    %create distance grid from target radar to other radar
     radar_gcdist_grid = earth_rad.*acos(sind(other_radar_lat).*sind(radar_lat_grid)+...
                         cosd(other_radar_lat).*cosd(radar_lat_grid).*cosd(abs(radar_lon_grid-other_radar_lon)));
-
     %calculating weights
     if ismember(rid_list(i),priority_id_list) %priority radars
         weight1  = 7000;
@@ -68,10 +67,10 @@ for i=1:length(rid_list)
     other_weight_grid  = other_weight_grid.*dist_mask; %apply dist mask
     other_rid_grid     = ones(size(radar_lon_grid)).*rid_list(i);
     %mask other radar weights
-    mask               = other_weight_grid>weight_grid;
+    weight_mask        = other_weight_grid>weight_grid;
     %update global grids
-    weight_grid(mask)  = other_weight_grid(mask);
-    rid_grid(mask)     = other_rid_grid(mask);
+    weight_grid(weight_mask) = other_weight_grid(weight_mask);
+    rid_grid(weight_mask)    = other_rid_grid(weight_mask);
 end
 
 %create mask grid

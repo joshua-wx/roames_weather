@@ -39,7 +39,9 @@ master_str   = '';
 
 %create path as required
 if local_dest_flag==1
-    rmdir(dest_root,'s');
+    if exist(dest_root,'file') == 7
+        rmdir(dest_root,'s');
+    end
     mkdir(dest_root);
     mkdir([dest_root,ppi_obj_path]);
     mkdir([dest_root,track_obj_path]);

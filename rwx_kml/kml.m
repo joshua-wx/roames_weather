@@ -233,7 +233,7 @@ while exist('tmp/kill_kml','file')==2
         [ppi_mask,geo_coords]  = process_radar_mask(radar_id,start_timestep,vol_struct,transform_path);
         %create ppi kml
         kmlobj_struct          = kml_odimh5(kmlobj_struct,odimh5_fn,ppi_mask,radar_id,radar_step,dest_root,transform_path,options);
-        %create mask information for storm cells
+        %create mask information for storm cells in storm_jstruct
         storm_mask             = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords);
     end
     update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);

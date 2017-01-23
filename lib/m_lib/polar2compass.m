@@ -4,12 +4,15 @@ function [newAngle] = polar2compass(oldAngle)
 %
 %Soupy Alexander (2/4/2)
 
-for index = 1:length(oldAngle);
-    newAngle(index) = (360 - oldAngle(index)) + 90;
-    if newAngle(index) > 360;
-        newAngle(index) = newAngle(index) - 360;
-    end
-end
+newAngle = (360 - oldAngle) + 90;
+newAngle(newAngle > 360) = newAngle(newAngle > 360) - 360;
+
+%for index = 1:length(oldAngle);
+%    newAngle(index) = (360 - oldAngle(index)) + 90;
+%    if newAngle(index) > 360;
+%        newAngle(index) = newAngle(index) - 360;
+%    end
+%end
 
 
         

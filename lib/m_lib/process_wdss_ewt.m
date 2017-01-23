@@ -250,7 +250,7 @@ while ~isempty(neighbours)
     
 end
 %check if basin size in km is smaller than ewt_saliency threshold
-if size(basin,1)*(h_grid*1000)^2/10^6 < ewt_saliency
+if size(basin,1)*(deg2km(h_grid)*1000)^2/10^6 < ewt_saliency
     %Basin has not been caputred
     basin     = []; %empty stack
     foothills = [];

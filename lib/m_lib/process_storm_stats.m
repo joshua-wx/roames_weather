@@ -88,8 +88,8 @@ for i=1:length(extended_basin_stats)
     
     %compile stats
     %note all stats are from extended basin except for area_wdss
-    volume          =   sum(shink_mask(:))*h_grid^2*v_grid;
-    area            =   extended_basin_stats(i).Area*h_grid^2;
+    volume          =   sum(shink_mask(:))*deg2km(h_grid)^2*v_grid;
+    area            =   extended_basin_stats(i).Area*deg2km(h_grid)^2;
     maj_axis        =   extended_basin_stats(i).MajorAxisLength;
     min_axis        =   extended_basin_stats(i).MinorAxisLength;
     orient          =   extended_basin_stats(i).Orientation;

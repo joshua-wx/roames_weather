@@ -16,11 +16,9 @@ if exist(out_path,'file')~=7
     mkdir(out_path)
 end
 %% setup national latlon grid
-[max_lat,~] = reckon(min_lat,min_lon,km2deg(dist_y_km),180);
-[~,max_lon] = reckon(min_lat,min_lon,km2deg(dist_x_km),90);
-lat_vec     = linspace(min_lat,max_lat,dist_y_km/h_grid);
-lon_vec     = linspace(min_lon,max_lon,dist_x_km/h_grid);
-alt_vec     = v_grid:v_grid:v_tops;
+lat_vec = max_lat:-h_grid:min_lat; %matrix coords
+lon_vec = min_lon:h_grid:max_lon;
+alt_vec = v_grid:v_grid:v_tops;
 
 %% generate radar grids
 for i=1:length(radar_id_list)
@@ -29,8 +27,8 @@ for i=1:length(radar_id_list)
 	siteinfo_idx    = find(radar_id_list(i)==siteinfo_id_list);
 	%extract current ids
     radar_id        = siteinfo_id_list(siteinfo_idx);
-    radar_lat       = siteinfo_lat_list(siteinfo_idx);
-    radar_lon       = siteinfo_lon_list(siteinfo_idx);
+    radar_lat       = roundn(siteinfo_lat_list(siteinfo_idx),-2);
+    radar_lon       = roundn(siteinfo_lon_list(siteinfo_idx),-2);
     radar_alt       = siteinfo_alt_list(siteinfo_idx)/1000;
     radar_alt_vec   = alt_vec + radar_alt;
 
@@ -51,7 +49,7 @@ for i=1:length(radar_id_list)
     geo_coords       = struct('radar_lon_vec',radar_lon_vec,'radar_lat_vec',radar_lat_vec,'radar_alt_vec',radar_alt_vec,...
         'radar_lat',radar_lat,'radar_lon',radar_lon,'radar_alt',radar_alt);
     radar_coords     = [radar_azi_grid(:),radar_rng_grid(:),radar_elv_grid(:)];
-    grid_size         = size(radar_azi_grid);
+    grid_size        = size(radar_azi_grid);
     %convert to more efficent types
     radar_coords     = uint16(radar_coords.*100);
     img_azi          = radar_azi_grid(:,:,1);

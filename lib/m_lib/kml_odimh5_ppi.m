@@ -28,10 +28,14 @@ end
 domain_mask          = img_atts.radar_mask;
 ppi_img(~domain_mask) = min_value;
 
-%build png
-png_ffn     = [tempdir,data_tag,'.png'];
-alpha_map   = ones(length(img_cmap),1); alpha_map(1) = 0;
+%transform into png
 ppi_img_png = png_transform(ppi_img,'refl',min_value);
+%resize png (smoother in GE)
+[ppi_img_png,img_cmap] = imresize(ppi_img_png,img_cmap,ppi_resize_scale,'nearest','Colormap','original');
+%build alpha map
+alpha_map   = ones(length(img_cmap),1); alpha_map(1) = 0;
+%write to file
+png_ffn     = [tempdir,data_tag,'.png'];
 imwrite(ppi_img_png,img_cmap,png_ffn,'Transparency',alpha_map);
 
 %wrap in kmz and generate link

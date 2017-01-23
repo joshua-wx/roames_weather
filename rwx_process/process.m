@@ -158,7 +158,7 @@ while exist('tmp/kill_process','file')==2
         pending_h5_fn_list = {download_path_dir.name};
 
         %primary loop
-        for i=53:length(pending_h5_fn_list)
+        for i=1:length(pending_h5_fn_list)
             display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
             %init local filename for processing
             h5_ffn = [download_path,pending_h5_fn_list{i}];
