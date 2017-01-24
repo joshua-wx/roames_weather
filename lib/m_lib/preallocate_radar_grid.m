@@ -54,7 +54,7 @@ for i=1:length(radar_id_list)
     radar_coords     = uint16(radar_coords.*100);
     img_azi          = radar_azi_grid(:,:,1);
     img_rng          = radar_rng_grid(:,:,1);
-    img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
+    img_latlonbox    = [max(radar_lat_vec)+h_grid/2;min(radar_lat_vec)-h_grid/2;max(radar_lon_vec)+h_grid/2;min(radar_lon_vec)-h_grid/2]; %including offets to corners
     %save
     tmp_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
     save(out_fn,'radar_coords','geo_coords','grid_size','img_azi','img_rng','img_latlonbox')
