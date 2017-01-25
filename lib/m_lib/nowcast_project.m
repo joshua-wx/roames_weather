@@ -1,4 +1,4 @@
-function [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = project_storm_nowcast(tn1_ident_ind,storm_jstruct)
+function [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(tn1_ident_ind,storm_jstruct)
 %WHAT: Generates a projected azi and arc form the line of best fit for the
 %track ending with tn1_ident_ind (maximum length of line fit is limited).
 %Also calculated projected 1 minute difference in vil from linear fit.

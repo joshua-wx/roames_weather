@@ -210,7 +210,7 @@ while exist('tmp/kill_kml','file')==2
     %% query storm ddb
     %query storm ddb
     date_list         = floor(oldest_time):floor(newest_time);
-    storm_atts        = 'radar_id,start_timestamp,subset_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+    storm_atts        = 'date_id,sort_id,domain_mask,radar_id,start_timestamp,subset_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
     storm_jstruct     = [];
     %collate multiple date_id's (these must be unique in query request)
     for i=1:length(date_list)
@@ -218,10 +218,13 @@ while exist('tmp/kill_kml','file')==2
         temp_jstruct  = ddb_query('date_id',date_id,'sort_id',datestr(oldest_time,ddb_tfmt),datestr(newest_time,ddb_tfmt),storm_atts,storm_ddb_table);
         storm_jstruct = [storm_jstruct,temp_jstruct];
     end
+    %remove storm_jstruct not from radar_id_list
+    storm_radar_id    = jstruct_to_mat([storm_jstruct.radar_id],'N');
+    filt_idx          = ismember(storm_radar_id,radar_id_list);
+    storm_jstruct     = storm_jstruct(filt_idx);
     
     %% process volumes to kml objects
     %loop through radar id list
-    storm_mask = false(length(storm_jstruct),1);
     for i=1:length(cur_vol_struct)
         %extract file vars
         radar_id               = cur_vol_struct(i).radar_id;
@@ -234,20 +237,22 @@ while exist('tmp/kill_kml','file')==2
         %create ppi kml
         kmlobj_struct          = kml_odimh5(kmlobj_struct,odimh5_fn,ppi_mask,radar_id,radar_step,dest_root,transform_path,options);
         %create mask information for storm cells in storm_jstruct
-        storm_mask             = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords);
+        storm_jstruct          = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords);
     end
-    update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
-    kml_update_nl(kmlobj_struct,dest_root,update_radar_list,options)
-    keyboard
     %% process storm and track objects
     %build tracks using storm_mask and storm_jstruct!!!
+    filt_mask          = jstruct_to_mat([storm_jstruct.domain_mask],'N');
+    storm_jstruct_filt = storm_jstruct(logical(filt_mask));
+    tracking_out       = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
+    
     %use tracks, cell masks to generate storm and track kml
     %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
     %kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
 
-    %% update kml network links
-       
+    update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
+    kml_update_nl(kmlobj_struct,dest_root,update_radar_list,options)
     keyboard
+    
     %% ending loop
     %Update user
     disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
@@ -308,31 +313,17 @@ end
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
 
-function radar_step = calc_radar_step(vol_struct,radar_id)
-%init
-radar_id_list   = [vol_struct.radar_id];
-radar_time_list = [vol_struct.start_timestamp];
-%filter my radar id
-filter_mask     = radar_id_list==radar_id;
-radar_time_list = radar_time_list(filter_mask);
-%sort time
-radar_time_list = sort(radar_time_list);
-%calc time step
-if length(radar_time_list) == 1
-    radar_step = 10; %minutes
-else
-    all_steps  = round((radar_time_list(2:end)-radar_time_list(1:end-1))*24*60);
-    radar_step = mode(all_steps);
-end
-
-function storm_mask = mask_storm_cells(radar_id,start_timestep,storm_mask,storm_jstruct,ppi_mask,geo_coords)
+function storm_jstruct = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords)
 load('tmp/global.config.mat')
 
 %init
+storm_date_id         = jstruct_to_mat([storm_jstruct.date_id],'N');
+storm_sort_id         = jstruct_to_mat([storm_jstruct.sort_id],'S');
+storm_mask            = jstruct_to_mat([storm_jstruct.domain_mask],'N');
 storm_radar_id        = jstruct_to_mat([storm_jstruct.radar_id],'N');
 storm_start_timestamp = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
 storm_lat             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
-storm_lon             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
+storm_lon             = jstruct_to_mat([storm_jstruct.storm_dbz_centlon],'N');
 
 %filter out radar_id and start_timestep
 filter_idx            = find(storm_radar_id==radar_id & storm_start_timestamp==start_timestep);
@@ -346,7 +337,15 @@ for i=1:length(filter_idx)
     [~,j_idx]  = min(abs(geo_coords.radar_lon_vec - target_lon));
     %extract ppi mask and update storm_mask
     target_mask = ppi_mask(i_idx,j_idx);
-    storm_mask(filter_idx) = logical(target_mask);
+    %check storm_jstruct against target_mask
+    if storm_mask(filter_idx(i))~=target_mask
+        %update local jstruct and ddb
+        part_value   = storm_date_id(filter_idx(i));
+        sort_value   = storm_sort_id(filter_idx(i));
+        update_value = num2str(target_mask);
+        storm_jstruct(filter_idx(i)).domain_mask.N = num2str(target_mask);
+        ddb_update('date_id','N',part_value,'sort_id','S',sort_value,'domain_mask','N',update_value,storm_ddb_table);
+    end
 end
     
 
