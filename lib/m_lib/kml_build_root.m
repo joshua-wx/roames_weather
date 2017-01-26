@@ -93,8 +93,8 @@ end
 
 %Build kml for screen Overlays (logos)
 overlay_str = ge_screenoverlay(overlay_str,'ROAMES Logo',[url_prefix,overlays_path,'ROAMES_logo.png'],.03,.04,0,.1,'','');
-overlay_str = ge_screenoverlay(overlay_str,'Refl Colorbar',[url_prefix,overlays_path,'refl_colorbar.png'],.96,.1,0,.4,'','');
-overlay_str = ge_screenoverlay(overlay_str,'Vel Colorbar',[url_prefix,overlays_path,'vel_colorbar.png'],.92,.1,0,.4,'','');
+overlay_str = ge_screenoverlay(overlay_str,'dbzh Colorbar',[url_prefix,overlays_path,'dbzh_colorbar.png'],.96,.1,0,.4,'','');
+overlay_str = ge_screenoverlay(overlay_str,'vradh Colorbar',[url_prefix,overlays_path,'vradh_colorbar.png'],.92,.1,0,.4,'','');
 master_str  = ge_folder(master_str,overlay_str,'Overlays','',1);
 
 %% Coverage kml
@@ -133,8 +133,8 @@ if ~strcmp(dest_root(1:2),'s3') && exist([dest_root,'overlays/'],'file')~=7
 end
 file_mv([tempdir,'coverage.kml'],[dest_root,'overlays/coverage.kml'])
 file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'ROAMES_logo.png'],0,1)
-file_cp([pwd,'/etc/',overlays_path,'refl_colorbar.png'],[dest_root,overlays_path,'refl_colorbar.png'],0,1)
-file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,'vel_colorbar.png'],0,1)
+file_cp([pwd,'/etc/',overlays_path,'dbzh_colorbar.png'],[dest_root,overlays_path,'dbzh_colorbar.png'],0,1)
+file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_path,'vradh_colorbar.png'],0,1)
 
 %% build ppi groups kml
 
@@ -143,11 +143,11 @@ display('building ppi nl kml')
 ppi_str  = ppi_style_str;
 if options(1)==1
     tmp_str   = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI Reflectivity','',1);
+    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI DBZH','',1);
 end
 if options(2)==1
     tmp_str   = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI Doppler Velocity','',1);
+    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
 end
 
 if any(options(1:2))

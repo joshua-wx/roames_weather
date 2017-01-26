@@ -1,4 +1,4 @@
-function kmlobj_struct = kml_storm(kmlobj_struct,storm_jstruct,vol_struct,storm_tracking,download_ffn_list,dest_root,options)
+function kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct,tracking_id,download_ffn_list,dest_root,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure for a single radar_id
@@ -16,29 +16,9 @@ else
     return
 end
 
-%init vars
-stat_kml          = '';
-track_kml         = '';
-swath_kml         = '';
-nowcast_kml       = '';
-nowcast_stat_kml  = '';
-
-%NEED TO FIX THIS SECTION - HOW WILL THE STORM/TRACK OBJECTS BE STRUCTURED
-%IN KML?
-
-%init paths
-stats_ffn         = [dest_root,track_obj_path,radar_id_str,'/stat_',radar_id_str,'.kml'];
-track_ffn         = [dest_root,track_obj_path,radar_id_str,'/track_',radar_id_str,'.kml'];
-swath_ffn         = [dest_root,track_obj_path,radar_id_str,'/swath_',radar_id_str,'.kml'];
-nowcast_ffn       = [dest_root,track_obj_path,radar_id_str,'/nowcast_',radar_id_str,'.kml'];
-nowcast_stats_ffn = [dest_root,track_obj_path,radar_id_str,'/nowcast_stat_',radar_id_str,'.kml'];
-
-cell_path  = [cell_obj_path,radar_id_str,'/'];
-
 %init index of xsec alts from vol_alt
 xsec_idx = [];
-r_alt    = siteinfo_alt_list(siteinfo_id_list==radar_id)/1000;
-vol_alt  = [v_grid:v_grid:v_tops]'+r_alt;
+vol_alt  = [v_grid:v_grid:v_tops];
 for i=1:length(xsec_alt)
     [~,tmp_idx] = min(abs(xsec_alt(i)-vol_alt));
     xsec_idx    = [xsec_idx;tmp_idx];
@@ -47,12 +27,12 @@ end
 %% generate cell objects
 for i=1:length(download_ffn_list)
     %extract parts
-    [~,temp_fn,~] = fileparts(download_ffn_list(i));
+    [~,temp_fn,~] = fileparts(download_ffn_list{i});
     %calc stop_time
     radar_id   = str2num(temp_fn(1:2));
     radar_step = calc_radar_step(vol_struct,radar_id);
     %extract data_tag
-    data_tag       = temp_fn(1:end-7);
+    data_tag       = temp_fn(1:end-3);
     data_start_ts  = datenum(data_tag(4:end),r_tfmt);
     data_stop_ts   = addtodate(data_start_ts,radar_step,'minute');
     %% cell_objects
@@ -61,6 +41,8 @@ for i=1:length(download_ffn_list)
     %check for a h5 dataset with the tar
     if exist(h5_ffn,'file') == 2
         %list groups
+        keyboard
+        %THESE FILES ARE NOT UNTARED
         h5_info   = h5info(h5_ffn);
         n_groups  = length(h5_info.Groups);
         %convert each group to volume
@@ -84,7 +66,7 @@ for i=1:length(download_ffn_list)
             %Refl xsections
             if options(3)==1
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_xsec(dest_root,cell_path,storm_tag,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'refl');
+                    [link,ffn]    = kml_storm_xsec(dest_root,cell_obj_path,storm_tag,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'refl');
                     kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_refl',link,ffn);
                 end
             end
@@ -92,18 +74,18 @@ for i=1:length(download_ffn_list)
             if options(4)==1 && vol_vel_ni~=0
                 vel_vol         = double(storm_data_struct.vel_vol)./r_scale;
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_xsec(dest_root,cell_path,storm_tag,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vel');
+                    [link,ffn]    = kml_storm_xsec(dest_root,cell_obj_path,storm_tag,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vel');
                     kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vel',link,ffn);
                 end
             end    
             %inner iso
             if options(5)==1
-                [link,ffn]    = kml_storm_collada(dest_root,cell_path,storm_tag,'inneriso',smooth_refl_vol,storm_latlonbox);
+                [link,ffn]    = kml_storm_collada(dest_root,cell_obj_path,storm_tag,'inneriso',smooth_refl_vol,storm_latlonbox);
                 kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso',link,ffn);
             end
             %outer iso
             if options(6)==1
-                [link,ffn]    = kml_storm_collada(dest_root,cell_path,storm_tag,'outeriso',smooth_refl_vol,storm_latlonbox);
+                [link,ffn]    = kml_storm_collada(dest_root,cell_obj_path,storm_tag,'outeriso',smooth_refl_vol,storm_latlonbox);
                 kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso',link,ffn);
             end
         end
@@ -150,6 +132,21 @@ end
 
 
 
+
+
+%init paths
+stats_ffn         = [dest_root,track_obj_path,'/stat.kml'];
+track_ffn         = [dest_root,track_obj_path,'/track.kml'];
+swath_ffn         = [dest_root,track_obj_path,'/swath.kml'];
+nowcast_ffn       = [dest_root,track_obj_path,'/nowcast.kml'];
+nowcast_stats_ffn = [dest_root,track_obj_path,'/nowcast_stat.kml'];
+
+%init vars
+stat_kml          = '';
+track_kml         = '';
+swath_kml         = '';
+nowcast_kml       = '';
+nowcast_stat_kml  = '';
 
 
 

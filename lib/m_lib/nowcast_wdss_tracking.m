@@ -1,4 +1,4 @@
-function storm_track_id = nowcast_wdss_tracking(storm_jstruct,vol_struct)
+function tracking_id_out = nowcast_wdss_tracking(storm_jstruct,vol_struct)
 %WHAT: For the curr dt and curr radar id, the assocaited cells in
 %ident are checks using nn and forecasting methods for temporal and spatial
 %association with other cells in ident. Tracks are compiled using ident id
@@ -18,8 +18,7 @@ function storm_track_id = nowcast_wdss_tracking(storm_jstruct,vol_struct)
 %load vars
 load('tmp/global.config.mat');
 %new vars
-storm_track_id = zeros(length(storm_jstruct),1);
-next_track_id  = 1;
+tracking_id_out = [];
 %abort as necessary
 if length(vol_struct)<2
     %only one scan, cannot track
@@ -42,10 +41,11 @@ storm_db.subset_id       = storm_subset_id;
 storm_db.start_timestamp = storm_start_timestamp;
 storm_db.lat             = storm_lat;
 storm_db.lon             = storm_lon;
-storm_db.track_id        = storm_track_id;
+storm_db.track_id        = zeros(length(storm_jstruct),1);
 storm_db.area            = storm_area;
 storm_db.cell_vil        = storm_cell_vil;
 
+next_track_id            = 1;
 %needs to loop by sorted timestamps, tracking applied for all cells in a
 %shared timestep (tn1). tn cells are filtered by cells in the future?
 %remember the differing timesteps between radars!
@@ -55,13 +55,12 @@ uniq_start_timestamp = unique(storm_start_timestamp);
 for j=1:length(uniq_start_timestamp)
 
     %extract ind of tn and tn1 cells from ident_db
-    tn_timestamp  = uniq_start_timestamp(j);
-    tn_storm_ind  = find(storm_db.start_timestamp==tn_timestamp);
-    tn1_storm_ind = tn1_search(storm_db,vol_struct,tn_timestamp);
+    tn_dt         = uniq_start_timestamp(j);
+    tn_storm_ind  = find(storm_db.start_timestamp==tn_dt);
+    tn1_storm_ind = tn1_search(storm_db,vol_struct,tn_dt);
     %tn1 index need to be index of previous timestamp from all radars (then
     %filter using their step? and distance?
     
-
     %skip if no tn1 ind or tn ind
     if isempty(tn1_storm_ind) || isempty(tn_storm_ind)
         continue
@@ -81,7 +80,8 @@ for j=1:length(uniq_start_timestamp)
     tn1_storm_ind_with_tracks = [];
 
     %extract simple_ids
-    tn1_track_id = storm_track_id(tn1_storm_ind);
+    storm_track_id = storm_db.track_id;
+    tn1_track_id   = storm_track_id(tn1_storm_ind);
 
     %find track_id for tn1 which exist more than once in storm_id (these are tracks)
     tmp_mask                  = tn1_track_id~=0;
@@ -259,7 +259,8 @@ for j=1:length(uniq_start_timestamp)
 end
     
 %output
-storm_track_id = [storm_db.track_id];
+tracking_id_out = storm_db.track_id;
+
 
 function cost_score=cost_function(tn_storm_ind,tn1_storm_ind,tn1_proj_lat,tn1_proj_lon,storm_db)
 %WHAT: Calculates cost function for every tn1_storm_ind : tn_storm_ind
@@ -287,10 +288,10 @@ tn1_ind_vil  = storm_db.cell_vil(tn1_storm_ind);
 
 %calculate cost score for every pair
 for i=1:length(tn1_storm_ind)
-    cost_score(i) = ((tn_ind_lat(i)-tn1_ind_lat(i))^2+(tn_ind_lon(i)-tn1_ind_lon(i))^2)...
-        + (tn1_ind_area(i)/pi) * ( (abs(tn_ind_area(i)-tn1_ind_area(i))...
-        / max([tn_ind_area(i),tn1_ind_area(i)]))...
-        + ((abs(tn_ind_vil(i)-tn1_ind_vil(i))/max([tn_ind_vil(i),tn1_ind_vil(i)]))) );
+    cost_score(i) = ((tn_ind_lat(i)-tn1_ind_lat(i))^2+(tn_ind_lon(i)-tn1_ind_lon(i))^2) +...
+        (tn1_ind_area(i)/pi) * ( (abs(tn_ind_area(i)-tn1_ind_area(i)) /...
+        max([tn_ind_area(i),tn1_ind_area(i)])) +...
+        ((abs(tn_ind_vil(i)-tn1_ind_vil(i))/max([tn_ind_vil(i),tn1_ind_vil(i)]))) );
 end
 
 function tn1_storm_ind = tn1_search(storm_db,vol_struct,tn_timestamp)

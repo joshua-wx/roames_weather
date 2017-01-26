@@ -1,4 +1,4 @@
-function [link,ffn] = kml_xsec(dest_root,dest_path,data_tag,storm_vol,xsec_idx,xsec_alt,storm_latlonbox,cmap,min_value,data_type)
+function [link,ffn] = kml_storm_xsec(dest_root,dest_path,data_tag,storm_vol,xsec_idx,xsec_alt,storm_latlonbox,cmap,min_value,data_type)
 
 
 %extract layer and extract from volume
