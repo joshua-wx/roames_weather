@@ -243,11 +243,10 @@ while exist('tmp/kill_kml','file')==2
     %build tracks using storm_mask and storm_jstruct!!!
     filt_mask          = jstruct_to_mat([storm_jstruct.domain_mask],'N');
     storm_jstruct_filt = storm_jstruct(logical(filt_mask));
-    tracking_out       = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
+    storm_tracking     = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
     
     %use tracks, cell masks to generate storm and track kml
-    %kmlobj_struct = kml_stormh5(kmlobj_struct,vol_struct,storm_jstruct,radar_id,radar_step,download_stormh5_list,dest_root,options);
-    %kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,kml_radar_list,oldest_time,newest_time,dest_root,options);
+    kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct,storm_tracking,download_stormh5_list,dest_root,options);
 
     update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
     kml_update_nl(kmlobj_struct,dest_root,update_radar_list,options)

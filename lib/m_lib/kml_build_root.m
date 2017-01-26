@@ -59,7 +59,7 @@ else
     url_prefix = '';
 end
 
-%% Scan Styles
+%% PPI Styles
 ppi_style_str = '';
 ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1,1]),1);
 
@@ -109,13 +109,13 @@ for i=1:length(site_no_selection)
     %append site latlonbox
     site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
     %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../scan.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 
 %% build master network links
 %Layers kml network link
-master_str = ge_networklink(master_str,'Scan Imagery',[url_prefix,'scan.kml'],0,0,'','','','',1);
+master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'ppi.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Track Objects',[url_prefix,'track.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Cell Objects',[url_prefix,'cell.kml'],0,0,'','','','',1);
 
@@ -136,9 +136,9 @@ file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'
 file_cp([pwd,'/etc/',overlays_path,'refl_colorbar.png'],[dest_root,overlays_path,'refl_colorbar.png'],0,1)
 file_cp([pwd,'/etc/',overlays_path,'vel_colorbar.png'],[dest_root,overlays_path,'vel_colorbar.png'],0,1)
 
-%% build scan groups kml
+%% build ppi groups kml
 
-%scan.kml
+%ppi.kml
 display('building ppi nl kml')
 ppi_str  = ppi_style_str;
 if options(1)==1
@@ -157,8 +157,8 @@ end
 ppi_str  = ge_networklink(ppi_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
 
 temp_ffn = tempname;
-ge_kml_out(temp_ffn,'Scan Objects',ppi_str);
-file_mv(temp_ffn,[dest_root,'scan.kml']);
+ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
+file_mv(temp_ffn,[dest_root,'ppi.kml']);
 wait_aws_finish
 
 %track.kml
@@ -235,7 +235,7 @@ for i=1:length(radar_id_list)
     kml_name     = radar_id_str;
     kml_fn       = [kml_path,prefix,'_',radar_id_str,'.kml'];
     kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,60,region_kml,'','',1); %refresh every minute or onRegion
-    %init radar offline kml network link for scans, empty for others
+    %init radar offline kml network link for ppis, empty for others
     if strcmp(prefix(1:3),'ppi')
         kml2_nl = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
     else

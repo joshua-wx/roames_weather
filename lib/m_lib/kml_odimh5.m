@@ -10,10 +10,10 @@ load('tmp/site_info.txt.mat')
 load('tmp/kml.config.mat')
 
 %init vars
-scan_path    = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
+ppi_path     = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
 
-%% scan ground overlays ########### CHANGE LOOP TO RUN odimh5_fn_list
+%% ppi ground overlays ########### CHANGE LOOP TO RUN odimh5_fn_list
     
 %load transform
 load(transform_fn,'img_azi','img_rng','img_latlonbox')
@@ -29,15 +29,15 @@ vol_stop_time            = addtodate(vol_start_time,radar_step,'minute');
 %PPI Reflectivity
 if options(1)==1
     %create kml for refl ppi
-    scan_tag                  = [data_tag,'.ppi_dbzh.elv_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn]                = kml_odimh5_ppi(scan_path,scan_tag,img_atts,ppi_struct,1);
+    ppi_tag                   = [data_tag,'.ppi_dbzh.elv_',num2str(ppi_elv,'%02.1f')];
+    [link,ffn]                = kml_odimh5_ppi(ppi_path,ppi_tag,img_atts,ppi_struct,1);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_dbzh',link,ffn);
 end
 %PPI Velocity
 if options(2)==1
     %create kml for vel ppi
-    scan_tag                  = [data_tag,'.ppi_vradh.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn]                = kml_odimh5_ppi(scan_path,scan_tag,img_atts,ppi_struct,2);
+    ppi_tag                   = [data_tag,'.ppi_vradh.sweep_',num2str(ppi_elv,'%02.1f')];
+    [link,ffn]                = kml_odimh5_ppi(ppi_path,ppi_tag,img_atts,ppi_struct,2);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_vradh',link,ffn);
 end
 

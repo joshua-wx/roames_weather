@@ -1,4 +1,4 @@
-function kmlobj_struct = kml_stormddb(kmlobj_struct,storm_jstruct,vol_struct,radar_id,oldest_time,newest_time,download_ffn_list,dest_root,options)
+function kmlobj_struct = kml_storm(kmlobj_struct,storm_jstruct,vol_struct,storm_tracking,download_ffn_list,dest_root,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure for a single radar_id
@@ -9,15 +9,22 @@ load('tmp/global.config.mat')
 load('tmp/site_info.txt.mat')
 load('tmp/kml.config.mat')
 
+%extract storm ids
+if ~isempty(storm_jstruct)
+    %storm_subset_id = jstruct_to_mat([storm_jstruct.subset_id],'N');
+else
+    return
+end
+
 %init vars
-oldest_time_str   = datestr(oldest_time,ddb_tfmt);
-newest_time_str   = datestr(newest_time,ddb_tfmt);
-radar_id_str      = num2str(radar_id,'%02.0f');
 stat_kml          = '';
 track_kml         = '';
 swath_kml         = '';
 nowcast_kml       = '';
 nowcast_stat_kml  = '';
+
+%NEED TO FIX THIS SECTION - HOW WILL THE STORM/TRACK OBJECTS BE STRUCTURED
+%IN KML?
 
 %init paths
 stats_ffn         = [dest_root,track_obj_path,radar_id_str,'/stat_',radar_id_str,'.kml'];
@@ -26,11 +33,9 @@ swath_ffn         = [dest_root,track_obj_path,radar_id_str,'/swath_',radar_id_st
 nowcast_ffn       = [dest_root,track_obj_path,radar_id_str,'/nowcast_',radar_id_str,'.kml'];
 nowcast_stats_ffn = [dest_root,track_obj_path,radar_id_str,'/nowcast_stat_',radar_id_str,'.kml'];
 
-scan_path  = [scan_obj_path,radar_id_str,'/'];        
 cell_path  = [cell_obj_path,radar_id_str,'/'];
-track_path = [track_obj_path,radar_id_str,'/'];      
 
-%init xsec alts
+%init index of xsec alts from vol_alt
 xsec_idx = [];
 r_alt    = siteinfo_alt_list(siteinfo_id_list==radar_id)/1000;
 vol_alt  = [v_grid:v_grid:v_tops]'+r_alt;
@@ -39,39 +44,17 @@ for i=1:length(xsec_alt)
     xsec_idx    = [xsec_idx;tmp_idx];
 end
 
-
-if ~isempty(storm_jstruct)
-    %remove non listed radars
-    temp_radar_id   = jstruct_to_mat([storm_jstruct.radar_id],'N');
-    radar_id_mask   = ismember(temp_radar_id,radar_id_list);
-    storm_jstruct   = storm_jstruct(radar_id_mask);
-    %calc radar timestep
-    radar_ts        = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-    if length(radar_ts) == 1
-        radar_timestep = 10;
-    elseif length(radar_ts) > 1
-        radar_timestep = mode(minute(radar_ts(2:end)-radar_ts(1:end-1)));
-    end
-end
-
-%extract storm ids
-if ~isempty(storm_jstruct)
-    storm_subset_id = jstruct_to_mat([storm_jstruct.subset_id],'N');
-else
-    storm_subset_id = {};
-end
-
-%generate storm track data
-keyboard
-
 %% generate cell objects
 for i=1:length(download_ffn_list)
     %extract parts
     [~,temp_fn,~] = fileparts(download_ffn_list(i));
+    %calc stop_time
+    radar_id   = str2num(temp_fn(1:2));
+    radar_step = calc_radar_step(vol_struct,radar_id);
     %extract data_tag
     data_tag       = temp_fn(1:end-7);
     data_start_ts  = datenum(data_tag(4:end),r_tfmt);
-    data_stop_ts   = addtodate(data_start_ts,radar_timestep,'minute');
+    data_stop_ts   = addtodate(data_start_ts,radar_step,'minute');
     %% cell_objects
     h5_fn  = [data_tag,'.storm.h5'];
     h5_ffn = [download_path,h5_fn];
@@ -86,12 +69,13 @@ for i=1:length(download_ffn_list)
             subset_id         = [datestr(data_start_ts,ddb_tfmt),'_',num2str(j,'%03.0f')];
             storm_tag         = [data_tag,'_',num2str(j,'%03.0f')];
             storm_jstruct_idx = find(ismember(storm_subset_id,subset_id));
+            %check if cell exists in storm_jstruct (may be masked out)
             %no matching subset_id entries in ddb
             if isempty(storm_jstruct_idx)
                 continue
             end
             %extract storm latlonbox
-            storm_latlonbox   = str2num(storm_jstruct(storm_jstruct_idx).storm_latlonbox.S)./geo_scale;
+            storm_latlonbox   = str2num(storm_jstruct(storm_jstruct_idx).storm_latlonbox.S);
             %extract struct from h5
             group_id          = num2str(j);
             storm_data_struct = h5_data_read(h5_fn,download_path,group_id);
@@ -162,6 +146,12 @@ if ~isempty(storm_jstruct)
         end
     end
 end
+
+
+
+
+
+
 
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
