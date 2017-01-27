@@ -1,4 +1,4 @@
-function [nowcast_kml,nowcast_stat_kml]=kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,tracking_id_list,track_id)
+function [nowcast_kml,nowcast_stat_kml]=kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id)
 %WHAT
 %for the inputted track 'cur_track', a forecast is produced from the end
 %cells using the historical data. Forecast data is saved as forecast swaths
@@ -24,6 +24,7 @@ load('tmp/kml.config.mat');
 
 name        = ['track_id_',num2str(track_id)];
 
+track_idx        = find(tracking_id_list==track_id);
 end_cell_idx     = track_idx(end);
 timestamp        = datenum(storm_jstruct(end_cell_idx).start_timestamp.S,ddb_tfmt);
 [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = kml_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,timestamp);
@@ -55,9 +56,9 @@ temp_end_dt = repmat(trck_dt(end),length(trck_dt),1);
 hist_min    = etime(datevec(temp_end_dt),datevec(trck_dt))/60;
 
 %preparing graph y data
-hist_vild   = trck_vil./trck_top.*1000;
+hist_vild   = trck_vil./trck_top;
 hist_mesh   = trck_mesh;
-hist_top    = trck_top./1000;
+hist_top    = trck_top;
 hist_min    = -hist_min;
 
 nowcast_stat_kml = ge_balloon_graph_placemark(nowcast_stat_kml,1,'../track.kml#balloon_graph_style',name,hist_min,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));

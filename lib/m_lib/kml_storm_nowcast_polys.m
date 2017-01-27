@@ -66,10 +66,10 @@ end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N);
 end_orient_x   = cosd(end_orient);
 end_orient_y   = -sind(end_orient);
 end_orient_n   = rad2deg(atan2(end_orient_x,end_orient_y));
-end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N);
-end_maj_axis   = km2deg(end_maj_axis*h_grid/1000)/2;
-end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N);
-end_min_axis   = km2deg(end_min_axis*h_grid/1000)/2;
+end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N)/2;
+end_maj_axis   = end_maj_axis*h_grid/2;
+end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N)/2;
+end_min_axis   = end_min_axis*h_grid/2;
 
 %project track from end_cell_idx(i)
 [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(end_cell_idx,storm_jstruct,tracking_id_list);

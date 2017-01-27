@@ -112,8 +112,9 @@ nowcast_stat_kml  = '';
 %process track objects (replaced every run)
 if ~isempty(storm_jstruct)
     % create unique track list
-    storm_timestamp_list  = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-    uniq_track_id_list = unique(tracking_id_list);
+    storm_radar_id_list  = jstruct_to_mat([storm_jstruct.radar_id],'N');
+    storm_timestamp_list = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+    uniq_track_id_list   = unique(tracking_id_list);
     %loop through tracks
     for i=1:length(uniq_track_id_list)
         track_id = uniq_track_id_list(i);
@@ -138,9 +139,15 @@ if ~isempty(storm_jstruct)
             swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
-        track_timestamp = storm_timestamp_list(track_idx);
-        if max(track_timestamp) == max(storm_timestamp_list) && options(10)==1
-            [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,track_idx,storm_jstruct,tracking_id_list,track_id);
+        if options(10)==1
+            %check timestamp of of last cell in track from radar n is the
+            %same time as the last scan from radar n
+            end_track_radar_id  = storm_radar_id_list(track_idx(end));
+            end_track_timestamp = storm_timestamp_list(track_idx(end));
+            last_radar_timestamp = max(storm_timestamp_list(storm_radar_id_list==end_track_radar_id));
+            if end_track_timestamp == last_radar_timestamp
+                [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id);
+            end
         end
     end
 end
