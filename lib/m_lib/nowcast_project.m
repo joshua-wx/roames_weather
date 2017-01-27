@@ -1,4 +1,4 @@
-function [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(tn1_ident_ind,storm_jstruct)
+function [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(tn1_ident_ind,storm_jstruct,tracking_id_list)
 %WHAT: Generates a projected azi and arc form the line of best fit for the
 %track ending with tn1_ident_ind (maximum length of line fit is limited).
 %Also calculated projected 1 minute difference in vil from linear fit.
@@ -27,11 +27,10 @@ forecast_offset = 1/24/60; %offset of 1 min
 load('tmp/global.config.mat');
 
 %decompose end cell track
-track_id           = jstruct_to_mat([storm_jstruct.track_id],'N');
 start_timedate     = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-tn1_track_id       = track_id(tn1_ident_ind);
+tn1_track_id       = tracking_id_list(tn1_ident_ind);
 tn1_start_timedate = start_timedate(tn1_ident_ind);
-trck_ind           = find(track_id==tn1_track_id & start_timedate<=tn1_start_timedate);
+trck_ind           = find(tracking_id_list==tn1_track_id & start_timedate<=tn1_start_timedate);
 %sort track index to time
 [~,sort_ix]        = sort(start_timedate(trck_ind));
 trck_ind           = trck_ind(sort_ix);
@@ -46,14 +45,14 @@ end
 
 %extract timedate, latloncent for each track cell from ident_db
 trck_dt_fsct    = start_timedate(trck_ind_fcst);
-trck_latcent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlat],'N')./geo_scale;
-trck_loncent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlon],'N')./geo_scale;
-trck_vil_fcst   = jstruct_to_mat([storm_jstruct(trck_ind_fcst).cell_vil],'N')./stats_scale;
+trck_latcent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlat],'N');
+trck_loncent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlon],'N');
+trck_vil_fcst   = jstruct_to_mat([storm_jstruct(trck_ind_fcst).cell_vil],'N');
 
 trck_dt          = start_timedate(trck_ind);
-trck_mesh       = jstruct_to_mat([storm_jstruct(trck_ind).max_mesh],'N')./stats_scale;
-trck_top        = jstruct_to_mat([storm_jstruct(trck_ind).max_tops],'N')./stats_scale;
-trck_vil        = jstruct_to_mat([storm_jstruct(trck_ind).cell_vil],'N')./stats_scale;
+trck_mesh       = jstruct_to_mat([storm_jstruct(trck_ind).max_mesh],'N');
+trck_top        = jstruct_to_mat([storm_jstruct(trck_ind).max_tops],'N');
+trck_vil        = jstruct_to_mat([storm_jstruct(trck_ind).cell_vil],'N');
 
 %calculate polyfit of lat lon cents
 [lat_p,lat_s,lat_mu] = polyfit(trck_dt_fsct,trck_latcent,1);

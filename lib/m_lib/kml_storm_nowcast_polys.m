@@ -1,4 +1,4 @@
-function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = storm_nowcast(track_idx,storm_jstruct,target_dt)
+function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = kml_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,target_dt)
 %WHAT
 %for the inputted track index list 'track_idx', nowcast elipsses are produced from the end
 %cells using the historical data.
@@ -60,19 +60,19 @@ end
 %% extract track
 
 %extract geometry of end cell
-dbz_centlat    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlat.N)./geo_scale;
-dbz_centlon    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlon.N)./geo_scale;
-end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N)./stats_scale;
+dbz_centlat    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlat.N);
+dbz_centlon    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlon.N);
+end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N);
 end_orient_x   = cosd(end_orient);
 end_orient_y   = -sind(end_orient);
 end_orient_n   = rad2deg(atan2(end_orient_x,end_orient_y));
-end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N)./stats_scale;
+end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N);
 end_maj_axis   = km2deg(end_maj_axis*h_grid/1000)/2;
-end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N)./stats_scale;
+end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N);
 end_min_axis   = km2deg(end_min_axis*h_grid/1000)/2;
 
 %project track from end_cell_idx(i)
-[proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = project_storm_nowcast(end_cell_idx,storm_jstruct);
+[proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(end_cell_idx,storm_jstruct,tracking_id_list);
 
 
 %set the intensity trend parameter using the boundary condition of

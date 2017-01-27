@@ -5,7 +5,7 @@ function [link,ffn] = kml_storm_xsec(dest_root,dest_path,data_tag,storm_vol,xsec
 xsec_data = flipud(storm_vol(:,:,xsec_idx));
 xsec_img  = image_transform(xsec_data,data_type,min_value);
 %init fn
-xsec_tag  = [data_tag,'.',data_type,'_',num2str(roundn(xsec_alt,2)),'m_xsec'];
+xsec_tag  = [data_tag,'_',data_type,'_',num2str(roundn(xsec_alt,2)),'m_xsec'];
 %write image and create kml
 png_fn   = [xsec_tag,'.png'];
 png_ffn  = [tempdir,png_fn];

@@ -161,28 +161,6 @@ ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
 file_mv(temp_ffn,[dest_root,'ppi.kml']);
 wait_aws_finish
 
-%track.kml
-display('building track nl kml')
-track_str  = track_style_str;
-if options(8)==1
-    tmp_str    = generate_radar_nl('track',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-    track_str  = ge_folder(track_str,tmp_str,'Storm Tracks','',1);
-end
-if options(9)==1
-    tmp_str    = generate_radar_nl('swath',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-    track_str  = ge_folder(track_str,tmp_str,'Storm Swaths','',1);
-end
-if options(10)==1
-    tmp_str    = generate_radar_nl('nowcast',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-    track_str  = ge_folder(track_str,tmp_str,'Storm Nowcasts','',1);
-    tmp_str    = generate_radar_nl('nowcast_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-    track_str  = ge_folder(track_str,tmp_str,'Nowcast Stats','',1);
-end
-temp_ffn = tempname;
-ge_kml_out(temp_ffn,'Track Objects',track_str);
-file_mv(temp_ffn,[dest_root,'track.kml']);
-wait_aws_finish
-
 %cell.kml
 display('building cell nl kml')
 cell_str  = cell_style_str;
@@ -202,14 +180,37 @@ if options(6)==1
     tmp_str   = generate_radar_nl('outeriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
     cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface','',1);
 end
-if options(7)==1
-    tmp_str   = generate_radar_nl('cell_stat',dest_root,track_obj_path,site_no_selection,site_latlonbox,track_minLodPixels,track_maxLodPixels,local_dest_flag);
-    cell_str  = ge_folder(cell_str,tmp_str,'Cell Stats','',1);
-end
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Cell Objects',cell_str);
 file_mv(temp_ffn,[dest_root,'cell.kml']);
+wait_aws_finish
+
+%track.kml
+display('building track nl kml')
+track_str  = track_style_str;
+if options(7)==1
+    tmp_str   = generate_nl('stat','Cell Stats',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+end
+if options(8)==1
+    tmp_str    = generate_nl('track','Tracks',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+end
+if options(9)==1
+    tmp_str    = generate_nl('swath','Swaths',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+end
+if options(10)==1
+    tmp_str    = generate_nl('nowcast','Nowcast',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+    tmp_str    = generate_nl('nowcast_stat','Nowcast Stats',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+end
+
+temp_ffn = tempname;
+ge_kml_out(temp_ffn,'Track Objects',track_str);
+file_mv(temp_ffn,[dest_root,'track.kml']);
 wait_aws_finish
 
 function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag)
@@ -244,6 +245,24 @@ for i=1:length(radar_id_list)
     %write out
     ge_kml_out([dest_root,kml_fn],kml_name,kml2_nl);
 end
+
+function kml_out = generate_nl(prefix,kml_name,dest_root,file_path,local_dest_flag)
+%WHAT: creates network links and empty kml points which the nl point for the specified prefix
+kml_out       = '';
+%loop through radar ids
+%generate ge region kml
+region_kml = '';
+%init paths
+kml_full_path = [dest_root,file_path];
+if local_dest_flag == 1 && exist(kml_full_path,'file')~=7
+    mkdir(kml_full_path)
+end
+%init nl
+kml_fn       = [file_path,prefix,'.kml'];
+kml_out      = ge_networklink(kml_out,prefix,kml_fn,0,0,60,region_kml,'','',1); %refresh every minute or onRegion
+%write out
+ge_kml_out([dest_root,kml_fn],kml_name,'');
+
 
 function generate_offline_radar(dest_root,file_path,radar_id_list,site_latlonbox)
 %WHAT: generates offline ground overlays for each radar

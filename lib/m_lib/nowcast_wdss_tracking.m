@@ -58,8 +58,6 @@ for j=1:length(uniq_start_timestamp)
     tn_dt         = uniq_start_timestamp(j);
     tn_storm_ind  = find(storm_db.start_timestamp==tn_dt);
     tn1_storm_ind = tn1_search(storm_db,vol_struct,tn_dt);
-    %tn1 index need to be index of previous timestamp from all radars (then
-    %filter using their step? and distance?
     
     %skip if no tn1 ind or tn ind
     if isempty(tn1_storm_ind) || isempty(tn_storm_ind)
@@ -110,7 +108,7 @@ for j=1:length(uniq_start_timestamp)
     end
 
     %% PLOT
-    %plot_wdss_tracking(radar_lat,radar_lon,storm_db,tn1_proj_lat,tn1_proj_lon,tn1_search_dist,tn_dt)
+    %plot_wdss_tracking(-28.3,153,storm_db,tn1_proj_lat,tn1_proj_lon,tn1_search_dist,tn_dt)
 
     %% Sort by track len
 
@@ -335,6 +333,9 @@ geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5]);
 [unique_track_id,~,ic]=unique(storm_db.track_id);
 
 for i=1:length(unique_track_id)
+    if unique_track_id(i)==0
+        continue
+    end
     cent_lat = storm_db.lat(ic==i);
     cent_lon = storm_db.lon(ic==i);    
     plotm(cent_lat,cent_lon,'r')
@@ -346,6 +347,6 @@ for i=1:length(tn1_proj_lat)
     plotm(lat,lon,'k');
 end
 
-saveas(gcf,['images/',datestr(tn_dt),'.png'])
+saveas(gcf,['tmp/img/',datestr(tn_dt),'.png'])
 
 close all

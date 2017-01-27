@@ -1,4 +1,4 @@
-function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts)
+function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
@@ -31,10 +31,10 @@ finl_jstruct = track_jstruct(2:end);
 for i=1:length(init_jstruct)
     
     %extract init and final edge coord
-    init_lat_edge_coord = str2num(init_jstruct(i).storm_edge_lat.S)./geo_scale;
-    init_lon_edge_coord = str2num(init_jstruct(i).storm_edge_lon.S)./geo_scale;
-    finl_lat_edge_coord = str2num(finl_jstruct(i).storm_edge_lat.S)./geo_scale;
-    finl_lon_edge_coord = str2num(finl_jstruct(i).storm_edge_lon.S)./geo_scale;
+    init_lat_edge_coord = str2num(init_jstruct(i).storm_edge_lat.S);
+    init_lon_edge_coord = str2num(init_jstruct(i).storm_edge_lon.S);
+    finl_lat_edge_coord = str2num(finl_jstruct(i).storm_edge_lat.S);
+    finl_lon_edge_coord = str2num(finl_jstruct(i).storm_edge_lon.S);
     
     %collate
     lat_list = roundn([init_lat_edge_coord,finl_lat_edge_coord],-4);
@@ -73,6 +73,4 @@ poly_lon(ind) = []; poly_lat(ind)=[];
 
 %generate kml, write to file and create networklinks for the tracks data
 name      = ['track_id_',num2str(track_id)];
-start_str = datestr(radar_start_ts,ge_tfmt);
-stop_str  = datestr(radar_stop_ts,ge_tfmt);
-swath_kml = ge_poly_placemark(swath_kml,['../../track.kml#swath_',num2str(swath_color_id),'_style'],name,start_str,stop_str,'clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    
+swath_kml = ge_poly_placemark(swath_kml,['../track.kml#swath_',num2str(swath_color_id),'_style'],name,'','','clampToGround',1,poly_lon,poly_lat,repmat(1,length(poly_lat),1));    

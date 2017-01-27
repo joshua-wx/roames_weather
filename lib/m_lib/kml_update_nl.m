@@ -1,4 +1,4 @@
-function kml_update_nl(kmlobj_struct,dest_root,radar_id_list,options)
+function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,radar_id_list,options)
 
 %init
 load('tmp/global.config.mat')
@@ -17,6 +17,22 @@ for i=1:length(radar_id_list)
     %PPI Velcoity
     if options(2)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_vradh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+    end
+    %xsec_refl
+    if options(3)==1
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_refl',[dest_root,cell_obj_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+    end
+    %xsec_vel
+    if options(4)==1
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_vel',[dest_root,cell_obj_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+    end
+    %inneriso
+    if options(5)==1
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'inneriso',[dest_root,cell_obj_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+    end
+    %outeriso
+    if options(6)==1
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'outeriso',[dest_root,cell_obj_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
 end
 
@@ -65,3 +81,75 @@ for j=1:length(target_idx)
 end
 %write out
 ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
+
+
+
+
+function generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,type,nl_path,altLod,minlod,maxlod)
+
+%WHAT: generates kml for cell objects listed in object_Struct using
+%a radar_id and type filter
+load('tmp/global.config.mat')
+
+%init nl
+nl_kml       = '';
+nl_name      = [type,'_',num2str(radar_id,'%02.0f')];
+%exist if no storm struct data
+if isempty(storm_jstruct)
+    ge_kml_out([nl_path,nl_name,'.kml'],'','');
+    return
+end
+
+%keep kmlobj_struct entries from radar_id and type 
+filt_idx      = find(ismember({kmlobj_struct.type},type) & [kmlobj_struct.radar_id]==radar_id);
+kmlobj_struct = kmlobj_struct(filt_idx);
+
+%init lists
+subset_list = {kmlobj_struct.subset_id};
+time_list   = [kmlobj_struct.start_timestamp];
+
+%build jstruct cell list and storm_id list
+jstruct_subset_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
+
+%build track_list
+[~,Lib]    = ismember(subset_list,jstruct_subset_list);
+track_list = track_id_list(Lib);
+%exist if no tracks
+if isempty(track_list)
+    ge_kml_out([nl_path,nl_name,'.kml'],'','');
+    return
+end
+
+%loop through unique tracks
+uniq_track_list = unique(track_list);
+for i=1:length(uniq_track_list)
+    track_id = uniq_track_list(i);
+    %find entries track
+    target_idx   = find(track_list==track_id);
+
+    %sort by time
+    [~,sort_idx]  = sort(time_list(target_idx));
+    target_idx    = target_idx(sort_idx);
+
+    %loop through entries, appending kml
+    tmp_kml = '';
+    for j=1:length(target_idx)
+        %target data
+        target_start     = kmlobj_struct(target_idx(j)).start_timestamp;
+        target_stop      = kmlobj_struct(target_idx(j)).stop_timestamp;
+        target_latlonbox = kmlobj_struct(target_idx(j)).latlonbox;
+        target_link      = kmlobj_struct(target_idx(j)).nl;
+        %nl
+        timeSpanStart = datestr(target_start,ge_tfmt);
+        timeSpanStop  = datestr(target_stop,ge_tfmt);
+        region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
+        kml_name      = datestr(target_start,r_tfmt);
+        tmp_kml       = ge_networklink(tmp_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
+    end
+    
+    %group into folder
+    track_name = ['track_id_',num2str(track_id)];
+    nl_kml     = ge_folder(nl_kml,tmp_kml,track_name,'',1);
+end
+%write out
+ge_kml_out([nl_path,nl_name,'.kml'],nl_name,nl_kml);

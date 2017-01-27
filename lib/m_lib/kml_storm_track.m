@@ -1,4 +1,4 @@
-function track_kml = kml_storm_track(track_kml,track_jstruct,track_id,radar_start_ts,radar_stop_ts)
+function track_kml = kml_storm_track(track_kml,track_jstruct,track_id)
 %WHAT: Generates a storm track kml file using the inputted init and finl
 %ident pair.
 
@@ -23,10 +23,10 @@ load('tmp/kml.config.mat');
 init_jstruct = track_jstruct(1:end-1);
 finl_jstruct = track_jstruct(2:end);
 
-start_lat_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlat],'N')./geo_scale;
-start_lon_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlon],'N')./geo_scale;
-end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlat],'N')./geo_scale;
-end_lon_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlon],'N')./geo_scale;
+start_lat_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlat],'N');
+start_lon_vec = jstruct_to_mat([init_jstruct.storm_dbz_centlon],'N');
+end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlat],'N');
+end_lon_vec   = jstruct_to_mat([finl_jstruct.storm_dbz_centlon],'N');
 
 %select the colour based on the number of elements in the path
 path_color_id = length(init_jstruct);
@@ -36,6 +36,4 @@ end
 
 %generate kml, write to file and create networklinks for the tracks data
 name        = ['track_id_',num2str(track_id)];
-start_str   = datestr(radar_start_ts,ge_tfmt);
-stop_str    = datestr(radar_stop_ts,ge_tfmt);
-track_kml   = ge_line_string(track_kml,1,name,start_str,stop_str,['../../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);
+track_kml   = ge_line_string(track_kml,1,name,'','',['../track.kml#path_',num2str(path_color_id),'_style'],0,'clampToGround',0,1,start_lat_vec,start_lon_vec,end_lat_vec,end_lon_vec);

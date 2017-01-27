@@ -34,7 +34,7 @@ if strcmp(type,'inneriso')
     %set threshold
     threshold     = round(prctile(temp_refl_vol(:),inner_iso_percentile));
     %set colourmap
-    cmap_threshold = (threshold-min_dbz)*2+1;
+    cmap_threshold = (threshold-min_dbzh)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
 elseif strcmp(type,'outeriso')
     %set max faces
@@ -42,7 +42,7 @@ elseif strcmp(type,'outeriso')
     %set threshold
     threshold      = ewt_a;
     %set colourmap
-    cmap_threshold = (ewt_a-min_dbz)*2+1;
+    cmap_threshold = (ewt_a-min_dbzh)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),outer_alpha]; %add alpha
 end
 
