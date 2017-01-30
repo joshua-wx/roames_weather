@@ -113,6 +113,9 @@ end
 %% Primary code
 %cat daily databases for times between oldest and newest time,
 %allows for mulitple days to be joined
+profile clear
+profile on
+
 while exist('tmp/kill_kml','file')==2
     
     % Calculate time limits from time options
@@ -136,6 +139,9 @@ while exist('tmp/kill_kml','file')==2
         download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
         download_stormh5_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
+    if isempty(download_odimh5_list) %break on no odimh5 data
+        return
+    end
     download_list = [download_odimh5_list;download_stormh5_list];
     for i=1:length(download_list)
         %download data file and untar into download_path
@@ -144,16 +150,6 @@ while exist('tmp/kill_kml','file')==2
     end 
     %wait for aws processes to finish
     wait_aws_finish
-    
-    %% extract storm data
-    %untar stormh5 files and create list
-    for i=1:length(download_stormh5_list)
-        [~,fn,ext] = fileparts(download_stormh5_list{i});
-        download_local_ffn = [download_path,fn,ext];
-        if exist(download_local_ffn,'file') == 2
-            untar(download_local_ffn,download_path);
-        end
-    end
     
     %% update vol object
     %add new volumes to vol_struct
@@ -252,17 +248,16 @@ while exist('tmp/kill_kml','file')==2
 
     update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
-    keyboard
     
     %% ending loop
     %Update user
-    disp([10,'kml pass complete. ',num2str(length(kml_radar_list)),' radars updated at ',datestr(now),10]);
+    disp([10,'kml pass complete. ',num2str(length(update_radar_list)),' radars updated at ',datestr(now),10]);
     
     %break loop for not realtime
     if realtime_kml == 0
         delete('tmp/kill_kml')
         break
-    elseif ~isempty(kml_radar_list) && save_object_struct == 1
+    elseif ~isempty(update_radar_list) && save_object_struct == 1
         %update restart_vars_fn on kml update for realtime processing
         try
             save(restart_vars_fn,'kmlobj_struct')
@@ -310,6 +305,9 @@ catch err
     end
     rethrow(err)
 end
+
+profile off
+profile viewer
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])

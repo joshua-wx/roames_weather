@@ -115,7 +115,7 @@ if length(fv.faces)>smallest_no_faces
     faces    = fliplr([fv.faces,fv.faces(:,1)]);
     vertices = fv.vertices;
     %rescale vertices
-    vertices  = [vertices(:,1).*deg2km(h_grid)*1000,vertices(:,2).*deg2km(h_grid)*1000,vertices(:,3).*v_grid*1000];
+    vertices  = [(vertices(:,1).*deg2km(h_grid).*1000),(vertices(:,2).*deg2km(h_grid).*1000),(vertices(:,3).*v_grid.*1000)];
     %expand into full triangles
     triangles = [vertices(faces(:,1),:),vertices(faces(:,2),:),vertices(faces(:,3),:)];
 end

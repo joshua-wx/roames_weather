@@ -93,6 +93,15 @@ if realtime_flag==0 && length(radar_id_list)>1
     return
 end
 
+%load climate radar coordinates
+if realtime_flag==0
+    transform_fn = [transform_path,'regrid_transform_',num2str(radar_id_list,'%02.0f'),'.mat'];
+    mat_out      = load(transform_fn,'radar_coords');
+    clim_radar_coords = mat_out.radar_coords;
+else
+    clim_radar_coords = [];
+end
+
 %create/update daily archives/objects from ident and intp objects
 if local_dest_flag == 1
     dest_root = local_dest_root;
@@ -178,7 +187,7 @@ while exist('tmp/kill_process','file')==2
             end
 
             %run regridding/interpolation
-            grid_obj = process_vol_regrid(h5_ffn,transform_path);
+            grid_obj = process_vol_regrid(h5_ffn,transform_path,clim_radar_coords);
             
             %run cell identify if sig_refl has been detected
             if grid_obj.sig_refl==1
@@ -310,12 +319,10 @@ if ~isempty(storm_obj)
 
     %% volume data
     tar_fn          = [data_tag,'.wv.tar'];
-    tmp_tar_ffn     = [tempdir,tar_fn];
     h5_fn           = [data_tag,'.storm.h5'];
     tmp_h5_ffn      = [tempdir,h5_fn];
-    stormh5_ffn     = [dest_path,tar_fn];
+    stormh5_ffn     = [dest_path,h5_fn];
     storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
-    tar_ffn_list    = {};
 
     %delete h5 if exists
     if exist(tmp_h5_ffn,'file') == 2
@@ -386,25 +393,9 @@ if ~isempty(storm_obj)
         end
         h5_data_write(h5_fn,tempdir,subset_id,data_struct,r_scale);
     end
-    %%%TAR
-    %append h5 files to tar list
+    %move h5 file to destination if exists
     if exist(tmp_h5_ffn,'file') == 2
-        tar_ffn_list = [tar_ffn_list;h5_fn];
-    end
-    %tar data and move to s3
-    %parse file list
-    tartxt_fid = fopen('etc/tar_ffn_list.txt','w');
-    for i=1:length(tar_ffn_list)
-        fprintf(tartxt_fid,'%s\n',tar_ffn_list{i});
-    end
-    fclose(tartxt_fid);
-    %pass to tar cmd
-    cmd         = ['tar -C ',tempdir,' -cvf ',tmp_tar_ffn,' -T etc/tar_ffn_list.txt'];
-    [sout,eout] = unix(cmd);
-    file_mv(tmp_tar_ffn,stormh5_ffn);
-    %remove files
-    for i=1:length(tar_ffn_list)
-        delete([tempdir,tar_ffn_list{i}]);
+		file_mv(tmp_h5_ffn,stormh5_ffn);
     end
 end
 

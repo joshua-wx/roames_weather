@@ -43,8 +43,8 @@ for i=1:length(fcst_lat_polys)
     %generate forecast swath tag
     single_fcst_tag = ['nowcast_',num2str((i)*fcst_step),'min'];
     %generate poly placemark kml of swath
-    tmp_kml    = ge_poly_placemark(tmp_kml,['../track.kml#fcst_',intensity,'_step_',num2str(i),'_style'],...
-        single_fcst_tag,'','','relativeToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(200,length(fcst_lon_polys{i}),1));
+    tmp_kml    = ge_poly_placemark(tmp_kml,['../track.kml#fcst_',intensity,'_style'],...
+        single_fcst_tag,'','','clampToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(0,length(fcst_lon_polys{i}),1));
 end
 %append to kml
 nowcast_kml = ge_folder(nowcast_kml,tmp_kml,name,'',1);

@@ -76,10 +76,10 @@ for i=1:length(extended_basin_stats)
     [MESH_grid,POSH_grid] = mesh_algorthim(subset_refl,h_vol,snd_fz_h,snd_minus20_h,v_grid);
     
     %calc grid vil
-    z_v             = 10.^(subset_refl(:,:,1:end)./10); 
-    subset_vil      = 3.44*10^-6.*v_grid.*1000.*sum(((z_v(:,:,1:end-1)+z_v(:,:,2:end))./2).^(4/7),3);
+    z_v             = 10.^(subset_refl./10); 
+    subset_vil      = (3.44*10^-6).*v_grid.*1000.*sum(((z_v(:,:,1:end-1)+z_v(:,:,2:end))./2).^(4/7),3);
     max_ij_z_v      = max(max(z_v,[],1),[],2); 
-    cell_vil        = 3.44*10^-6*v_grid.*1000*sum(((max_ij_z_v(1:end-1)+max_ij_z_v(2:end))./2).^(4/7));
+    cell_vil        = (3.44*10^-6).*v_grid.*1000*sum(((max_ij_z_v(1:end-1)+max_ij_z_v(2:end))./2).^(4/7));
     
     %Shrink to ewt_a for volume calc
     shink_mask      = subset_refl>=ewt_a;
@@ -196,12 +196,12 @@ function [MESH,POSH] = mesh_algorthim(dbzh_grid,h_grid,snd_fzh_height,snd_minus_
 
 %INPUT:
 %z_vol: subset reflectivity volume (dbz)
-%h_vol: voxel height volume (m)
+%h_vol: voxel height volume (km)
 %snd_fzh_height: height of freezing level in closest sounding in time and
 %space (m)
 %snd_minus_20_h: height of -20C level in closest sounding in time and
 %space (m)
-%v_grid: vertical grid spacing (m) from global config
+%v_grid: vertical grid spacing (km) from global config
 
 %OUTPUTS:
 %MESH: maximum estimated severe hail (mm)
@@ -224,7 +224,7 @@ z_l = 40;
 z_u = 50;
 
 %calc reflectivity weighting function
-w_z             = (dbzh_grid - z_l)./(z_u - z_l);
+w_z                 = (dbzh_grid - z_l)./(z_u - z_l);
 w_z(dbzh_grid<=z_l) = 0;
 w_z(dbzh_grid>=z_u) = 1;
 
@@ -237,7 +237,7 @@ w_h(h_grid<=snd_fzh_height) = 0;
 w_h(h_grid>=snd_minus_20_h) = 1;
 
 %calc severe hail index
-SHI = 0.1.*sum(w_h.*E,3).*v_grid;
+SHI = 0.1.*sum(w_h.*E,3).*(v_grid.*1000);
 
 %calc maximum estimated severe hail (mm)
 MESH = 2.54.*SHI.^0.5;

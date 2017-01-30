@@ -3,13 +3,14 @@ function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,radar
 %init
 load('tmp/global.config.mat')
 load('tmp/kml.config.mat')
-
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
 for i=1:length(radar_id_list)
     %set radar_id
-    radar_id = radar_id_list(i);
-    ppi_path = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
+    radar_id  = radar_id_list(i);
+    ppi_path  = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
+    cell_path = [dest_root,cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
+
     %PPI Reflectivity
     if options(1)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
@@ -20,19 +21,19 @@ for i=1:length(radar_id_list)
     end
     %xsec_refl
     if options(3)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_refl',[dest_root,cell_obj_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_refl',cell_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
     %xsec_vel
     if options(4)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_vel',[dest_root,cell_obj_path],max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_vel',cell_pathmax_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
     %inneriso
     if options(5)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'inneriso',[dest_root,cell_obj_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'inneriso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
     %outeriso
     if options(6)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'outeriso',[dest_root,cell_obj_path],max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'outeriso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
 end
 

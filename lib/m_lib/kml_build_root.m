@@ -68,14 +68,13 @@ ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1
 track_style_str     = '';
 cell_style_str      = '';
 %forecast style with a maximum of n_fcst_steps steps.
-forecast_S_colormap = colormap(pink(n_fcst_steps)); %stregthening
-forecast_W_colormap = colormap(bone(n_fcst_steps)); %weakening
-forecast_N_colormap = colormap(gray(n_fcst_steps)); %no change
-for i=1:n_fcst_steps    
-track_style_str = ge_poly_style(track_style_str,['fcst_S_step_',num2str(i),'_style'],'DDFFFFFF',1,html_color(.6,forecast_S_colormap(i,:)));
-track_style_str = ge_poly_style(track_style_str,['fcst_W_step_',num2str(i),'_style'],'DDFFFFFF',1,html_color(.6,forecast_W_colormap(i,:)));
-track_style_str = ge_poly_style(track_style_str,['fcst_N_step_',num2str(i),'_style'],'DDFFFFFF',1,html_color(.6,forecast_N_colormap(i,:)));
-end
+forecast_S_colormap = [255/255,8/255,0/255];
+forecast_W_colormap = [255/255,255/255,0/255];
+forecast_N_colormap = [255/255,150/255,0/255];
+track_style_str     = ge_poly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'FFFFFF00');
+track_style_str     = ge_poly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'FFFFFF00');
+track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'FFFFFF00');
+
 
 %balloon style (stats and graph)
 cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style');
@@ -109,7 +108,7 @@ for i=1:length(site_no_selection)
     %append site latlonbox
     site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
     %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 

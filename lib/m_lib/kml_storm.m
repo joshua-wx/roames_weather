@@ -35,7 +35,7 @@ for i=1:length(download_ffn_list)
     radar_step = calc_radar_step(vol_struct,radar_id);
     cell_path  = [cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
     %extract data_tag
-    data_tag       = temp_fn(1:end-3);
+    data_tag       = temp_fn(1:end-6);
     data_start_ts  = datenum(data_tag(4:end),r_tfmt);
     data_stop_ts   = addtodate(data_start_ts,radar_step,'minute');
     %% cell_objects
