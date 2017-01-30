@@ -18,7 +18,7 @@ process_config_fn = 'process.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
 local_tmp_path    = 'tmp/';
-download_path     = [tempdir,'h5_download/'];
+download_path     = [tempdir,'process_h5_download/'];
 transform_path    = [local_tmp_path,'transforms/'];
 
 %load blank vars
@@ -170,13 +170,18 @@ while exist('tmp/kill_process','file')==2
         for i=1:length(pending_h5_fn_list)
             display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
             %init local filename for processing
-            h5_ffn = [download_path,pending_h5_fn_list{i}];
-            if exist(h5_ffn,'file')~=2
+            odimh5_ffn        = [download_path,pending_h5_fn_list{i}];
+            if realtime_flag == 1
+                remote_odimh5_ffn = fetch_h5_ffn_list{i};
+            else
+                remote_odimh5_ffn = '';
+            end
+            if exist(odimh5_ffn,'file')~=2
                 continue
             end
 
             %QA the h5 file (attempt to read groups)
-            [qa_flag,no_groups,radar_id,vel_flag,start_dt] = process_qa_h5(h5_ffn,min_n_groups,radar_id_list);
+            [qa_flag,no_groups,radar_id,vel_flag,start_dt] = process_qa_h5(odimh5_ffn,min_n_groups,radar_id_list);
 
             %QA exit
             if qa_flag==0
@@ -187,7 +192,7 @@ while exist('tmp/kill_process','file')==2
             end
 
             %run regridding/interpolation
-            grid_obj = process_vol_regrid(h5_ffn,transform_path,clim_radar_coords);
+            grid_obj = process_vol_regrid(odimh5_ffn,transform_path,clim_radar_coords);
             
             %run cell identify if sig_refl has been detected
             if grid_obj.sig_refl==1
@@ -210,7 +215,7 @@ while exist('tmp/kill_process','file')==2
             
             %update storm and odimh5 index ddb, plus create storm object h5
             %as needed
-            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,h5_ffn)
+            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,remote_odimh5_ffn)
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
@@ -404,19 +409,19 @@ ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',start_dt,'storm_fla
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
-    data_id                          = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
+    data_id                              = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
     %process odimh5
-    ddb_staging                      = struct;
-    ddb_staging.data_type.S          = 'process_odimh5';
-    ddb_staging.data_id.S            = data_id;
-    ddb_staging.h5_ffn.S             = odimh5_ffn;
+    ddb_staging                          = struct;
+    ddb_staging.data_type.S              = 'process_odimh5';
+    ddb_staging.data_id.S                = data_id;
+    ddb_staging.data_ffn.S               = odimh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)
     %stormh5
     if ~isempty(storm_obj)
         ddb_staging                      = struct;
         ddb_staging.data_type.S          = 'stormh5';
         ddb_staging.data_id.S            = data_id;
-        ddb_staging.h5_ffn.S             = stormh5_ffn;
+        ddb_staging.data_ffn.S           = stormh5_ffn;
         ddb_put_item(ddb_staging,staging_ddb_table)
     end
 end

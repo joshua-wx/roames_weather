@@ -18,7 +18,8 @@ jstruct          = ddb_query_part('data_type',data_type,'S',p_exp,ddb_table);
 if isempty(jstruct)
     return
 end
-staging_ffn_list  = jstruct_to_mat([jstruct.(data_ffn)],'S');
+
+staging_ffn_list  = jstruct_to_mat([jstruct.data_ffn],'S');
 
 for j=1:length(staging_ffn_list)
     [~,fn,~] = fileparts(staging_ffn_list{j});

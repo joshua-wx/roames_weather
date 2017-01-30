@@ -8,9 +8,9 @@ radar_time_list = radar_time_list(filter_mask);
 %sort time
 radar_time_list = sort(radar_time_list);
 %calc time step
-if length(radar_time_list) == 1
-    radar_step = 10; %minutes
-else
+if length(radar_time_list) > 1
     all_steps  = round((radar_time_list(2:end)-radar_time_list(1:end-1))*24*60);
     radar_step = mode(all_steps);
+else
+    radar_step = 10; %minutes
 end

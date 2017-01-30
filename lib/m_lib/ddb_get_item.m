@@ -13,6 +13,8 @@ function jstruct_out = ddb_get_item(ddb_table,part_name,part_type,part_value,sor
 ddb_struct                         = struct;
 ddb_struct.(part_name).(part_type) = part_value;
 ddb_struct.(sort_name).(sort_type) = sort_value;
+temp_fn                            = tempname;
+
 %convert to strut
 json                               = savejson('',ddb_struct);
 %build command
@@ -22,16 +24,19 @@ if ~isempty(att_list)
     cmd = [cmd,' --projection-expression ','"',att_list,'"'];
 end
 %run script
-[sout,eout]                        = unix([cmd,' | tee /tmp/eout.json']);
+[sout,eout]                        = unix([cmd,' | tee ',temp_fn]);
 %catch errors and convert out json to struct
 if sout ==0 && ~isempty(eout)
     %jstruct_out = loadjson(eout,'SimplifyCell',1,'FastArrayParser',1);
-    jstruct_out = json_read('/tmp/eout.json');
+    jstruct_out = json_read(temp_fn);
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else
     log_cmd_write('tmp/log.ddb','',cmd,eout)
     jstruct_out = [];
+end
+if exist(temp_fn,'file')==2
+    delete(temp_fn)
 end
     
 
