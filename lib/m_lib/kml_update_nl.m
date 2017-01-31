@@ -58,7 +58,11 @@ target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
 if isempty(target_idx)
     radar_id_str = num2str(radar_id,'%02.0f');
     nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
-    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
+    try
+        ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
+    catch
+        keyboard
+    end
     return
 end
 

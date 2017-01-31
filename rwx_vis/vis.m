@@ -57,13 +57,6 @@ if exist(download_path,'file')~=7
 end
 
 %build paths strings
-if local_src_flag==1
-    src_odimh5_root  = local_odimh5_src_root;
-    src_stormh5_root = local_stormh5_src_root;
-else
-    src_odimh5_root  = s3_odimh5_src_root;
-    src_stormh5_root = s3_stormh5_src_root;
-end
 if local_dest_flag==1
     dest_root = local_dest_root;
 else

@@ -261,7 +261,8 @@ while exist('tmp/kill_process','file')==2
     %break loop if cts_loop=0
     if realtime_flag==0
         delete('tmp/kill_process')
-        pushover('process',['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'])
+        message = ['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'];
+        pushover(['process ',pushover_tag],message);
         break
     end
     
@@ -280,7 +281,7 @@ catch err
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %send push notification
     if pushover_flag == 1
-        pushover('process',message)
+        pushover(['process ',pushover_tag],message)
     end
     rethrow(err)
 end

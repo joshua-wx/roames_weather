@@ -105,6 +105,11 @@ if sig_flag
     end
     radar_coords     = double(radar_coords)./100;
 
+    %remove duplicate elevation entries
+    [elv_vec,ia,~] = unique(elv_vec);
+    dbzh_vol       = dbzh_vol(:,:,ia);
+    vradh_vol      = vradh_vol(:,:,ia);
+    
     %apply boundary filter
     filter_ind       = boundary_filter(radar_coords,min(elv_vec),max(elv_vec),min(vol_rng_vec),max(vol_rng_vec));
     radar_coords     = radar_coords(filter_ind,:);

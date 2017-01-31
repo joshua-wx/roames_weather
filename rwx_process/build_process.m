@@ -27,8 +27,8 @@ display('scp')
 ec2_ip      = '13.55.80.127';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_process'])
 % %realtime
-%ec2_ip      = '13.55.113.202';
-%[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_process'])
+ec2_ip      = '13.55.113.202';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_process'])
 
 delete('/home/meso/dev/roames_weather/rwx_process/etc/global.config')
 delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info.txt')
