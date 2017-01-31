@@ -17,7 +17,7 @@ function track_kml = kml_storm_track(track_kml,track_jstruct,track_id)
 
 %load config file
 load('tmp/global.config.mat');
-load('tmp/kml.config.mat');
+load('tmp/vis.config.mat');
 %generate the starting and ending coords of the line string segments
 
 init_jstruct = track_jstruct(1:end-1);

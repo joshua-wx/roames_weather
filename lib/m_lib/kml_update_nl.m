@@ -2,7 +2,7 @@ function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,radar
 
 %init
 load('tmp/global.config.mat')
-load('tmp/kml.config.mat')
+load('tmp/vis.config.mat')
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
 for i=1:length(radar_id_list)

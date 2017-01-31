@@ -1,7 +1,7 @@
 function [link,ffn] = kml_odimh5_ppi(dest_path,data_tag,img_atts,ppi_struct,data_number)
 
 load('tmp/interp_cmaps.mat')
-load('tmp/kml.config.mat')
+load('tmp/vis.config.mat')
 load('tmp/global.config.mat')
 
 %generate png

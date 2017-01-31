@@ -7,7 +7,7 @@ function kmlobj_struct = kml_odimh5(kmlobj_struct,odimh5_ffn,mask_grid,radar_id,
 load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
 load('tmp/site_info.txt.mat')
-load('tmp/kml.config.mat')
+load('tmp/vis.config.mat')
 
 %init vars
 ppi_path     = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];

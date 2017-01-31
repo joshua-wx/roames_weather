@@ -1,6 +1,6 @@
 %setup compiled directory structure
-addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
+addpath('/home/meso/dev/roames_weather/lib/m_lib');
+addpath('/home/meso/dev/shared_lib/jsonlab');
 
 display('mcc')
 mcc('-m','index_s3_to_ddb.m')
@@ -12,5 +12,5 @@ tar(tar_fn,{'run_index_s3_to_ddb.sh','index_s3_to_ddb','run_clean_s3.sh','clean_
 
 display('scp')
 %ftp machine 1
-ec2_ip      = '52.65.210.114';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' ec2-user@',ec2_ip,':~/build_index'])
+ec2_ip      = '13.55.235.87';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/build_index'])

@@ -1,8 +1,8 @@
 */tmp/
 */build/
 *~
-rwx_kml/tmp/
-rwx_kml/build/
+rwx_vis/tmp/
+rwx_vis/build/
 rwx_process/tmp/
 rwx_process/build/
 rwx_prep_bomradar/tmp/

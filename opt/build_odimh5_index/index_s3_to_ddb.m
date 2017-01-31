@@ -15,11 +15,11 @@ load(['tmp/',config_input_path,'.mat'])
 
 %init vars
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
-ddb_table      = 'wxradar_odimh52_index';
+ddb_table      = 'wxradar_odimh5_index_2';
 s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
 s3_bucket      = 's3://roames-wxradar-archive/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f')];
-year_list      = [2015:2015];
+year_list      = [year_start:1:year_stop];
 
 %ensure temp directory exists
 mkdir('tmp')
@@ -29,7 +29,7 @@ pause
 %run an aws ls -r
 for i=1:length(year_list)
     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),'/',num2str(year_list(i)),'/'])
-    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/10/27/',' --recursive'];
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/',' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
     C           = textscan(eout,'%*s %*s %u %s');

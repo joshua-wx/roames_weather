@@ -20,7 +20,7 @@ function [nowcast_kml,nowcast_stat_kml]=kml_storm_nowcast(nowcast_kml,nowcast_st
 %% 
 %load config file
 load('tmp/global.config.mat');
-load('tmp/kml.config.mat');
+load('tmp/vis.config.mat');
 
 name        = ['track_id_',num2str(track_id)];
 

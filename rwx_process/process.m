@@ -93,15 +93,6 @@ if realtime_flag==0 && length(radar_id_list)>1
     return
 end
 
-%load climate radar coordinates
-if realtime_flag==0
-    transform_fn = [transform_path,'regrid_transform_',num2str(radar_id_list,'%02.0f'),'.mat'];
-    mat_out      = load(transform_fn,'radar_coords');
-    clim_radar_coords = mat_out.radar_coords;
-else
-    clim_radar_coords = [];
-end
-
 %create/update daily archives/objects from ident and intp objects
 if local_dest_flag == 1
     dest_root = local_dest_root;
@@ -121,6 +112,15 @@ if radar_id_list==99
 else
     preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
 end
+%load climate radar coordinates
+if realtime_flag==0
+    transform_fn = [transform_path,'regrid_transform_',num2str(radar_id_list,'%02.0f'),'.mat'];
+    mat_out      = load(transform_fn,'radar_coords');
+    clim_radar_coords = mat_out.radar_coords;
+else
+    clim_radar_coords = [];
+end
+
 %profile clear
 %profile on
 %% Primary Loop

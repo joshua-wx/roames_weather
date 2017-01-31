@@ -21,7 +21,7 @@ function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,type,refl_v
 
 %Load global config
 load('tmp/global.config.mat');
-load('tmp/kml.config.mat');
+load('tmp/vis.config.mat');
 load('tmp/interp_cmaps.mat')
 
 %generate isosurface matrices and select style
@@ -90,7 +90,7 @@ function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,storm_latlon
 
 %Load config file
 load('tmp/global.config.mat')
-load('tmp/kml.config.mat');
+load('tmp/vis.config.mat');
 
 %calculate face/vertices of isosurface
 %note: dbZ_level is in uint8, convert to double for isosurface function

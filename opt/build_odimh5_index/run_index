@@ -1,4 +1,4 @@
 #! /bin/bash
 
-./run_index_s3_to_ddb.sh /usr/local/MATLAB/MATLAB_Runtime/v85/
+./run_index_s3_to_ddb.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
 

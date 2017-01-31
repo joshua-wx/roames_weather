@@ -29,7 +29,7 @@ function kml_build_root(dest_root,site_no_selection,local_dest_flag)
 %load colormap
 load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
-load('tmp/kml.config.mat')
+load('tmp/vis.config.mat')
 load('tmp/site_info.txt.mat')
 
 %empty string vairables for storing kml

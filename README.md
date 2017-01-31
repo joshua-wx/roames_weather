@@ -2,4 +2,14 @@
 
 ##ROAMES Weather Platform Repo
 
+###Summary
+
+prep    - Realtime data archiving from BoM FTP server
+process - Radar regridding, interpolation, storm identification, storm analysis and archiving
+vis     - Rendering of kml and custom png imagery
+clim    - Climatological analysis of long-term archive datasets
+opt     - Utilities for ingesting radar data
+etc     - Global config files
+docs    - Roames Weather Documentation
+
 ###See Wiki for detailed guide

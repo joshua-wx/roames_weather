@@ -1,4 +1,4 @@
-function kml
+function vis
 try
 %WHAT: This module pulls data from storm_archive and create kml objects for
 %GE
@@ -10,10 +10,10 @@ try
 
 %%Load VARS
 % general vars
-kml_config_fn     = 'kml.config';
+vis_config_fn     = 'vis.config';
 global_config_fn  = 'global.config';
 site_info_fn      = 'site_info.txt';
-restart_vars_fn   = 'tmp/kml_restart_vars.mat';
+restart_vars_fn   = 'tmp/vis_restart_vars.mat';
 tmp_config_path   = 'tmp/';
 pushover_flag     = 1;
 transform_path    = [tmp_config_path,'transforms/'];
@@ -43,8 +43,8 @@ else
 end
 
 % load kml_config
-read_config(kml_config_fn);
-load([tmp_config_path,kml_config_fn,'.mat'])
+read_config(vis_config_fn);
+load([tmp_config_path,vis_config_fn,'.mat'])
 
 %init download path
 if exist(download_path,'file')~=7
@@ -116,7 +116,7 @@ end
 %profile clear
 %profile on
 
-while exist('tmp/kill_kml','file')==2
+while exist('tmp/kill_vis','file')==2
     
     % Calculate time limits from time options
     if realtime_kml == 1
@@ -252,11 +252,11 @@ while exist('tmp/kill_kml','file')==2
     
     %% ending loop
     %Update user
-    disp([10,'kml pass complete. ',num2str(length(update_radar_list)),' radars updated at ',datestr(now),10]);
+    disp([10,'vis pass complete. ',num2str(length(update_radar_list)),' radars updated at ',datestr(now),10]);
     
     %break loop for not realtime
     if realtime_kml == 0
-        delete('tmp/kill_kml')
+        delete('tmp/kill_vis')
         break
     elseif ~isempty(update_radar_list) && save_object_struct == 1
         %update restart_vars_fn on kml update for realtime processing
@@ -275,16 +275,16 @@ while exist('tmp/kill_kml','file')==2
     %Kill function
     if toc(kill_timer)>kill_wait
         %update user
-        disp(['@@@@@@@@@ wv_kml restarted at ',datestr(now)])
+        disp(['@@@@@@@@@ rwx_vis restarted at ',datestr(now)])
         %restart
         if ~isdeployed
             %not deployed method: trigger background restart command before
             %kill
-            [~,~] = system(['matlab -desktop -r "run ',pwd,'/kml.m" &'])
+            [~,~] = system(['matlab -desktop -r "run ',pwd,'/vis.m" &'])
         else
             %deployed method: restart controlled by run_wv_process sh
             %script
-            disp('is deployed - passing restart to run script via temp_kml_vars.mat existance')
+            disp('is deployed - passing restart to run script via temp_vis_vars.mat existance')
         end
         quit force
     end
@@ -302,7 +302,7 @@ catch err
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %push notification
     if pushover_flag == 1
-        pushover('kml',message)
+        pushover('vis',message)
     end
     rethrow(err)
 end

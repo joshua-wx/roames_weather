@@ -1,0 +1,8 @@
+#! /bin/bash
+
+mkdir tmp
+touch tmp/kill_vis
+
+while [ -e tmp/kill_vis ]; do
+    ./run_vis.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
+done

@@ -1,8 +1,0 @@
-#! /bin/bash
-
-mkdir tmp
-touch tmp/kill_kml
-
-while [ -e tmp/kill_kml ]; do
-    ./run_kml.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
-done

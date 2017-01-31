@@ -7,7 +7,7 @@ function kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct,tracki
 load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
 load('tmp/site_info.txt.mat')
-load('tmp/kml.config.mat')
+load('tmp/vis.config.mat')
 
 %extract storm ids
 if ~isempty(storm_jstruct)

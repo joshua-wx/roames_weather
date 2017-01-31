@@ -17,7 +17,7 @@ function swath_kml=kml_storm_swath(swath_kml,track_jstruct,track_id)
 
 %load config file
 load('tmp/global.config.mat');
-load('tmp/kml.config.mat');
+load('tmp/vis.config.mat');
 
 %swath coord
 poly_lat = [];
