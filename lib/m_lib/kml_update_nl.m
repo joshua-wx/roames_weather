@@ -1,19 +1,23 @@
-function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,radar_id_list,options)
+function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,r_id_list,options)
 
 %init
 load('tmp/global.config.mat')
 load('tmp/vis.config.mat')
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
-for i=1:length(radar_id_list)
+for i=1:length(r_id_list)
     %set radar_id
-    radar_id  = radar_id_list(i);
+    radar_id  = r_id_list(i);
     ppi_path  = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
     cell_path = [dest_root,cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
 
     %PPI Reflectivity
     if options(1)==1
-        generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        try
+            generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        catch
+            keyboard
+        end
     end
     %PPI Velcoity
     if options(2)==1
@@ -58,11 +62,7 @@ target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
 if isempty(target_idx)
     radar_id_str = num2str(radar_id,'%02.0f');
     nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
-    try
-        ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
-    catch
-        keyboard
-    end
+    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
     return
 end
 
