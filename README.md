@@ -4,12 +4,12 @@
 
 ###Summary
 
-prep    - Realtime data archiving from BoM FTP server
-process - Radar regridding, interpolation, storm identification, storm analysis and archiving
-vis     - Rendering of kml and custom png imagery
-clim    - Climatological analysis of long-term archive datasets
-opt     - Utilities for ingesting radar data
-etc     - Global config files
-docs    - Roames Weather Documentation
+1. prep    - Realtime data archiving from BoM FTP server
+1. process - Radar regridding, interpolation, storm identification, storm analysis and archiving
+1. vis     - Rendering of kml and custom png imagery
+1. clim    - Climatological analysis of long-term archive datasets
+1. opt     - Utilities for ingesting radar data
+1. etc     - Global config files
+1. docs    - Roames Weather Documentation
 
 ###See Wiki for detailed guide

@@ -1,7 +1,6 @@
 function broken_vol_convert
 
-%WHAT: for a radar id, run the odimh5 conversion utility on broken volumes
-%and lists the error codes, grouping by most common error.
+%WHAT: attempt to conver broken vols to odimh5
 
 %init config
 config_fn = 'convert.config';

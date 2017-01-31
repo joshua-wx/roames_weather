@@ -26,7 +26,7 @@ end
 % setup kill time (restart program to prevent memory fragmentation)
 kill_wait  = 60*60*2; %kill time in seconds
 kill_timer = tic; %create timer object
-unix('touch tmp/kill_kml');
+unix('touch tmp/kill_vis');
 
 % Add folders to path and read config files
 if ~isdeployed
@@ -35,12 +35,17 @@ if ~isdeployed
     addpath('/home/meso/dev/shared_lib/jsonlab');
     addpath('/home/meso/dev/roames_weather/etc')
     addpath('/home/meso/dev/roames_weather/bin/json_read');
-    addpath('/home/meso/dev/roames_weather/rwx_kml/etc')
-    addpath('/home/meso/dev/roames_weather/rwx_kml/tmp')
+    addpath('/home/meso/dev/roames_weather/rwx_vis/etc')
+    addpath('/home/meso/dev/roames_weather/rwx_vis/tmp')
 else
     addpath('etc')
     addpath('tmp')
 end
+
+%clear tmp
+delete('/tmp/*dae')
+delete('/tmp/*kml')
+delete('/tmp/*png')
 
 % load kml_config
 read_config(vis_config_fn);

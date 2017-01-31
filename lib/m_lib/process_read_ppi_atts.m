@@ -24,6 +24,7 @@ try
         ppi_time_vec(6) = 0;
         vol_time        = datenum(ppi_time_vec);
     end
-catch
+catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
+	log_cmd_write('tmp/log.ppi_att_read','',['/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end

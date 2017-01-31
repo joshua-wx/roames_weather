@@ -1,5 +1,5 @@
 function index_s3_to_ddb
-%WHAT: builds an index for the odimh5 s3 archive.
+%WHAT: builds an odimh5 ddb for the odimh5 s3 archive.
 
 %check if is deployed
 if ~isdeployed
@@ -29,7 +29,7 @@ pause
 %run an aws ls -r
 for i=1:length(year_list)
     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),'/',num2str(year_list(i)),'/'])
-    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/',' --recursive'];
+    cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,'/',num2str(year_list(i)),'/10/27/',' --recursive'];
     [sout,eout] = unix(cmd);
     %read text
     C           = textscan(eout,'%*s %*s %u %s');

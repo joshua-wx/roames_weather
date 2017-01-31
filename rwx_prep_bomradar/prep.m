@@ -27,6 +27,9 @@ end
 addpath('etc/');
 addpath('tmp/');
 
+%clear tmp
+delete('/tmp/*rapic')
+
 %load ftp config file
 config_input_path = 'prep.config';
 read_config(config_input_path);
@@ -379,7 +382,7 @@ else
     h5_start_time = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','starttime'));
     %remove seconds for BoM radar volumes becuase of issues with the
     %starttime in some rapic volumes
-    h5_start_dt   = datenum([h5_start_date,h5_start_time(1:4)],'yyyymmddHHMM');
+    h5_start_dt   = datenum([h5_start_date,h5_start_time(1:6)],'yyyymmddHHMMSS');
     h5_dir        = dir(tmp_h5_ffn);
     h5_size       = round(h5_dir.bytes/1000);
 end
@@ -406,7 +409,7 @@ ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
 ddb_struct.start_timestamp.S    = datestr(h5_start_dt,ddb_tfmt);
 ddb_struct.data_size.N          = num2str(h5_size);
 ddb_struct.data_ffn.S           = h5_ffn;
-ddb_struct.data_rng.N           = '250';
+ddb_struct.data_rng.N           = num2str(radar_mask_rng);
 ddb_struct.storm_flag.N         = num2str(-1);
 ddb_put_item(ddb_struct,odimh5_ddb_table)
 

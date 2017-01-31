@@ -49,7 +49,6 @@ for i=1:dataset_count
     [ppi_elv,vol_time] = process_read_ppi_atts(h5_ffn,i,radar_id);
     %skip ppi when error exists (indicated by zero elv angle)
     if isempty(ppi_elv)
-        log_cmd_write('tmp/process_regrid.log',h5_ffn,'corrupt scan in h5 file in tilt: ',num2str(i));
         sig_flag = false;
         break %abort loop and set sig flag to false
     end
@@ -61,6 +60,10 @@ for i=1:dataset_count
 
     %read ppi data from file
     dataset_struct = process_read_ppi_data(h5_ffn,i);
+	if isempty(dataset_struct)
+		sig_flag = false;
+		break %abort loop and set sig flag to false
+	end
     ppi_dbzh       = dataset_struct.data1.data;
     ppi_vradh      = dataset_struct.data2.data;
     %if ppi data size does not matach volume size, interpolate to volume
@@ -77,7 +80,7 @@ for i=1:dataset_count
     %check for signficant reflectivity in second ppi tilt
     if i == sig_refl_ppi_no
         [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for dataset
-        sig_flag                    = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid,ewt_kernel_size);
+        sig_flag                    = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid);
         if ~sig_flag
             elv_vec   = elv_vec(1:2);
             dbzh_vol  = dbzh_vol(:,:,1:2);
@@ -136,7 +139,7 @@ grid_obj = struct('dbzh_grid',dbzh_grid,'vradh_grid',vradh_grid,...
     'radar_lat',geo_coords.radar_lat,'radar_lon',geo_coords.radar_lon,'radar_alt',geo_coords.radar_alt,...
     'sig_refl',sig_flag);
 
-function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid,ewt_kernel_size)
+function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid)
 %WHAT: takes a ppi volume and checks for significant reflectivity using
 %ewt_a (lower refl) and ewt_salency thresholds (area)
 

@@ -42,4 +42,5 @@ try
     dataset_struct.atts = struct('NI',NI,'azi_vec',azi_vec,'rng_vec',rng_vec);
 catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
+    log_cmd_write('tmp/log.ppi_data_read','',['/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end  
