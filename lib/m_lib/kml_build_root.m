@@ -71,9 +71,9 @@ cell_style_str      = '';
 forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
 forecast_N_colormap = [255/255,150/255,0/255];
-track_style_str     = ge_poly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'FFFFFF00');
-track_style_str     = ge_poly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'FFFFFF00');
-track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'FFFFFF00');
+track_style_str     = ge_poly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'00FFFFFF');
+track_style_str     = ge_poly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'00FFFFFF');
+track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'00FFFFFF');
 
 
 %balloon style (stats and graph)

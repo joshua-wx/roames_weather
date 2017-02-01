@@ -39,6 +39,14 @@ try
     end
     %read dimensions
     [azi_vec,rng_vec] = process_read_ppi_dims(h5_ffn,dataset_no,true);
+    %check dims match image size
+    [img_i,img_j] = size(data);
+    %abort if size of image does not match h5 dims
+    if length(rng_vec) ~= img_i || length(azi_vec) ~= img_j
+        log_cmd_write('tmp/log.ppi_data_read','',['/dataset',num2str(dataset_no),' img dim not matching h5 dim ',datestr(now)],[err.identifier,' ',err.message]);
+        dataset_struct = [];
+        return
+    end
     dataset_struct.atts = struct('NI',NI,'azi_vec',azi_vec,'rng_vec',rng_vec);
 catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);

@@ -111,8 +111,8 @@ end
 %% Primary code
 %cat daily databases for times between oldest and newest time,
 %allows for mulitple days to be joined
-%profile clear
-%profile on
+profile clear
+profile on
 
 while exist('tmp/kill_vis','file')==2
     
@@ -305,8 +305,8 @@ catch err
     rethrow(err)
 end
 
-%profile off
-%profile viewer
+profile off
+profile viewer
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])

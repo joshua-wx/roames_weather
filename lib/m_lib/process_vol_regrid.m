@@ -34,7 +34,8 @@ dataset_count = length(dataset_list);
 
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
-[vol_azi_vec,vol_rng_vec] = process_read_ppi_dims(h5_ffn,1,true);
+[vol_azi_vec,vol_rng_vec]   = process_read_ppi_dims(h5_ffn,1,true);
+[vol_azi_grid,vol_rng_grid] = meshgrid(vol_azi_vec,vol_rng_vec); %grid for dataset
 empty_vol  = nan(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
 empty_vec  = nan(dataset_count,1);
 dbzh_vol   = empty_vol;
@@ -69,7 +70,7 @@ for i=1:dataset_count
     %if ppi data size does not matach volume size, interpolate to volume
     %coords
     if any(size(ppi_dbzh)~=size(empty_vol(:,:,1)))
-        [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for dataset
+        [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for ppi
         [vol_azi_grid,vol_rng_grid] = meshgrid(vol_azi_vec,vol_rng_vec);                                 %grid for volume
         ppi_dbzh                    = interp2(ppi_azi_grid,ppi_rng_grid,ppi_dbzh,vol_azi_grid,vol_rng_grid,'nearest',NaN); %interpolate and extrap to 0
         ppi_vradh                   = interp2(ppi_azi_grid,ppi_rng_grid,ppi_vradh,vol_azi_grid,vol_rng_grid,'nearest',NaN); %interpolate and extrap to 0
@@ -79,8 +80,7 @@ for i=1:dataset_count
     vradh_vol(:,:,i) = ppi_vradh;
     %check for signficant reflectivity in second ppi tilt
     if i == sig_refl_ppi_no
-        [ppi_azi_grid,ppi_rng_grid] = meshgrid(dataset_struct.atts.azi_vec,dataset_struct.atts.rng_vec); %grid for dataset
-        sig_flag                    = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid);
+        sig_flag      = check_sig_refl(ppi_dbzh,vol_azi_grid,vol_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid);
         if ~sig_flag
             elv_vec   = elv_vec(1:2);
             dbzh_vol  = dbzh_vol(:,:,1:2);
