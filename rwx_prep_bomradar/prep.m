@@ -352,8 +352,9 @@ end
 
 %filter for error messages
 error_1 = 'MSSG: 30 Status information following - 3D-Rapic TxDevice';
-error_2 = 'MSSG: 6 \*\** Radar completed automatic update \*\**'; %escaped * chars
-cmd     = ['sed -i -e ''s/\(',error_1,'\|',error_2,'\)//g'' ',tmp_rapic_ffn];
+error_2 = 'MSSG: 6 \*\** Radar completed automatic update \*\**';
+error_3 = 'MSSG: 5 \*\** Radar performing automatic update \*\**'; %escaped * chars
+cmd     = ['sed -i -e ''s/\(',error_1,'\|',error_2,'\|',error_3,'\)//g'' ',tmp_rapic_ffn];
 [sout,eout] = unix(cmd);
 
 %convert to odim and save in correct archive folder
