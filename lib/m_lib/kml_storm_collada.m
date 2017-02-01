@@ -1,4 +1,4 @@
-function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,type,refl_vol,storm_latlonbox)
+function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,options,refl_vol,storm_latlonbox)
 
 %WHAT
     %takes a subset of volume data the ideally contains one cell and
@@ -25,7 +25,7 @@ load('tmp/vis.config.mat');
 load('tmp/interp_cmaps.mat')
 
 %generate isosurface matrices and select style
-if strcmp(type,'inneriso')
+if options(5)==1 %inneriso
     %set max faces
     n_faces        = inner_iso_faces;
     %find dbz threshold
@@ -36,7 +36,15 @@ if strcmp(type,'inneriso')
     %set colourmap
     cmap_threshold = (threshold-min_dbzh)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
-elseif strcmp(type,'outeriso')
+    
+    [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso');
+    
+else
+    inner_iso_kml     = '';
+    inner_collada_ffn = '';
+end
+
+if options(6)==1 %outeriso
     %set max faces
     n_faces        = outer_iso_faces;
     %set threshold
@@ -44,13 +52,41 @@ elseif strcmp(type,'outeriso')
     %set colourmap
     cmap_threshold = (ewt_a-min_dbzh)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),outer_alpha]; %add alpha
+    
+    [outer_iso_kml,outer_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'outer_iso');
+else
+    outer_iso_kml     = '';
+    outer_collada_ffn = '';
 end
+
+%output
+kml_str          = [inner_iso_kml,outer_iso_kml];
+collada_ffn_list = {inner_collada_ffn,outer_collada_ffn};
+collada_ffn_list(~cellfun('isempty',collada_ffn_list)); %remove empty ffn entries  
+%return if no data
+if isempty(kml_str)
+    link = '';
+    ffn  = '';
+    return
+end
+    
+%export kml and dae to kmz and move to root
+kmz_fn = [cell_tag,'_iso.kmz'];
+ge_kmz_out(kmz_fn,kml_str,[dest_root,dest_path],collada_ffn_list);
+
+%init link
+link = kmz_fn;
+ffn  = [dest_root,dest_path,kmz_fn];
+    
+
+
+function [kml_str,collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,type)
 
 %generate triangles
 [triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,storm_latlonbox);
 if isempty(triangles)
-    link = [];
-    ffn  = [];
+    kml_str     = '';
+    collada_ffn = '';
     return
 end
 %% collada high_res
@@ -68,17 +104,12 @@ colors         = [repmat(cmap,size(triangles,1),4)];
 %write collada
 iso_tag        = [cell_tag,'_',type];
 collada_fn     = [iso_tag,'.dae'];
-kmz_fn         = [iso_tag,'.kmz'];
-temp_ffn       = [tempdir,collada_fn];
-index_and_write(temp_ffn,triangles(:,2:10),textures,texcoords,colors,high_normals)
+collada_ffn    = [tempdir,collada_fn];
+index_and_write(collada_ffn,triangles(:,2:10),textures,texcoords,colors,high_normals)
 %wrap and centre in kml
 kml_str        = ge_model('',1,collada_fn,iso_tag,clat,clon,'','');
-%export kml and dae to kmz and move to root
-ge_kmz_out(kmz_fn,kml_str,[dest_root,dest_path],temp_ffn);
-
-%init link
-link = kmz_fn;
-ffn  = [dest_root,dest_path,kmz_fn];
+    
+ 
 
 function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,storm_latlonbox)
 %HELP: create isosurface polygons in anticlockwise ge format for a set dBZ_level

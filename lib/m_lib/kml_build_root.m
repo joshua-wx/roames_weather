@@ -61,7 +61,7 @@ end
 
 %% PPI Styles
 ppi_style_str = '';
-ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1,1]),1);
+ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.2,[1,1,1]),1);
 
 %% Track Styles
 
@@ -171,13 +171,9 @@ if options(4)==1
     tmp_str   = generate_radar_nl('xsec_vradh',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
     cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
 end
-if options(5)==1
-    tmp_str   = generate_radar_nl('inneriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
-    cell_str  = ge_folder(cell_str,tmp_str,'Inner Isosurface','',1);
-end
-if options(6)==1
-    tmp_str   = generate_radar_nl('outeriso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
-    cell_str  = ge_folder(cell_str,tmp_str,'Outer Isosurface','',1);
+if options(5)==1 || options(6)==1
+    tmp_str   = generate_radar_nl('iso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
+    cell_str  = ge_folder(cell_str,tmp_str,'Isosurface Reflectivity','',1);
 end
 
 temp_ffn = tempname;

@@ -68,27 +68,22 @@ for i=1:length(download_ffn_list)
             %Refl xsections
             if options(3)==1
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'refl');
-                    kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_refl',link,ffn);
+                    [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'dbzh');
+                    kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_dbzh',link,ffn);
                 end
             end
             %Dopl xsections
             if options(4)==1 && vol_vel_ni~=0
                 vel_vol         = double(storm_data_struct.vel_vol)./r_scale;
                 for k=1:length(xsec_idx)
-                    [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vel');
-                    kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vel',link,ffn);
+                    [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vradh');
+                    kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vradh',link,ffn);
                 end
             end    
-            %inner iso
-            if options(5)==1
-                [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,'inneriso',smooth_refl_vol,storm_latlonbox);
-                kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'inneriso',link,ffn);
-            end
-            %outer iso
-            if options(6)==1
-                [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,'outeriso',smooth_refl_vol,storm_latlonbox);
-                kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'outeriso',link,ffn);
+            %iso
+            if options(5)==1 || options(6)==1
+                [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox);
+                kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,data_start_ts,data_stop_ts,storm_latlonbox,'iso',link,ffn);
             end
         end
     end

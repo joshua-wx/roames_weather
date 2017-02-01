@@ -31,13 +31,9 @@ for i=1:length(r_id_list)
     if options(4)==1
         generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_vel',cell_pathmax_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
-    %inneriso
-    if options(5)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'inneriso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
-    end
-    %outeriso
-    if options(6)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'outeriso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+    %iso
+    if options(5)==1 || options(6)==1
+        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
 end
 

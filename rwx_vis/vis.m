@@ -111,8 +111,8 @@ end
 %% Primary code
 %cat daily databases for times between oldest and newest time,
 %allows for mulitple days to be joined
-profile clear
-profile on
+%profile clear
+%profile on
 
 while exist('tmp/kill_vis','file')==2
     
@@ -243,9 +243,9 @@ while exist('tmp/kill_vis','file')==2
     track_id_list      = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
     
     %use tracks, cell masks to generate storm and track kml
-    kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,download_stormh5_list,dest_root,options);
+    kmlobj_struct      = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,download_stormh5_list,dest_root,options);
 
-    update_radar_list = unique([[cur_vol_struct.radar_id],remove_radar_id]);
+    update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
     
     %% ending loop
@@ -305,11 +305,11 @@ catch err
     rethrow(err)
 end
 
-profile off
-profile viewer
+%profile off
+%profile viewer
 
 %soft exit display
-disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
+disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 
 function storm_jstruct = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords)
 load('tmp/global.config.mat')
