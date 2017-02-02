@@ -114,12 +114,13 @@ jstruct_subset_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
 [~,Lib]    = ismember(subset_list,jstruct_subset_list);
-track_list = track_id_list(Lib);
 %exist if no tracks
-if isempty(track_list)
+if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
+track_list = track_id_list(Lib);
+
 
 %loop through unique tracks
 uniq_track_list = unique(track_list);

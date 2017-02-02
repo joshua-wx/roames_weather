@@ -35,8 +35,12 @@ if options(5)==1 %inneriso
     threshold     = round(prctile(temp_refl_vol(:),inner_iso_percentile));
     %set colourmap
     cmap_threshold = (threshold-min_dbzh)*2+1;
+    try
     cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
-    
+    catch err
+        keyboard
+    end
+        
     [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso');
     
 else

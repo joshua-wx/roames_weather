@@ -114,6 +114,10 @@ end
 
 while exist('tmp/kill_vis','file')==2
     
+    %pause
+    disp('pausing for 5s')
+    pause(5)
+    
     % Calculate time limits from time options
     if realtime_kml == 1
         oldest_time = addtodate(utc_time,realtime_length,'hour');
@@ -283,9 +287,6 @@ while exist('tmp/kill_vis','file')==2
 
     %clear restart tries
     restart_tries = 0;
-    %pause
-    disp('pausing for 5s')
-    pause(5)
     
 end
 catch err
