@@ -29,7 +29,7 @@ hist_oldest_restart = [];
 date_list           = now;
 date_idx            = 1;
 pushover_flag       = 1;
-
+restart_tries       = 0;
 %start try
 try
     
@@ -266,15 +266,15 @@ while exist('tmp/kill_process','file')==2
         break
     end
     
+    %clear restart tries
+    restart_tries = 0;
+    %pause
     disp('pausing for 5s')
     pause(5)
     
 end
 catch err
     display(err)
-    %save vars
-    hist_oldest_restart = date_list(date_idx);
-    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
     %save error and log
     message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
     log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
@@ -283,6 +283,17 @@ catch err
     if pushover_flag == 1
         pushover(['process ',pushover_tag],message)
     end
+    %check restart tries
+    restart_tries = restart_tries+1;
+    if restart_tries > max_restart_tries
+        display('number of restart tries has exceeded max_restart_tries, killing script')
+        %removing kill script prevents restart
+        delete('tmp/kill_vis')
+    end
+    %save vars
+    hist_oldest_restart = date_list(date_idx);
+    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list','restart_tries')
+    %rethrow error and crash script
     rethrow(err)
 end
 

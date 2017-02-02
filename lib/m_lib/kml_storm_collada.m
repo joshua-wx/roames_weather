@@ -62,7 +62,7 @@ end
 %output
 kml_str          = [inner_iso_kml,outer_iso_kml];
 collada_ffn_list = {inner_collada_ffn,outer_collada_ffn};
-collada_ffn_list(~cellfun('isempty',collada_ffn_list)); %remove empty ffn entries  
+collada_ffn_list = collada_ffn_list(~cellfun('isempty',collada_ffn_list)); %remove empty ffn entries  
 %return if no data
 if isempty(kml_str)
     link = '';
@@ -72,8 +72,11 @@ end
     
 %export kml and dae to kmz and move to root
 kmz_fn = [cell_tag,'_iso.kmz'];
+try
 ge_kmz_out(kmz_fn,kml_str,[dest_root,dest_path],collada_ffn_list);
-
+catch
+    keyboard
+end
 %init link
 link = kmz_fn;
 ffn  = [dest_root,dest_path,kmz_fn];

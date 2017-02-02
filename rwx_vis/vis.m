@@ -17,7 +17,9 @@ restart_vars_fn   = 'tmp/vis_restart_vars.mat';
 tmp_config_path   = 'tmp/';
 pushover_flag     = 1;
 transform_path    = [tmp_config_path,'transforms/'];
-
+kmlobj_struct     = [];
+vol_struct        = [];
+restart_tries     = 0;
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
     mkdir(tmp_config_path)
@@ -89,15 +91,11 @@ if exist(restart_vars_fn,'file')==2
         %corrupt file
         delete(restart_vars_fn);
         kml_build_root(dest_root,radar_id_list,local_dest_flag);
-        kmlobj_struct = [];
-        vol_struct    = [];
     end
 else
     %build root kml
     kml_build_root(dest_root,radar_id_list,local_dest_flag);
-    %new start
-    kmlobj_struct = [];
-    vol_struct    = [];
+
 end
 
 % Preallocate regridding coordinates
@@ -189,7 +187,7 @@ while exist('tmp/kill_vis','file')==2
                  file_rm(remove_ffn_list{i},0,1);
             end
             %preserve removed radar_ids
-            remove_radar_id           = [kmlobj_struct(remove_idx).radar_id]';
+            remove_radar_id           = [kmlobj_struct(remove_idx).radar_id];
             %remove entries
             kmlobj_struct(remove_idx) = [];
         end
@@ -256,13 +254,9 @@ while exist('tmp/kill_vis','file')==2
     if realtime_kml == 0
         delete('tmp/kill_vis')
         break
-    elseif ~isempty(update_radar_list) && save_object_struct == 1
+    elseif save_object_struct == 1
         %update restart_vars_fn on kml update for realtime processing
-        try
-            save(restart_vars_fn,'kmlobj_struct')
-        catch err
-            display(err)
-        end
+        save(restart_vars_fn,'kmlobj_struct','restart_tries')
     end
     
     %rotate ddb, cp_file, and qa logs to 200kB
@@ -287,6 +281,8 @@ while exist('tmp/kill_vis','file')==2
         quit force
     end
 
+    %clear restart tries
+    restart_tries = 0;
     %pause
     disp('pausing for 5s')
     pause(5)
@@ -302,6 +298,16 @@ catch err
     if pushover_flag == 1
         pushover('vis',message)
     end
+    %check restart tries
+    restart_tries = restart_tries+1;
+    if restart_tries > max_restart_tries
+        display('number of restart tries has exceeded max_restart_tries, killing script')
+        %removing kill script prevents restart
+        delete('tmp/kill_vis')
+    end
+    %save vars
+    save(restart_vars_fn,'kmlobj_struct','restart_tries')
+    %rethrow and crash script
     rethrow(err)
 end
 
