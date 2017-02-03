@@ -248,11 +248,7 @@ while exist('tmp/kill_vis','file')==2
     kmlobj_struct      = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,download_stormh5_list,dest_root,options);
 
     update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
-    try
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
-    catch
-        keyboard
-    end
     
     %% ending loop
     %Update user

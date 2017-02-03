@@ -119,6 +119,11 @@ if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
+mask = Lib==0;
+if any(mask)
+    Lib = Lib(~mask);
+    display(['nl_cell removed ',num2str(sum(mask))])
+end
 track_list = track_id_list(Lib);
 
 
