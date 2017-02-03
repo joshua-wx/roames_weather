@@ -29,20 +29,21 @@ if options(5)==1 %inneriso
     %set max faces
     n_faces        = inner_iso_faces;
     %find dbz threshold
-    temp_refl_vol = refl_vol;
+    temp_refl_vol  = refl_vol;
     temp_refl_vol(temp_refl_vol<ewt_a) = nan;
-    %set threshold
-    threshold     = round(prctile(temp_refl_vol(:),inner_iso_percentile));
-    %set colourmap
-    cmap_threshold = (threshold-min_dbzh)*2+1;
-    try
-    cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
-    catch err
-        keyboard
+    %check 
+    if sum(~isnan(temp_refl_vol(:))) >= min_voxels
+        %set threshold
+        threshold      = round(prctile(temp_refl_vol(:),inner_iso_percentile));
+        %set colourmap
+        cmap_threshold = (threshold-min_dbzh)*2+1;
+        cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
+        %generate collada
+        [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso');
+    else %abort processing, not enough voxels
+        inner_iso_kml     = '';
+        inner_collada_ffn = '';
     end
-        
-    [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso');
-    
 else
     inner_iso_kml     = '';
     inner_collada_ffn = '';
@@ -76,11 +77,7 @@ end
     
 %export kml and dae to kmz and move to root
 kmz_fn = [cell_tag,'_iso.kmz'];
-try
 ge_kmz_out(kmz_fn,kml_str,[dest_root,dest_path],collada_ffn_list);
-catch
-    keyboard
-end
 %init link
 link = kmz_fn;
 ffn  = [dest_root,dest_path,kmz_fn];

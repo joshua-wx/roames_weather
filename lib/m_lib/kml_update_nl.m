@@ -106,14 +106,14 @@ filt_idx      = find(ismember({kmlobj_struct.type},type) & [kmlobj_struct.radar_
 kmlobj_struct = kmlobj_struct(filt_idx);
 
 %init lists
-subset_list = {kmlobj_struct.subset_id};
-time_list   = [kmlobj_struct.start_timestamp];
+kml_subset_list = {kmlobj_struct.subset_id};
+time_list       = [kmlobj_struct.start_timestamp];
 
 %build jstruct cell list and storm_id list
 jstruct_subset_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
-[~,Lib]    = ismember(subset_list,jstruct_subset_list);
+[~,Lib]    = ismember(kml_subset_list,jstruct_subset_list);
 %exist if no tracks
 if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
