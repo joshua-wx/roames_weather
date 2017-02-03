@@ -176,7 +176,12 @@ while exist('tmp/kill_vis','file')==2
             cur_vol_struct = [cur_vol_struct,tmp_struct];
         end
     end
+    if isempty(cur_vol_struct)
+        %no new files were processed, continue loop
+        continue
+    end
     vol_struct        = [vol_struct,cur_vol_struct];
+
  
     %% clean kmlobj_struct and remove kml old files
     remove_radar_id = [];

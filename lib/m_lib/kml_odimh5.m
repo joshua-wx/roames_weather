@@ -24,6 +24,10 @@ img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlon
 %loop through new odimh5 files
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
 [ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep,radar_id);
+if isempty(ppi_elv)
+    %error loading file, skip this ppi
+    return
+end
 vol_stop_time            = addtodate(vol_start_time,radar_step,'minute');
 [~,data_tag,~]           = fileparts(odimh5_ffn);
 %PPI Reflectivity

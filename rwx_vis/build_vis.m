@@ -15,20 +15,24 @@ display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/dev/roames_weather/etc/global.config',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/site_info.txt',etc_path)
+copyfile('/home/meso/dev/roames_weather/etc/priority_list.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/refl24bit.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/vel24bit.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
 
 display('tar')
 tar_fn = [build_path,'vis.tar'];
-tar(tar_fn,{'vis_kml.sh','vis','run','etc/'})
+tar(tar_fn,{'run_vis.sh','vis','run','etc/'})
 
 display('scp')
 %historical
-ec2_ip      = '52.62.50.168';
+ec2_ip      = '13.55.62.242';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_vis/'])
 
 
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/global.config')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/site_info.txt')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/pushover.token')
+delete('/home/meso/dev/roames_weather/rwx_vis/etc/refl24bit.txt')
+delete('/home/meso/dev/roames_weather/rwx_vis/etc/vel24bit.txt')
+delete('/home/meso/dev/roames_weather/rwx_vis/etc/priority_list.txt')

@@ -108,13 +108,13 @@ for i=1:length(site_no_selection)
     %append site latlonbox
     site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
     %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../scan.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 
 %% build master network links
 %Layers kml network link
-master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'ppi.kml'],0,0,'','','','',1);
+master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'scan.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Track Objects',[url_prefix,'track.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Cell Objects',[url_prefix,'cell.kml'],0,0,'','','','',1);
 
@@ -137,7 +137,7 @@ file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_pat
 
 %% build ppi groups kml
 
-%ppi.kml
+%scan.kml
 display('building ppi nl kml')
 ppi_str  = ppi_style_str;
 if options(1)==1
@@ -157,7 +157,7 @@ ppi_str  = ge_networklink(ppi_str,'Coverage','overlays/coverage.kml',0,0,'','','
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
-file_mv(temp_ffn,[dest_root,'ppi.kml']);
+file_mv(temp_ffn,[dest_root,'scan.kml']);
 wait_aws_finish
 
 %cell.kml

@@ -18,7 +18,7 @@ footer = [10,'</Document>',10,...
     '</kml>',10];
 
 %create filename with extension and create/open kml file
-kmlfilename = strcat('doc.kml');
+kmlfilename = 'doc.kml';
 kmzfilename = strcat(kmzfilename);
 fid = fopen( [tempdir,kmlfilename], 'wt');
 
