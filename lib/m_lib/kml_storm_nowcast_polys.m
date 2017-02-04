@@ -71,6 +71,11 @@ end_maj_axis   = end_maj_axis*h_grid/2;
 end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N)/2;
 end_min_axis   = end_min_axis*h_grid/2;
 
+%check elipse exists
+if isnan(end_maj_axis) || isnan(end_min_axis)
+    return
+end 
+
 %project track from end_cell_idx(i)
 [proj_azi,proj_arc,vil_dt,trck_mesh,trck_vil,trck_top,trck_dt] = nowcast_project(end_cell_idx,storm_jstruct,tracking_id_list);
 
