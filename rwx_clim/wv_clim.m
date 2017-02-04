@@ -208,30 +208,30 @@ if opt_struct.output_opt(4)
     %[object_kml,style_kml] = ge_topo_kml(object_kml,style_kml,'gtopo30/AUS-gtopo30.zip',50,1200,latlonbox);
 
     %grid output
-    [output_kml,image_fn_list]=generate_grid_kml('',plot_grid,opt_struct,latlonbox);
+    [output_kml,image_fn_list] = generate_grid_kml('',plot_grid,opt_struct,latlonbox);
     %append object kml into folder
     object_kml=ge_folder(object_kml,output_kml,'Primary Layer','',1);
     
-    %generate driection layer kml
-    if opt_struct.dir_opt
-        %generate streamline style
-        style_kml=ge_line_style(style_kml,['streamline_style'],html_color(1,[0,0,0]),2);
-        %generate streamline kml
-        stream_kml=ge_multi_line_string('',1,'ge_dir_clim','#streamline_style',0,'clampToGround',0,1,datestr(opt_struct.td_opt(1),S),datestr(opt_struct.td_opt(2)),[dir_vertices,dir_arrowvertices]);
-        %append object kml into folder
-        object_kml=ge_folder(object_kml,stream_kml,'Direction','',1);
-    end
+%     %generate driection layer kml
+%     if opt_struct.dir_opt
+%         %generate streamline style
+%         style_kml=ge_line_style(style_kml,['streamline_style'],html_color(1,[0,0,0]),2);
+%         %generate streamline kml
+%         stream_kml=ge_multi_line_string('',1,'ge_dir_clim','#streamline_style',0,'clampToGround',0,1,datestr(opt_struct.td_opt(1),S),datestr(opt_struct.td_opt(2)),[dir_vertices,dir_arrowvertices]);
+%         %append object kml into folder
+%         object_kml=ge_folder(object_kml,stream_kml,'Direction','',1);
+%     end
     
     %kmz output
     out_kml=[style_kml,object_kml];
-    ge_kmz_out('ge_vis',out_kml,opt_struct.clim_dir,image_fn_list);
+    ge_kmz_out('ge_vis.kmz',out_kml,opt_struct.clim_dir,image_fn_list);
 end
 
 %% Static Image Generation
 
 if opt_struct.output_opt(3)
     %inialise plot
-    create_clim_map_logan
+    create_clim_map_full
     
     %filter
     myfilter = fspecial('gaussian',[7 7], 0.5);
@@ -261,7 +261,13 @@ if opt_struct.output_opt(3)
     load(subset_fn);
     %plot coast lines
     geoshow(coast_lat,coast_lon,'DisplayType','line','color','k','LineWidth',1)
-    
+    %plot shaded topo
+    h = fspecial('gaussian',[15,15]);
+    topo_z = imfilter(topo_z,h);
+    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[300:200:2000],'LineColor','k','LineWidth',2);
+    %plot border lines
+    geoshow(border_lat,border_lon,'DisplayType','line','Linestyle','--','color','k','LineWidth',1)
+
     %generate driection plot
     if opt_struct.dir_opt
         vec_data=[dir_vertices,dir_arrowvertices];
@@ -273,11 +279,11 @@ if opt_struct.output_opt(3)
         end
     end    
     %overlay place names
-    create_clim_map_names_logan
+    create_clim_map_names_full
     
-    %plot logan LGA
-    S = shaperead('/run/media/meso/DATA/mapping/Logan_LGA/QLD_LGA_POLYGON_shp.shp');
-    plotm(S.Y,S.X,'k','linewidth',3)
+%     %plot logan LGA
+%     S = shaperead('/run/media/meso/DATA/mapping/Logan_LGA/QLD_LGA_POLYGON_shp.shp');
+%     plotm(S.Y,S.X,'k','linewidth',3)
     
     %setup colorbar
     ch=colorbar('FontSize',12);
@@ -291,20 +297,16 @@ if opt_struct.output_opt(3)
     %set(get(ch,'ylabel'),'string','Density','fontsize',16);
     
     %add scale ruler 800x800 plot
-%     patchm([-28.4 -28.5 -28.5 -28.4 -28.4],[152.75,152.75,153.53,153.53,152.75],'w')
-%     scaleruler on
-%     setm(handlem('scaleruler1'), ...
-%         'XLoc',.0035,'YLoc',-.519, ...
-%         'MajorTick',0:10:50,'fontsize',12)
+    patchm([-28.4 -28.5 -28.5 -28.4 -28.4],[152.76,152.76,153.53,153.53,152.76],'w')
+    scaleruler on
+    setm(handlem('scaleruler1'), ...
+        'XLoc',.0035,'YLoc',-.519, ...
+        'MajorTick',0:10:50,'fontsize',10)
 
-    %add scale ruler 400x400 plot  
-%     patchm([-28.35 -28.5 -28.5 -28.35 -28.35],[152.75,152.75,153.53,153.53,152.75],'w')
-%     scaleruler on
-%     setm(handlem('scaleruler1'), ...
-%         'XLoc',.002,'YLoc',-.519, ...
-%         'MajorTick',0:25:50,'MinorTick',0,'fontsize',8)
+
     
     %print to tiff file
+    axis tight
     set(gcf, 'PaperPositionMode', 'auto');
     print(gcf,'-dpng','-r400',[opt_struct.clim_dir,'plot.png'])
     close all;
@@ -439,7 +441,8 @@ rr_style=ge_line_style(rr_style,['coverage_style'],html_color(1,[1,1,1]),1);
 %generate outer 120km range ring latlon
 [temp_lat,temp_lon] = scircle1(site_lat,site_lon,km2deg(range_radius));
 %generate kml string
-coverage_kml=ge_line_string('',1,'coverage','#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+
+coverage_kml=ge_line_string('',1,'coverage','','','#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 %place in folder
 rr_object=ge_folder(rr_object,coverage_kml,'coverage ring','',1);
 
@@ -447,7 +450,7 @@ rr_object=ge_folder(rr_object,coverage_kml,'coverage ring','',1);
 %generate outer 9km range ring latlon
 [temp_lat,temp_lon] = scircle1(site_lat,site_lon,km2deg(cone_radius));
 %generate kml string
-silence_kml=ge_line_string('',1,'silence','#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+silence_kml=ge_line_string('',1,'silence','','','#coverage_style',0,'relativeToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 %place in folder
 rr_object=ge_folder(rr_object,silence_kml,'silence ring','',1);
 
@@ -469,32 +472,40 @@ load('tmp/global.config.mat')
 alpha_img=ones(size(grid_img));
 
 %Generate colorbar and flipud
-grid_img=flipud(grid_img)+1;
-max_density=max(grid_img(:));
-colorbar_ffn=generate_colorbar(max_density,'Density');
+grid_img=flipud(grid_img);
+%colorbar_ffn=generate_colorbar(opt_struct.proc_opt(4),'Density');
 
 %Colorbar overlay kml
-object_kml=ge_screenoverlay(object_kml,'Plot Colorbar','geclim_colorbar.png',.94,.2,0,.4,datestr(opt_struct.td_opt(1),S),datestr(opt_struct.td_opt(2),S));
+%object_kml=ge_screenoverlay(object_kml,'Plot Colorbar','geclim_colorbar.png',.94,.2,0,.4,datestr(opt_struct.td_opt(1),ge_tfmt),datestr(opt_struct.td_opt(2),ge_tfmt));
 
 %Swath overlay kml
 %create transparency for 1 value pixels
-alpha_img(grid_img==1)=0;
+
 %write image to file
-A = ind2rgb(grid_img,flipud(hot(12)));
+grid_img_scale    = max(grid_img(:))/128;
+grid_img_png     = grid_img.*grid_img_scale;
+img_cmap         = flipud(hot(128));
+ppi_resize_scale = 5;
+
+[grid_img_png,img_cmap] = imresize(grid_img_png,img_cmap,ppi_resize_scale,'nearest','Colormap','original');
+grid_img_png            = double(grid_img_png);
+
+alpha_img = grid_img_png./max(grid_img_png(:));
+alpha_img(alpha_img>1) = 1;
 
 img_ffn=[tempdir,'geclim_grid.png'];
-imwrite(A,img_ffn,'Alpha',alpha_img);
+imwrite(grid_img_png,img_ffn,'Alpha',alpha_img);
 %link with kml
-object_kml=ge_groundoverlay(object_kml,'GE Climatology','geclim_grid.png',latlonbox,datestr(opt_struct.td_opt(1),S),datestr(opt_struct.td_opt(2),S),'clamped',0,1);
+object_kml=ge_groundoverlay(object_kml,'GE Climatology','geclim_grid.png',latlonbox,datestr(opt_struct.td_opt(1),ge_tfmt),datestr(opt_struct.td_opt(2),ge_tfmt),'clamped',0,1);
 
-image_fn_list=[image_fn_list,colorbar_ffn,img_ffn];
+image_fn_list=[image_fn_list,img_ffn];
 
 
 
 function colorbar_ffn=generate_colorbar(max_value,colorbar_title)
 %generates kmz colorbar image
 %generate tick intervals
-intervals=round([0:max_value/5:max_value]);
+intervals=[0:0.1:max_value];
 y_ticks={};
 
 %generate interval names
@@ -503,8 +514,8 @@ for i=1:length(intervals)
 end
 
 %generate colorbar
-colormap(flipud(hot((max_value))));
-h=colorbar('YTickLabel',y_ticks,'YTick',intervals+1);
+colormap(flipud(hot((128))));
+h=colorbar('YTickLabel',y_ticks,'YTick',intervals);
 set(h,'FontWeight','bold','FontSize',16);
 set(get(h,'ylabel'),'string',colorbar_title,'fontsize',16);
 %save figure to image
