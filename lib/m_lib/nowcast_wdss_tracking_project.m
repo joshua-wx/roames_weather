@@ -1,4 +1,4 @@
-function [proj_lat,proj_lon,proj_azi,search_dist,track_length]=nowcast_wdss_tracking_project(tn1_init_ind,tn1_ident_ind,tn_dt,proj_min_track_len,storm_db)
+function [proj_lat,proj_lon,proj_azi,search_dist,track_length]=nowcast_wdss_tracking_project(tn1_init_ind,tn1_ident_ind,tn_dt,proj_min_track_len,storm_db,tn1_radar_step)
 %WHAT: Generates a projected lat lon from the init lat lon (ind given by
 %tn1_init_ind) using the mean of the proj arc/azi for time tn_dt from tn1
 %tracks (given by tn1_ident_ind). If no projection can be generated a
@@ -80,18 +80,17 @@ for i=1:length(tn1_ident_ind)
 end
 
 %Search Radius and track length
-% scan_freq_hr        = find this from the radar;
-% max_search_distance = max_storm_speed*scan_freq_hr*24;
+max_search_distance = max_storm_speed*tn1_radar_step/24;
 %extact init lat and lon
 init_lat            = storm_db.lat(tn1_init_ind);
 init_lon            = storm_db.lon(tn1_init_ind);
 %case: proj output
 if ~isempty(proj_arc) && ~isempty(proj_azi)
-    %take mean set
-    proj_arc   = mean(proj_arc);
+    %take median set
+    proj_arc   = median(proj_arc);
     proj_azi_x = cosd(proj_azi);
     proj_azi_y = sind(proj_azi);
-    proj_azi   = mod(atan2(mean(proj_azi_y),mean(proj_azi_x))*180/pi,360);
+    proj_azi   = mod(atan2(median(proj_azi_y),median(proj_azi_x))*180/pi,360);
     
     
     %apply transform to project init lat and lon

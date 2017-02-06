@@ -24,10 +24,9 @@ cur_radar_lon = siteinfo_lon_list(radar_idx);
 rid_list        = [vol_struct.radar_id];
 r_rng_list      = [vol_struct.radar_rng];
 time_list       = [vol_struct.start_timestamp];
-radar_step      = calc_radar_step(vol_struct,radar_id);
-radar_mask_time = radar_step.*1.5;
-%filter out unique radar ids by radar_mask_time
-time_filter     = minute(start_timestep - time_list) <= radar_mask_time;
+%filter out unique radar ids by radar_mask_time (either side in case of
+%delayed scans
+time_filter     = ceil(abs((start_timestep - time_list)*24*60)) <= radar_mask_time;
 rid_list        = rid_list(time_filter);
 r_rng_list      = r_rng_list(time_filter);
 %extract unique radar_ids

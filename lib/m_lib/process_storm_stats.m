@@ -1,4 +1,4 @@
-function ident_obj = process_storm_stats(grid_obj,refl_img,ewtBasinExtend,snd_fz_h,snd_minus20_h)
+function ident_obj = process_storm_stats(grid_obj,refl_img,ewtBasin,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
 load('tmp/global.config.mat');
@@ -17,8 +17,10 @@ ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
 radar_alt_vec        = grid_obj.alt_vec;
 
 %2D regionation
-extended_basin_stats = regionprops(ewtBasinExtend,refl_img,'MajorAxisLength',...
+refl_img_z           = 10.^(refl_img./10); %use Z to weight centroids, not dbz
+extended_basin_stats = regionprops(ewtBasinExtend,refl_img_z,'MajorAxisLength',...
     'MinorAxisLength','Orientation','Area','BoundingBox','WeightedCentroid');
+basin_stats          = regionprops(ewtBasin,'Area');
 
 %Shrink to region2d min intensity. Expansion is not needed because ewt
 %method is applied to an image of max dbz in z.
@@ -89,7 +91,8 @@ for i=1:length(extended_basin_stats)
     %compile stats
     %note all stats are from extended basin except for area_wdss
     volume          =   sum(shink_mask(:))*deg2km(h_grid)^2*v_grid;
-    area            =   extended_basin_stats(i).Area*deg2km(h_grid)^2;
+    area_ext        =   extended_basin_stats(i).Area*deg2km(h_grid)^2; %ewt extended area
+    area            =   basin_stats(i).Area*deg2km(h_grid)^2; %ewt area
     maj_axis        =   extended_basin_stats(i).MajorAxisLength;
     min_axis        =   extended_basin_stats(i).MinorAxisLength;
     orient          =   extended_basin_stats(i).Orientation;
@@ -108,8 +111,8 @@ for i=1:length(extended_basin_stats)
     if isempty(max_sts_dbz_h); max_sts_dbz_h=-999; end
     
     %dbz_latloncent
-    dbz_cent        = round(extended_basin_stats(i).WeightedCentroid);
-    dbz_latloncent  = [grid_obj.lat_vec(dbz_cent(2)),grid_obj.lon_vec(dbz_cent(1))];
+    z_cent           = round(extended_basin_stats(i).WeightedCentroid);
+    z_latloncent     = [grid_obj.lat_vec(z_cent(2)),grid_obj.lon_vec(z_cent(1))];
     %calculate geometry
     subset_lat_vec   = grid_obj.lat_vec(i_subset);
     subset_lon_vec   = grid_obj.lon_vec(j_subset);
@@ -119,16 +122,16 @@ for i=1:length(extended_basin_stats)
     subset_ijbox     = [min(i_subset),max(i_subset),min(j_subset),max(j_subset)];
 
     %Collate into ident_db object
-    stats                         = [volume,area,maj_axis,min_axis,orient,...           %1 to 5
-                                    max_tops,max_dbz,max_dbz_h,mean_dbz,max_g_vil,...   %6 to 10
-                                    mass,max_sts_dbz_h,cell_vil,max_mesh,max_posh];     %11 to 15
-    stats_labels                  = {'vol','area','maj_axis','min_axis','orient',...
+    stats                         = [volume,area,area_ext,maj_axis,min_axis,orient,...  %1 to 6
+                                    max_tops,max_dbz,max_dbz_h,mean_dbz,max_g_vil,...   %7 to 11
+                                    mass,max_sts_dbz_h,cell_vil,max_mesh,max_posh];     %12 to 16
+    stats_labels                  = {'vol','area','area_ext','maj_axis','min_axis','orient',...
                                     'max_tops','max_dbz','max_dbz_h','mean_dbz','max_g_vil',...
                                     'mass','max_sts_dbz_h','cell_vil','max_mesh','max_posh'};                                  
     ident_obj(i).subset_refl      = subset_refl;
     ident_obj(i).subset_vel       = subset_vel;
     ident_obj(i).subset_id        = i;
-    ident_obj(i).dbz_latloncent   = dbz_latloncent;
+    ident_obj(i).z_latloncent     = z_latloncent;
     ident_obj(i).subset_latlonbox = subset_latlonbox;
     ident_obj(i).subset_lat_edge  = subset_lat_edge;
     ident_obj(i).subset_lon_edge  = subset_lon_edge;

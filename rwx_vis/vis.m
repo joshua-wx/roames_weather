@@ -8,7 +8,7 @@ try
 
 %OUTPUT: kml visualisation of selected mat file archive
 
-%%Load VARS
+%%Load VARS13.55.62.242
 % general vars
 vis_config_fn     = 'vis.config';
 global_config_fn  = 'global.config';
@@ -214,7 +214,7 @@ while exist('tmp/kill_vis','file')==2
     %% query storm ddb
     %query storm ddb
     date_list         = floor(oldest_time):floor(newest_time);
-    storm_atts        = 'date_id,sort_id,domain_mask,radar_id,start_timestamp,subset_id,storm_latlonbox,storm_dbz_centlat,storm_dbz_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
+    storm_atts        = 'date_id,sort_id,domain_mask,radar_id,start_timestamp,subset_id,storm_latlonbox,storm_z_centlat,storm_z_centlon,storm_edge_lat,storm_edge_lon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
     storm_jstruct     = [];
     %collate multiple date_id's (these must be unique in query request)
     for i=1:length(date_list)
@@ -332,8 +332,8 @@ storm_sort_id         = jstruct_to_mat([storm_jstruct.sort_id],'S');
 storm_mask            = jstruct_to_mat([storm_jstruct.domain_mask],'N');
 storm_radar_id        = jstruct_to_mat([storm_jstruct.radar_id],'N');
 storm_start_timestamp = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-storm_lat             = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
-storm_lon             = jstruct_to_mat([storm_jstruct.storm_dbz_centlon],'N');
+storm_lat             = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
+storm_lon             = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
 
 %filter out radar_id and start_timestep
 filter_idx            = find(storm_radar_id==radar_id & storm_start_timestamp==start_timestep);

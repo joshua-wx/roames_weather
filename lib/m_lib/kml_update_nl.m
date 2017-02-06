@@ -10,14 +10,9 @@ for i=1:length(r_id_list)
     radar_id  = r_id_list(i);
     ppi_path  = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
     cell_path = [dest_root,cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
-
     %PPI Reflectivity
     if options(1)==1
-        try
-            generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-        catch
-            keyboard
-        end
+        generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
     %PPI Velcoity
     if options(2)==1
@@ -36,8 +31,6 @@ for i=1:length(r_id_list)
         generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
 end
-
-
 
 function generate_nl_ppi(radar_id,kmlobj_struct,type,nl_path,altLod,minlod,maxlod)
 
@@ -119,13 +112,9 @@ if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
-mask = Lib==0;
-if any(mask)
-    Lib = Lib(~mask);
-    display(['nl_cell removed ',num2str(sum(mask))])
-end
+mask       = Lib~=0; %WHY DO I NEED THIS?????????????????????????????????????????????????????????????
+Lib        = Lib(mask);
 track_list = track_id_list(Lib);
-
 
 %loop through unique tracks
 uniq_track_list = unique(track_list);

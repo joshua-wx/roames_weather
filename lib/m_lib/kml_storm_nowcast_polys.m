@@ -60,8 +60,8 @@ end
 %% extract track
 
 %extract geometry of end cell
-dbz_centlat    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlat.N);
-dbz_centlon    = str2num(storm_jstruct(end_cell_idx).storm_dbz_centlon.N);
+z_centlat      = str2num(storm_jstruct(end_cell_idx).storm_z_centlat.N);
+z_centlon      = str2num(storm_jstruct(end_cell_idx).storm_z_centlon.N);
 end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N);
 end_orient_x   = cosd(end_orient);
 end_orient_y   = -sind(end_orient);
@@ -93,7 +93,7 @@ end
 %generate end cell ellipse
 end_ecc                     = axes2ecc(end_maj_axis,end_min_axis);
 end_ellipse                 = [end_maj_axis,end_ecc];
-[end_ellp_lat,end_ellp_lon] = ellipse1(dbz_centlat,dbz_centlon,end_ellipse,end_orient_n);
+[end_ellp_lat,end_ellp_lon] = ellipse1(z_centlat,z_centlon,end_ellipse,end_orient_n);
 ellp_list                   = {[end_ellp_lat,end_ellp_lon]};
 fcst_dt                     = [end_cell_dt];
 %% generate forecast cell ellipse
@@ -101,15 +101,13 @@ for j=1:n_fcst_steps
     %forcast time steps
     fcst_time    = (fcst_step*j); %in minutes
     fcst_dt      = [fcst_dt,addtodate(end_cell_dt,fcst_time,'minute')];
-    %increase axis nowcast_growth
-    axis_scaling = axis_scaling*nowcast_growth;
     %evaluate forecast polynomials at forecast time
     f_arc        = proj_arc*fcst_time;
     %offset centroid
-    [fcst_lat_cent,fcst_lon_cent] = reckon(dbz_centlat,dbz_centlon,f_arc,proj_azi);
+    [fcst_lat_cent,fcst_lon_cent] = reckon(z_centlat,z_centlon,f_arc,proj_azi);
     %scale ellipse geometry
-    fcst_maj_axis = end_maj_axis*axis_scaling;
-    fcst_min_axis = end_min_axis*axis_scaling;
+    fcst_maj_axis = end_maj_axis;
+    fcst_min_axis = end_min_axis;
     fcst_ecc      = axes2ecc(fcst_maj_axis,fcst_min_axis);
     ellipse       = [fcst_maj_axis,fcst_ecc];
     %generate forecast ellise

@@ -1,4 +1,4 @@
-function [ewtBasinExtend,filt_refl_image] = process_wdss_ewt(dbzh_grid)
+function [ewtBasin,ewtBasinExtend,filt_refl_image] = process_wdss_ewt(dbzh_grid)
 %WHAT: Implementation of the extended watershed transform (ewt) described in
 %Lakshamanan et al 2009. Using a local dual threshold method to find
 %regions which meet the saliency criteria

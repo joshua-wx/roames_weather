@@ -17,5 +17,9 @@ elseif strcmp(dest_ffn(1:2),'s3')
 %         log_cmd_write('log.cp_file',src_ffn,cmd,eout)
 %     end
 else
+    try
     movefile(src_ffn,dest_ffn)
+    catch
+        keyboard
+    end
 end

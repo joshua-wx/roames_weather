@@ -14,8 +14,8 @@ for i=1:length(storm_jstruct)
     storm_cell_vil    = str2num(storm_jstruct(i).cell_vil.N);
     storm_max_tops    = roundn(storm_max_tops,-1);
     storm_cell_vild   = roundn(storm_cell_vil/storm_max_tops,-2);
-    storm_dbz_centlat = str2num(storm_jstruct(i).storm_dbz_centlat.N);
-    storm_dbz_centlon = str2num(storm_jstruct(i).storm_dbz_centlon.N);
+    storm_z_centlat   = str2num(storm_jstruct(i).storm_z_centlat.N);
+    storm_z_centlon   = str2num(storm_jstruct(i).storm_z_centlon.N);
     cell_id           = storm_jstruct(i).subset_id.N;
     start_timestr     = datestr(timestamps(i),ge_tfmt);
     stop_timestr      = datestr(addtodate(timestamps(i),timestep_mm,'minute'),ge_tfmt);
@@ -23,7 +23,7 @@ for i=1:length(storm_jstruct)
     name    = [datestr(timestamps(i),r_tfmt),'_',cell_id];
     tmp_kml = ge_balloon_stats_placemark(tmp_kml,1,...
         '../cell.kml#balloon_stats_style',name,storm_cell_vild,storm_max_mesh...
-        ,storm_max_tops,cell_id,storm_dbz_centlat,storm_dbz_centlon,...
+        ,storm_max_tops,cell_id,storm_z_centlat,storm_z_centlon,...
         start_timestr,stop_timestr);
 end
 %group into folder
