@@ -8,7 +8,6 @@ try
 
 %OUTPUT: kml visualisation of selected mat file archive
 
-%%Load VARS13.55.62.242
 % general vars
 vis_config_fn     = 'vis.config';
 global_config_fn  = 'global.config';
