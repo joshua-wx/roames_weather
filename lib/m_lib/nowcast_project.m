@@ -45,8 +45,8 @@ end
 
 %extract timedate, latloncent for each track cell from ident_db
 trck_dt_fsct    = start_timedate(trck_ind_fcst);
-trck_latcent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlat],'N');
-trck_loncent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_dbz_centlon],'N');
+trck_latcent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlat],'N');
+trck_loncent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlon],'N');
 trck_vil_fcst   = jstruct_to_mat([storm_jstruct(trck_ind_fcst).cell_vil],'N');
 
 trck_dt          = start_timedate(trck_ind);

@@ -18,8 +18,8 @@ load(['tmp/',config_input_path,'.mat'])
 %init vars
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
 ddb_table      = 'wxradar_odimh5_index_2';
-s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
-s3_bucket      = 's3://roames-wxradar-archive/';
+s3_odimh5_root = 's3://roames-weather-odimh5/odimh5_archive/';
+s3_bucket      = 's3://roames-weather-odimh5/';
 year_list      = [year_start:1:year_stop];
 if strcmp(radar_id,'all')
     radar_id_list = [1:1:80];
@@ -34,7 +34,7 @@ pause
 for i=1:length(year_list)
     for j=1:length(radar_id_list)
         %set path to odimh5 data (id/year)
-        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/'];
+        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/10/27/'];
         %get listing
         display(['s3 ls for: ',s3_odimh5_path])
         cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,' --recursive'];

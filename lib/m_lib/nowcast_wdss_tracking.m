@@ -30,10 +30,10 @@ end
 storm_radar_id           = jstruct_to_mat([storm_jstruct.radar_id],'N');
 storm_subset_id          = jstruct_to_mat([storm_jstruct.subset_id],'N');
 storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),'yyyy-mm-ddTHH:MM:SS');
-storm_lat                = jstruct_to_mat([storm_jstruct.storm_dbz_centlat],'N');
-storm_lon                = jstruct_to_mat([storm_jstruct.storm_dbz_centlon],'N');
+storm_lat                = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
+storm_lon                = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
 storm_area               = jstruct_to_mat([storm_jstruct.area],'N');
-storm_cell_vil           = jstruct_to_mat([storm_jstruct.area],'N');
+storm_cell_vil           = jstruct_to_mat([storm_jstruct.cell_vil],'N');
 %move into struct
 storm_db                 = struct;
 storm_db.radar_id        = storm_radar_id;
@@ -87,18 +87,21 @@ for j=1:length(uniq_start_timestamp)
 
     %loop through tn1 inds
     for i=1:length(tn1_storm_ind)
-
+        tn1_radar_id   = storm_radar_id(tn1_storm_ind(i));
+        tn1_radar_step = calc_radar_step(vol_struct,tn1_radar_id);
         %case (1): tn1 has a simple track
         if ismember(tn1_storm_ind(i),tn1_storm_ind_with_tracks)
-            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),tn1_storm_ind(i),tn_dt,min_track_len,storm_db);
+            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),tn1_storm_ind(i),tn_dt,min_track_len,storm_db,tn1_radar_step);
         %case (2): a minimum of "min_tracks" from other cells have a track
         elseif length(tn1_storm_ind_with_tracks) >= min_other_track_cells
-            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),tn1_storm_ind_with_tracks,tn_dt,min_track_len,storm_db);
+            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),tn1_storm_ind_with_tracks,tn_dt,min_track_len,storm_db,tn1_radar_step);
         %case (3): use tn1 centroid and very large search area!  
         else
-            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),[],[],[],storm_db);
+            [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),[],[],[],storm_db,tn1_radar_step);
         end
-
+%         if tn_dt == datenum('20151027_073600','yyyymmdd_HHMMSS') && tn1_storm_ind(i)==96
+%             keyboard
+%         end
         %collate
         tn1_proj_lat    = [tn1_proj_lat;temp_proj_lat];
         tn1_proj_lon    = [tn1_proj_lon;temp_proj_lon];
@@ -151,6 +154,7 @@ for j=1:length(uniq_start_timestamp)
             ist_asc_tn_ind=[ist_asc_tn_ind;result_tn_storm_ind];
         end
     end
+    
     %% save pass1 associations
     for i=1:length(ist_asc_tn1_ind)
         if storm_db.track_id(ist_asc_tn1_ind(i))~= 0 %assigned associated track_id
@@ -184,8 +188,8 @@ for j=1:length(uniq_start_timestamp)
 
         for i=1:length(tn_storm_ind)
             %calculate tn search radius
-            search_radius = max_search_distance;%ceil(sqrt(storm_db(tn_storm_ind(i)).stats(2)/pi));
-            %if search_radius>max_search_distance; search_radius=max_search_distance; end
+            search_radius = ceil(sqrt(storm_db.area(tn_storm_ind(i))/pi));
+            if search_radius>max_search_distance; search_radius=max_search_distance; end
 
             %build repmat tn for distance fun calculate distance between tn_storm_ind and all repmat_tn1
             repmat_tn_lat = repmat(storm_lat(tn_storm_ind(i)),length(tn1_storm_ind),1);

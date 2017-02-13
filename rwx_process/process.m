@@ -197,7 +197,7 @@ while exist('tmp/kill_process','file')==2
             %run cell identify if sig_refl has been detected
             if grid_obj.sig_refl==1
                 %run EWT
-                [ewtBasinExtend,ewt_refl_image] = process_wdss_ewt(grid_obj.dbzh_grid);
+                [ewtBasin,ewtBasinExtend,ewt_refl_image] = process_wdss_ewt(grid_obj.dbzh_grid);
                 %extract sounding level data
                 if realtime_flag == 1
                     %extract radar lat lon
@@ -208,7 +208,7 @@ while exist('tmp/kill_process','file')==2
                     [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.start_dt,radar_id,eraint_ddb_table);
                 end
                 %run ident
-                proc_obj = process_storm_stats(grid_obj,ewt_refl_image,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                proc_obj = process_storm_stats(grid_obj,ewt_refl_image,ewtBasin,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
                 proc_obj = {};
             end
@@ -366,9 +366,7 @@ if ~isempty(storm_obj)
         subset_id  = i;
         %round datasets
         storm_llb      = roundn(storm_obj(i).subset_latlonbox,-4);
-        storm_dcent    = roundn(storm_obj(i).dbz_latloncent,-4);
-        storm_edge_lat = roundn(storm_obj(i).subset_lat_edge,-4);
-        storm_edge_lon = roundn(storm_obj(i).subset_lon_edge,-4);
+        storm_dcent    = roundn(storm_obj(i).z_latloncent,-4);
         storm_stats    = roundn(storm_obj(i).stats,-1);
         %append and write db
         tmp_jstruct                     = struct;
@@ -381,10 +379,8 @@ if ~isempty(storm_obj)
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb','%03.4f ');
-        tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat,'%03.4f ');
-        tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon,'%03.4f ');
-        tmp_jstruct.storm_dbz_centlat.N = num2str(storm_dcent(1),'%03.4f ');
-        tmp_jstruct.storm_dbz_centlon.N = num2str(storm_dcent(2),'%03.4f ');
+        tmp_jstruct.storm_z_centlat.N   = num2str(storm_dcent(1),'%03.4f ');
+        tmp_jstruct.storm_z_centlon.N   = num2str(storm_dcent(2),'%03.4f ');
         tmp_jstruct.h_grid.N            = num2str(h_grid);
         tmp_jstruct.v_grid.N            = num2str(v_grid);
         %append stats
