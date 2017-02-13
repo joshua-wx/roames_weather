@@ -117,12 +117,12 @@ if ~isempty(storm_jstruct)
         if track_id == 0
             continue
         end
-        track_idx     = find(track_id==tracking_id_list);
+        track_idx         = find(track_id==tracking_id_list);
         %skip short tracks
         if length(track_idx)<min_track_cells
             continue
         end
-        track_jstruct = storm_jstruct(track_idx);
+        track_jstruct     = storm_jstruct(track_idx);
         %% track objects
         if options(7)==1
             stat_kml      = kml_storm_stat(stat_kml,track_jstruct,track_id);

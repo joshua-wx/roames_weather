@@ -9,8 +9,8 @@ vel_vol  = grid_obj.vradh_grid;
 
 %create blank ident_obj
 ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
-    'dbz_latloncent',[],'subset_latlonbox',[],'subset_ijbox',[],'subset_lat_edge',[],...
-    'subset_lon_edge',[],'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
+    'dbz_latloncent',[],'subset_latlonbox',[],'subset_ijbox',[],...
+    'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
     'MESH_grid',[],'POSH_grid',[],'max_dbz_grid',[],'vil_grid',[],'stats_labels',{});
 
 %extract z vec
@@ -42,7 +42,7 @@ for i=1:length(extended_basin_stats)
     j_subset = lower_b(2):upper_b(2);
 
     storm_mask      = ext_region_mask(i_subset,j_subset);
-    storm_edge_mask = bwboundaries(storm_mask,4); storm_edge_mask = storm_edge_mask{1};
+    %storm_edge_mask = bwboundaries(storm_mask,4); storm_edge_mask = storm_edge_mask{1};
     
     %subset subset_refl to ext_region_mask bounding region and smooth
     subset_refl     = refl_vol(i_subset,j_subset,:);
@@ -116,8 +116,8 @@ for i=1:length(extended_basin_stats)
     %calculate geometry
     subset_lat_vec   = grid_obj.lat_vec(i_subset);
     subset_lon_vec   = grid_obj.lon_vec(j_subset);
-    subset_lat_edge  = subset_lat_vec(storm_edge_mask(:,1));
-    subset_lon_edge  = subset_lon_vec(storm_edge_mask(:,2));
+    %subset_lat_edge  = subset_lat_vec(storm_edge_mask(:,1));
+    %subset_lon_edge  = subset_lon_vec(storm_edge_mask(:,2));
     subset_latlonbox = [max(subset_lat_vec);min(subset_lat_vec);max(subset_lon_vec);min(subset_lon_vec)];
     subset_ijbox     = [min(i_subset),max(i_subset),min(j_subset),max(j_subset)];
 
@@ -133,8 +133,6 @@ for i=1:length(extended_basin_stats)
     ident_obj(i).subset_id        = i;
     ident_obj(i).z_latloncent     = z_latloncent;
     ident_obj(i).subset_latlonbox = subset_latlonbox;
-    ident_obj(i).subset_lat_edge  = subset_lat_edge;
-    ident_obj(i).subset_lon_edge  = subset_lon_edge;
     ident_obj(i).subset_ijbox     = subset_ijbox;
     ident_obj(i).stats            = stats;
     ident_obj(i).stats_labels     = stats_labels;

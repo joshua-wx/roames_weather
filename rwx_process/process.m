@@ -367,8 +367,6 @@ if ~isempty(storm_obj)
         %round datasets
         storm_llb      = roundn(storm_obj(i).subset_latlonbox,-4);
         storm_dcent    = roundn(storm_obj(i).z_latloncent,-4);
-        storm_edge_lat = roundn(storm_obj(i).subset_lat_edge,-4);
-        storm_edge_lon = roundn(storm_obj(i).subset_lon_edge,-4);
         storm_stats    = roundn(storm_obj(i).stats,-1);
         %append and write db
         tmp_jstruct                     = struct;
@@ -381,8 +379,6 @@ if ~isempty(storm_obj)
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb','%03.4f ');
-        tmp_jstruct.storm_edge_lat.S    = num2str(storm_edge_lat,'%03.4f ');
-        tmp_jstruct.storm_edge_lon.S    = num2str(storm_edge_lon,'%03.4f ');
         tmp_jstruct.storm_z_centlat.N   = num2str(storm_dcent(1),'%03.4f ');
         tmp_jstruct.storm_z_centlon.N   = num2str(storm_dcent(2),'%03.4f ');
         tmp_jstruct.h_grid.N            = num2str(h_grid);

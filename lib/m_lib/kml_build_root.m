@@ -141,12 +141,12 @@ file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_pat
 display('building ppi nl kml')
 ppi_str  = ppi_style_str;
 if options(1)==1
-    tmp_str   = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI DBZH','',1);
+    tmp_str = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    ppi_str = ge_folder(ppi_str,tmp_str,'PPI DBZH','',1);
 end
 if options(2)==1
-    tmp_str   = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
-    ppi_str  = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
+    tmp_str = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    ppi_str = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
 end
 
 if any(options(1:2))
