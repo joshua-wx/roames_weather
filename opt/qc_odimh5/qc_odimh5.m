@@ -17,7 +17,7 @@ load(['tmp/',config_input_path,'.mat'])
 
 %init vars
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
-ddb_table      = 'wxradar_odimh5_index_2';
+ddb_table      = 'wxradar_odimh5_index';
 s3_odimh5_root = 's3://roames-weather-odimh5/odimh5_archive/';
 s3_bucket      = 's3://roames-weather-odimh5/';
 year_list      = [year_start:1:year_stop];
