@@ -11,5 +11,5 @@ tar(tar_fn,{'run_qc_odimh5.sh','qc_odimh5','run','config'})
 
 display('scp')
 %ftp machine 1
-ssh_ip      = '13.55.235.87';
+ssh_ip      = '13.54.162.53';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
