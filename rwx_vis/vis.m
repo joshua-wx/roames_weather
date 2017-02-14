@@ -209,6 +209,9 @@ while exist('tmp/kill_vis','file')==2
         end
     end
     
+    %% update kml network links
+    update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
+    
     %% query storm ddb
     %query storm ddb
     date_list         = floor(oldest_time):floor(newest_time);
@@ -250,8 +253,6 @@ while exist('tmp/kill_vis','file')==2
     %use tracks, cell masks to generate storm and track kml
     kmlobj_struct      = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,download_stormh5_list,dest_root,options);
 
-    %update kml network links
-    update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
     try
         kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
     catch err
@@ -356,7 +357,7 @@ for i=1:length(filter_idx)
         sort_value   = storm_sort_id{filter_idx(i)};
         update_value = num2str(target_mask);
         storm_jstruct(filter_idx(i)).domain_mask.N = update_value;
-        ddb_update('date_id','N',part_value,'sort_id','S',sort_value,'domain_mask','N',update_value,storm_ddb_table);
+        ddb_update('date_id','N',part_value,'sort_id','S',sort_value,'domain_mask','N',num2str(target_mask),storm_ddb_table);
     end
 end
     
