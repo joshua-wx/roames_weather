@@ -94,7 +94,6 @@ if exist(restart_vars_fn,'file')==2
 else
     %build root kml
     kml_build_root(dest_root,radar_id_list,local_dest_flag);
-
 end
 
 % Preallocate regridding coordinates
@@ -163,11 +162,11 @@ while exist('tmp/kill_vis','file')==2
             if download_rid == 99
                 download_start_td  = datenum([vol_name(4:18)],r_tfmt); %keep seconds for radar 99
             else
-                download_start_td  = datenum([vol_name(4:16),'00'],r_tfmt); %remove seconds
+                download_start_td  = datenum([vol_name(4:16),'00'],r_tfmt); %remove seconds for bom radars
             end
             %read range for masking
             [~,rng_vec]        = process_read_ppi_dims(local_odimh5_fn,1,true);
-            radar_rng          = floor(max(rng_vec)/10)*10;
+            radar_rng          = floor(max(rng_vec)/10)*10; %round to 10s of km
             %add to vol_struct (VOL_STRUCT IS UPDATED FROM THE CURRENT DATA
             %BEFORE KMLOBJ_STRUCT
             %check if file exists
@@ -176,7 +175,7 @@ while exist('tmp/kill_vis','file')==2
         end
     end
     if isempty(cur_vol_struct)
-        %no new files were processed, continue loop
+        %no new files were processed, continue while loop
         continue
     end
     vol_struct        = [vol_struct,cur_vol_struct];
@@ -189,23 +188,23 @@ while exist('tmp/kill_vis','file')==2
         %find old files
         remove_idx      = find([kmlobj_struct.start_timestamp]<oldest_time);
         if ~isempty(remove_idx)
-            remove_ffn_list = {kmlobj_struct(remove_idx).ffn};
             %clean out files
+            remove_ffn_list = {kmlobj_struct(remove_idx).ffn};
             for i=1:length(remove_ffn_list)
                  file_rm(remove_ffn_list{i},0,1);
             end
-            %preserve removed radar_ids
-            remove_radar_id           = [kmlobj_struct(remove_idx).radar_id];
             %remove entries
             kmlobj_struct(remove_idx) = [];
         end
     end
     
     %% clean vol_struct
-    if ~isempty(vol_struct) && ~isempty(remove_idx)
+    if ~isempty(vol_struct)
         %find old entries
         remove_idx      = find([vol_struct.start_timestamp]<oldest_time);
         if ~isempty(remove_idx)
+            %preserve removed radar_ids
+            remove_radar_id = [vol_struct(remove_idx).radar_id];
             vol_struct(remove_idx) = [];
         end
     end
@@ -223,10 +222,10 @@ while exist('tmp/kill_vis','file')==2
     end
     %remove storm_jstruct not from radar_id_list
     storm_radar_id    = jstruct_to_mat([storm_jstruct.radar_id],'N');
-    filt_idx          = ismember(storm_radar_id,radar_id_list);
-    storm_jstruct     = storm_jstruct(filt_idx);
+    filt_mask         = ismember(storm_radar_id,radar_id_list);
+    storm_jstruct     = storm_jstruct(filt_mask);
     
-    %% process volumes to kml objects
+    %% process current volumes to kml objects
     %loop through radar id list
     for i=1:length(cur_vol_struct)
         %extract file vars
@@ -243,7 +242,7 @@ while exist('tmp/kill_vis','file')==2
         storm_jstruct          = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords);
     end
     %% process storm and track objects
-    %build tracks using storm_mask and storm_jstruct!!!
+    %remove storm entries outside of domain
     filt_mask          = jstruct_to_mat([storm_jstruct.domain_mask],'N');
     storm_jstruct_filt = storm_jstruct(logical(filt_mask));
     track_id_list      = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
@@ -251,6 +250,7 @@ while exist('tmp/kill_vis','file')==2
     %use tracks, cell masks to generate storm and track kml
     kmlobj_struct      = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,download_stormh5_list,dest_root,options);
 
+    %update kml network links
     update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
     
@@ -347,12 +347,12 @@ for i=1:length(filter_idx)
     %extract ppi mask and update storm_mask
     target_mask = ppi_mask(i_idx,j_idx);
     %check storm_jstruct against target_mask
-    if storm_mask(filter_idx(i))~=target_mask
+    if storm_mask(filter_idx(i)) ~= target_mask
         %update local jstruct and ddb
-        part_value   = storm_date_id(filter_idx(i));
-        sort_value   = storm_sort_id(filter_idx(i));
+        part_value   = num2str(storm_date_id(filter_idx(i)));
+        sort_value   = storm_sort_id{filter_idx(i)};
         update_value = num2str(target_mask);
-        storm_jstruct(filter_idx(i)).domain_mask.N = num2str(target_mask);
+        storm_jstruct(filter_idx(i)).domain_mask.N = update_value;
         ddb_update('date_id','N',part_value,'sort_id','S',sort_value,'domain_mask','N',update_value,storm_ddb_table);
     end
 end

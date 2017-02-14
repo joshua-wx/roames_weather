@@ -15,7 +15,7 @@ if strcmp(src_ffn(1:2),'s3')
     %s3 command in foreground
     cmd         = [prefix_cmd,'aws s3 cp ',recur_str,src_ffn,' ',dest_ffn,back_str];
     [sout,eout] = unix(cmd);
-    if isempty(eout)
+    if ~isempty(eout)
         log_cmd_write('tmp/log.cp',src_ffn,cmd,eout)
     end
 elseif strcmp(dest_ffn(1:2),'s3')

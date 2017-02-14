@@ -259,12 +259,11 @@ for j=1:length(uniq_start_timestamp)
         end
     end
 end
-    
 %output
 tracking_id_out = storm_db.track_id;
 
 
-function cost_score=cost_function(tn_storm_ind,tn1_storm_ind,tn1_proj_lat,tn1_proj_lon,storm_db)
+function cost_score = cost_function(tn_storm_ind,tn1_storm_ind,tn1_proj_lat,tn1_proj_lon,storm_db)
 %WHAT: Calculates cost function for every tn1_storm_ind : tn_storm_ind
 %pair. Both input vectors must be of equal length.
 
@@ -274,7 +273,7 @@ function cost_score=cost_function(tn_storm_ind,tn1_storm_ind,tn1_proj_lat,tn1_pr
 
 
 %set inital cost to infinte
-cost_score=inf(length(tn1_storm_ind),1);
+cost_score  = inf(length(tn1_storm_ind),1);
 
 %extract variables for tn
 tn_ind_lat  = storm_db.lat(tn_storm_ind);
@@ -297,12 +296,12 @@ for i=1:length(tn1_storm_ind)
 end
 
 function tn1_storm_ind = tn1_search(storm_db,vol_struct,tn_timestamp)
-tn1_storm_ind = [];
+tn1_storm_ind        = [];
 
 %loop through radars in storm_db
-radar_id_list  = [storm_db.radar_id];
-timestamp_list = [storm_db.start_timestamp];
-uniq_radar_id_list = unique(radar_id_list);
+radar_id_list        = [storm_db.radar_id];
+timestamp_list       = [storm_db.start_timestamp];
+uniq_radar_id_list   = unique(radar_id_list);
 for i=1:length(uniq_radar_id_list)
     target_radar_id  = uniq_radar_id_list(i);
     %find timesteps from target_radar_id
@@ -321,7 +320,7 @@ for i=1:length(uniq_radar_id_list)
         continue
     end
     %add target_ind entries where target_timesteps = tn1_timestamp
-    tmp_tn1 = target_ind(target_timesteps==tn1_timestamp);
+    tmp_tn1       = target_ind(target_timesteps==tn1_timestamp);
     tn1_storm_ind = [tn1_storm_ind;tmp_tn1];
 end
 
