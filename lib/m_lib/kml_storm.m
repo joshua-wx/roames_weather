@@ -60,11 +60,12 @@ for i=1:length(download_ffn_list)
             end
             %extract storm latlonbox
             storm_latlonbox   = str2num(storm_jstruct(storm_jstruct_idx).storm_latlonbox.S);
+    		storm_latlonbox   = [storm_latlonbox(1)+h_grid/2,storm_latlonbox(2)-h_grid/2,storm_latlonbox(3)+h_grid/2,storm_latlonbox(4)-h_grid/2]; %stretch for GE coords
             %extract struct from h5
             group_id          = num2str(j);
             storm_data_struct = h5_data_read(h5_fn,download_path,group_id);
             refl_vol          = double(storm_data_struct.refl_vol)./r_scale;
-            smooth_refl_vol   = smooth3(refl_vol); %smooth volume
+            smooth_refl_vol   = flipud(smooth3(refl_vol)); %smooth volume
             %Refl xsections
             if options(3)==1
                 for k=1:length(xsec_idx)
@@ -104,7 +105,7 @@ swath_kml         = '';
 nowcast_kml       = '';
 nowcast_stat_kml  = '';
 
-%process track objects (replaced every run)
+%process track objects (replaced every run for updated radars)
 if ~isempty(storm_jstruct)
     % create unique track list
     storm_radar_id_list  = jstruct_to_mat([storm_jstruct.radar_id],'N');

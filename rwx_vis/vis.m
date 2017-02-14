@@ -252,8 +252,11 @@ while exist('tmp/kill_vis','file')==2
 
     %update kml network links
     update_radar_list  = unique([[cur_vol_struct.radar_id],remove_radar_id]);
-    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
-    
+    try
+        kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_list,options)
+    catch err
+        keyboard
+    end
     %% ending loop
     %Update user
     disp([10,'vis pass complete. ',num2str(length(update_radar_list)),' radars updated at ',datestr(now),10]);
