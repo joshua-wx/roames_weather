@@ -29,7 +29,7 @@ end
 %jstruct vars
 storm_radar_id           = jstruct_to_mat([storm_jstruct.radar_id],'N');
 storm_subset_id          = jstruct_to_mat([storm_jstruct.subset_id],'N');
-storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),'yyyy-mm-ddTHH:MM:SS');
+storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
 storm_lat                = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
 storm_lon                = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
 storm_area               = jstruct_to_mat([storm_jstruct.area],'N');

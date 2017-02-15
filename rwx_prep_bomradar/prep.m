@@ -167,7 +167,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
             %pull index from dynamodb
             jstruct_out = ddb_get_item(odimh5_ddb_table,...
                 'radar_id','N',num2str(test_r_id,'%02.0f'),...
-                'start_timestamp','S',[datestr(test_datetime,'yyyy-mm-ddTHH:MM'),':00'],'');
+                'start_timestamp','S',[datestr(test_datetime,'yyyy-mm-ddTHH:MM'),':00'],''); %remove seconds because rapic filename may not match h5 time
             if isempty(jstruct_out)
                 filt_h5_fn   = [filt_h5_fn;test_h5_fn];
                 filt_volumes = [filt_volumes;test_volumes];
@@ -250,7 +250,7 @@ if ~isempty(scan_filenames)
     cell_out = textscan([scan_filenames{:}],'%*3s %2f %*4s %12s %*1s %2f %*1s %2f %*4s');
 
     %sort and extract parts
-    [date_num,IX]  = sort(datenum(cell_out{2},'yyyymmddHHMM'));
+    [date_num,IX]  = sort(datenum(cell_out{2},'yyyymmddHHMM')); %remove seconds because rapic filename may not match h5 time
     r_id           = cell_out{1}(IX);
     scan_no        = cell_out{3}(IX);
     total_scans    = cell_out{4}(IX);

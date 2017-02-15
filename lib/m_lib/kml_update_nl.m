@@ -95,30 +95,25 @@ if isempty(storm_jstruct)
 end
 
 %keep kmlobj_struct entries from radar_id and type 
-filt_idx      = find(ismember({kmlobj_struct.type},type) & [kmlobj_struct.radar_id]==radar_id);
-kmlobj_struct = kmlobj_struct(filt_idx);
+filt_idx            = find(ismember({kmlobj_struct.type},type) & [kmlobj_struct.radar_id]==radar_id);
+kmlobj_struct       = kmlobj_struct(filt_idx);
 
 %init lists
-kml_subset_list = {kmlobj_struct.subset_id};
-time_list       = [kmlobj_struct.start_timestamp];
+kml_sort_list       = {kmlobj_struct.sort_id};
+time_list           = [kmlobj_struct.start_timestamp];
 
 %build jstruct cell list and storm_id list
-jstruct_subset_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
+jstruct_sort_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
-[~,Lib]    = ismember(kml_subset_list,jstruct_subset_list);
+[~,Lib]    = ismember(kml_sort_list,jstruct_sort_list);
 %exist if no tracks
 if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
-% mask       = Lib~=0; %WHY DO I NEED THIS?????????????????????????????????????????????????????????????
-% Lib        = Lib(mask);
-try
 track_list = track_id_list(Lib);
-catch
-    keyboard
-end
+
 %loop through unique tracks
 uniq_track_list = unique(track_list);
 for i=1:length(uniq_track_list)
@@ -138,11 +133,12 @@ for i=1:length(uniq_track_list)
         target_stop      = kmlobj_struct(target_idx(j)).stop_timestamp;
         target_latlonbox = kmlobj_struct(target_idx(j)).latlonbox;
         target_link      = kmlobj_struct(target_idx(j)).nl;
+        target_subset_id = kmlobj_struct(target_idx(j)).sort_id(end-2:end);
         %nl
         timeSpanStart = datestr(target_start,ge_tfmt);
         timeSpanStop  = datestr(target_stop,ge_tfmt);
         region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
-        kml_name      = datestr(target_start,r_tfmt);
+        kml_name      = [datestr(target_start,r_tfmt),'_',target_subset_id];
         tmp_kml       = ge_networklink(tmp_kml,kml_name,target_link,0,'','',region_kml,timeSpanStart,timeSpanStop,1);
     end
     

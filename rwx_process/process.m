@@ -333,7 +333,6 @@ if ~strcmp(dest_root(1:2),'s3') && exist(dest_path,'file') ~= 7
 end
 
 if ~isempty(storm_obj)
-
     %% volume data
     tar_fn          = [data_tag,'.wv.tar'];
     h5_fn           = [data_tag,'.storm.h5'];

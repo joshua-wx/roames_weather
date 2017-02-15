@@ -23,7 +23,7 @@ img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlon
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
 %loop through new odimh5 files
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
-[ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep,radar_id);
+[ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
 if isempty(ppi_elv)
     %error loading file, skip this ppi
     return
@@ -45,14 +45,14 @@ if options(2)==1
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_vradh',link,ffn);
 end
 
-function kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,subset_id,vol_start_time,vol_stop_time,storm_latlonbox,type,link,ffn)
+function kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,vol_start_time,vol_stop_time,storm_latlonbox,type,link,ffn)
 %WHAT: Append entry to kmlobj_struct
 
 if isempty(link)
     return
 end
 
-tmp_struct = struct('radar_id',radar_id,'subset_id',subset_id,...
+tmp_struct = struct('radar_id',radar_id,'sort_id',sort_id,...
     'start_timestamp',vol_start_time,'stop_timestamp',vol_stop_time,...
     'latlonbox',storm_latlonbox,'type',type,'nl',link,'ffn',ffn);
 

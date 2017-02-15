@@ -47,7 +47,7 @@ start_dt   = [];
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
     %load ppi attributes
-    [ppi_elv,vol_time] = process_read_ppi_atts(h5_ffn,i,radar_id);
+    [ppi_elv,vol_time] = process_read_ppi_atts(h5_ffn,i);
     %skip ppi when error exists (indicated by zero elv angle)
     if isempty(ppi_elv)
         sig_flag = false;

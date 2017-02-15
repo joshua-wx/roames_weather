@@ -34,7 +34,7 @@ pause
 for i=1:length(year_list)
     for j=1:length(radar_id_list)
         %set path to odimh5 data (id/year)
-        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/'];
+        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/10/27/'];
         %get listing
         display(['s3 ls for: ',s3_odimh5_path])
         cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,' --recursive'];
