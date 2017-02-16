@@ -1,0 +1,36 @@
+#! /bin/bash
+
+s4cmd --verbose --retry-delay=30 --retry=100 --num-threads=8 dsync -rfs /run/media/meso/storage/2015_rapic/2015 s3://roames-weathervis/radar_archive/2015_201606/
+echo "2015 finished"
+
+s4cmd --verbose --retry-delay=30 --retry=100 --num-threads=8 dsync -rfs /run/media/meso/JSODERHOLM/rapic_2016_06/2016 s3://roames-weathervis/radar_archive/2015_201606/
+echo "2016 finished"
+
+#trickle -s -u 9000 s3cmd -v sync /media/meso/radar_data1/2005 s3://roames-weathervis/radar_archive/
+#echo "2005 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2006 s3://roames-weathervis/radar_archive/
+#echo "2006 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2007 s3://roames-weathervis/radar_archive/
+#echo "2007 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2008 s3://roames-weathervis/radar_archive/
+#echo "2008 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2009 s3://roames-weathervis/radar_archive/
+#echo "2009 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2010 s3://roames-weathervis/radar_archive/
+#echo "2010 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2011 s3://roames-weathervis/radar_archive/
+#echo "2011 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2012 s3://roames-weathervis/radar_archive/
+#echo "2012 finished"
+
+#s3cmd -v sync /media/meso/radar_data1/2013 s3://roames-weathervis/radar_archive/
+#echo "2013 finished"
+
+
