@@ -106,11 +106,11 @@ if ~isempty(proj_arc) && ~isempty(proj_azi)
     %for case (1), tn1 proj using tn1 track. set track length and search distance using simple track
     if isequal(tn1_target_ind,tn1_track_ind)
         track_length = length(trck_ind);
-        search_dist  = ceil(sqrt(trck_area(end)/pi));
+        search_dist  = ceil(sqrt(trck_area(end)/pi))*1.2;
     else
         %for case (2), tn1 proj using other tracks. set track length to 1 and proj area to max_search_distance
         track_length = 1;
-        search_dist  = max_search_distance; %mean(ceil(sqrt(trck_stats(:,2)/pi)));
+        search_dist  = max_search_distance; %mean(ceil(sqrt(storm_db.area(:)/pi)))*1.2;
         proj_azi = nan;
     end
 

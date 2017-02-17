@@ -34,7 +34,7 @@ pause
 for i=1:length(year_list)
     for j=1:length(radar_id_list)
         %set path to odimh5 data (id/year)
-        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/10/27/'];
+        s3_odimh5_path = [s3_odimh5_root,num2str(radar_id_list(j),'%02.0f'),'/',num2str(year_list(i)),'/11/16/'];
         %get listing
         display(['s3 ls for: ',s3_odimh5_path])
         cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path,' --recursive'];
@@ -48,7 +48,7 @@ for i=1:length(year_list)
         h5_name     = C{2};
         h5_size     = C{1};
         
-        %% rename incorrect (nowcast filenames and remove 00)
+        %% rename incorrect (nowcast filenames)
         if rename_flag == 1
             for k = 1:length(h5_name)
                 [h5_path,h5_fn,~] = fileparts(h5_name{k});
@@ -56,7 +56,7 @@ for i=1:length(year_list)
                     %display('file already renamed, skipping')
                     continue
                 end
-                h5_date     = datenum(h5_fn(1:12),'yyyymmddHHMM');
+                h5_date     = datenum(h5_fn(1:14),'yyyymmddHHMMSS');
                 new_tag     = [num2str(radar_id_list(j),'%02.0f'),'_',datestr(h5_date,'yyyymmdd'),'_',datestr(h5_date,'HHMMSS'),'.h5'];
                 new_ffn     = [s3_bucket,h5_path,'/',new_tag];
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
@@ -140,7 +140,7 @@ function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,h5_ffn,h5_size)
 h5_fn              = h5_ffn(end-20:end);
 radar_id           = h5_fn(1:2);
 
-radar_timestamp    = datenum(h5_fn(4:end-5),'yyyymmdd_HHMM');
+radar_timestamp    = datenum(h5_fn(4:end-3),'yyyymmdd_HHMMSS');
 
 item_id            = ['item_',radar_id,'_',datestr(radar_timestamp,'yyyymmddHHMMSS')];
 
@@ -149,7 +149,7 @@ ddb_struct.(item_id).radar_id.N             = radar_id;
 ddb_struct.(item_id).start_timestamp.S      = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
 ddb_struct.(item_id).data_size.N            = num2str(h5_size);
 ddb_struct.(item_id).data_ffn.S             = h5_ffn;
-ddb_struct.(item_id).data_rng.S             = '250';
+ddb_struct.(item_id).data_rng.S             = '300';
 ddb_struct.(item_id).storm_flag.N           = '-1';
 
 tmp_sz =  length(fieldnames(ddb_struct));

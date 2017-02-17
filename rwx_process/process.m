@@ -11,7 +11,7 @@ function process
 %ident and intp databases (no overheads).
 
 %%Load VARS
-clear all
+clearvars
 % general vars
 restart_cofig_fn  = 'temp_process_vars.mat';
 process_config_fn = 'process.config';
@@ -298,6 +298,7 @@ catch err
 end
 
 %soft exit display
+delete([local_tmp_path,restart_cofig_fn])
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 %profile off
 %profile viewer

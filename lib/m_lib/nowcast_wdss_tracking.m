@@ -18,7 +18,7 @@ function tracking_id_out = nowcast_wdss_tracking(storm_jstruct,vol_struct)
 %load vars
 load('tmp/global.config.mat');
 %new vars
-tracking_id_out = [];
+tracking_id_out = zeros(length(storm_jstruct),1);
 %abort as necessary
 if length(vol_struct)<2
     %only one scan, cannot track

@@ -170,6 +170,8 @@ while exist('tmp/kill_vis','file')==2
     %% process current volumes to kml objects and generate masking
     %loop through radar id list
     for i=1:length(vol_proced_idx)
+        %update proced flag
+        vol_struct(vol_proced_idx(i)).proced = true;
         %extract file vars
         radar_id               = vol_struct(vol_proced_idx(i)).radar_id;
         start_timestep         = vol_struct(vol_proced_idx(i)).start_timestamp;
@@ -191,14 +193,21 @@ while exist('tmp/kill_vis','file')==2
         track_id_list      = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct);
 
         %use tracks, cell masks to generate storm and track kml
-        kmlobj_struct      = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+        kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+        
+        %mark everything as processed in original storm_struct
+        proced_idx            = find([storm_jstruct.proced]==false);
+        storm_jstruct(proced_idx).proced = true;
     else
         storm_jstruct_filt = [];
         track_id_list      = [];
     end
     %update kml
-    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options)
-    
+    try
+        kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options)
+    catch
+        keyboard
+    end
     %% ending loop
     %Update user
     disp([10,'vis pass complete. ',num2str(length(update_radar_id_list)),' radars updated at ',datestr(now),10]);
@@ -359,8 +368,16 @@ for i=1:length(download_stormh5_list)
             sort_id             = [datestr(stormh5_start_td,ddb_tfmt),'_',num2str(stormh5_rid,'%02.0f'),'_',num2str(group_id,'%03.0f')];
             storm_atts          = 'date_id,sort_id,domain_mask,radar_id,start_timestamp,subset_id,storm_latlonbox,storm_z_centlat,storm_z_centlon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
             temp_jstruct        = ddb_query('date_id',date_id,'sort_id',sort_id,sort_id,storm_atts,storm_ddb_table);
+            if isempty(temp_jstruct)
+                log_cmd_write('tmp/log.ddb','failed to extract storm','ddb_query stormh5',sort_id)
+                continue
+            end
             %append h5 ffn
             temp_jstruct.local_stormh5_ffn = local_stormh5_ffn;
+            %append mesh grid
+            storm_data_struct      = h5_data_read(local_stormh5_ffn,'',group_id);
+            mesh_grid              = double(storm_data_struct.MESH_grid)./r_scale;
+            temp_jstruct.mesh_grid = mesh_grid;
             %add proced flag
             temp_jstruct.proced = false;
             %append to storm_jstruct

@@ -30,6 +30,7 @@ jstruct_out  = ddb_get_item(eraint_ddb_table,...
     'radar_id','N',num2str(radar_id,'%02.0f'),...
     'eraint_timestamp','S',datestr(era_date,'yyyy-mm-ddTHH:MM:SS'),'');
 if isempty(jstruct_out)
+    display('NO ERA_int data')
     keyboard
 end
 %extract from struct

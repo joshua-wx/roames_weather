@@ -32,8 +32,8 @@ for i=1:length(extended_basin_stats)
     %extract bounding box
     bb = extended_basin_stats(i).BoundingBox;
     %round upper and lower limits on bounding towards +-inf
-    lower_b = floor([bb(2),bb(1)])-1; lower_b(lower_b<=0)=1;
-    upper_b = ceil([bb(2)+bb(4),bb(1)+bb(3)])+1;
+    lower_b = floor([bb(2),bb(1)])+1; lower_b(lower_b<=0)=1;
+    upper_b = ceil([bb(2)+bb(4),bb(1)+bb(3)])-1;
     %limit upper bounds to length of dimensions
     if upper_b(1)>length(grid_obj.lat_vec); upper_b(1)=length(grid_obj.lat_vec); end
     if upper_b(2)>length(grid_obj.lon_vec); upper_b(2)=length(grid_obj.lon_vec); end
@@ -118,7 +118,7 @@ for i=1:length(extended_basin_stats)
     subset_lon_vec   = grid_obj.lon_vec(j_subset);
     %subset_lat_edge  = subset_lat_vec(storm_edge_mask(:,1));
     %subset_lon_edge  = subset_lon_vec(storm_edge_mask(:,2));
-    subset_latlonbox = [max(subset_lat_vec);min(subset_lat_vec);max(subset_lon_vec);min(subset_lon_vec)];
+    subset_latlonbox = [max(subset_lat_vec),min(subset_lat_vec),max(subset_lon_vec),min(subset_lon_vec)];
     subset_ijbox     = [min(i_subset),max(i_subset),min(j_subset),max(j_subset)];
 
     %Collate into ident_db object

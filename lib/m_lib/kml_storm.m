@@ -27,7 +27,6 @@ end
 proced_idx            = find([storm_jstruct.proced]==false);
 %% generate cell objects
 for i=1:length(proced_idx)
-    
     %init
     radar_id       = str2num(storm_jstruct(proced_idx(i)).radar_id.N);
     cell_path      = [cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
