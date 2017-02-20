@@ -153,19 +153,24 @@ while exist('tmp/kill_vis','file')==2
     wait_aws_finish
     
     %% update vol object
-    [vol_struct,remove_radar_id] = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time);
+    vol_struct = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time);
     vol_proced_idx               = find([vol_struct.proced]==false);
-    if isempty(vol_proced_idx)
-        %no new files were processed, continue while loop
+
+    %% clean kmlobj_struct
+    [kmlobj_struct,remove_radar_id] = clean_kmlobj_struct(kmlobj_struct,oldest_time);
+    update_radar_id_list            = unique([[vol_struct(vol_proced_idx).radar_id],remove_radar_id]);
+
+    if isempty(update_radar_id_list)
+        %no new updates are required, continue while loop
         continue
     end
-    update_radar_id_list        = unique([[vol_struct(vol_proced_idx).radar_id],remove_radar_id]);
     
     %% Update storm object
-    storm_jstruct               = update_storm_jstruct(storm_jstruct,download_stormh5_list,download_path,oldest_time);
+    storm_jstruct                   = update_storm_jstruct(storm_jstruct,download_stormh5_list,download_path,oldest_time);
     
     %% clean kmlobj_struct
-    kmlobj_struct               = clean_kmlobj_struct(kmlobj_struct,oldest_time);
+    [kmlobj_struct,remove_radar_id] = clean_kmlobj_struct(kmlobj_struct,oldest_time);
+    update_radar_id_list            = unique([[vol_struct(vol_proced_idx).radar_id],remove_radar_id]);
     
     %% process current volumes to kml objects and generate masking
     %loop through radar id list
@@ -218,9 +223,6 @@ while exist('tmp/kill_vis','file')==2
     if realtime_kml == 0
         delete('tmp/kill_vis')
         break
-    elseif save_object_struct == 1
-        %update restart_vars_fn on kml update for realtime processing
-        save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
     end
     
     %rotate ddb, cp_file, and qa logs to 200kB
@@ -232,6 +234,8 @@ while exist('tmp/kill_vis','file')==2
     if toc(kill_timer)>kill_wait
         %update user
         disp(['@@@@@@@@@ rwx_vis restarted at ',datestr(now)])
+        %update restart_vars_fn on kml update for realtime processing
+        save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
         %restart
         if ~isdeployed
             %not deployed method: trigger background restart command before
@@ -274,6 +278,11 @@ end
 
 %profile off
 %profile viewer
+
+if save_object_struct == 1
+    %update restart_vars_fn on kml update for realtime processing
+    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
+end
 
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
@@ -319,17 +328,18 @@ for i=1:length(filter_idx)
     end
 end
     
-function kmlobj_struct = clean_kmlobj_struct(kmlobj_struct,oldest_time)
+function [kmlobj_struct,remove_radar_id] = clean_kmlobj_struct(kmlobj_struct,oldest_time)
 %removed entries and associated files (using links) from kmlobj_struct
 %using oldest time
 load('tmp/global.config.mat')
-
+remove_radar_id = [];
 if ~isempty(kmlobj_struct)
     %find old files
     remove_idx      = find([kmlobj_struct.start_timestamp]<oldest_time);
     if ~isempty(remove_idx)
         %clean out files
         remove_ffn_list = {kmlobj_struct(remove_idx).ffn};
+	remove_radar_id = [kmlobj_struct(remove_idx).radar_id];
         for i=1:length(remove_ffn_list)
             file_rm(remove_ffn_list{i},0,1);
         end
@@ -342,7 +352,7 @@ function storm_jstruct = update_storm_jstruct(storm_jstruct,download_stormh5_lis
 %sources stormh5 ddb entries for each stormh5 file and adds this to
 %storm_jstruct. Removes entries older than oldest_time
 load('tmp/global.config.mat')
-update_count = 0;
+
 %clean storm_jstruct
 if ~isempty(storm_jstruct)
     %find old entries
@@ -388,13 +398,12 @@ for i=1:length(download_stormh5_list)
     end
 end
 
-function [vol_struct,remove_radar_id] = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time)
+function vol_struct = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time)
 %builds vol_struct using hdf5 atts for entries in odimh5 list, filters out
 %old entries using oldest_time and returns radar_ids which have been
 %cleaned (for updating kml)
 load('tmp/global.config.mat')
 update_count    = 0;
-remove_radar_id = [];
 
 %clean vol_struct
 if ~isempty(vol_struct)
