@@ -153,13 +153,14 @@ while exist('tmp/kill_vis','file')==2
     wait_aws_finish
     
     %% update vol object
-    vol_struct = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time);
+    vol_struct                   = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time);
     vol_proced_idx               = find([vol_struct.proced]==false);
 
     %% clean kmlobj_struct
     [kmlobj_struct,remove_radar_id] = clean_kmlobj_struct(kmlobj_struct,oldest_time);
+    
+    %% check for new volumes or removed kml
     update_radar_id_list            = unique([[vol_struct(vol_proced_idx).radar_id],remove_radar_id]);
-
     if isempty(update_radar_id_list)
         %no new updates are required, continue while loop
         continue
@@ -167,11 +168,6 @@ while exist('tmp/kill_vis','file')==2
     
     %% Update storm object
     storm_jstruct                   = update_storm_jstruct(storm_jstruct,download_stormh5_list,download_path,oldest_time);
-    
-    %% clean kmlobj_struct
-    [kmlobj_struct,remove_radar_id] = clean_kmlobj_struct(kmlobj_struct,oldest_time);
-    update_radar_id_list            = unique([[vol_struct(vol_proced_idx).radar_id],remove_radar_id]);
-    
     %% process current volumes to kml objects and generate masking
     %loop through radar id list
     for i=1:length(vol_proced_idx)
@@ -190,6 +186,7 @@ while exist('tmp/kill_vis','file')==2
         %create mask information for storm cells in storm_jstruct
         storm_jstruct          = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords);
     end
+    
     %% process storm and track objects
     if ~isempty(storm_jstruct)
         %remove storm entries outside of domain
@@ -209,12 +206,8 @@ while exist('tmp/kill_vis','file')==2
         storm_jstruct_filt = [];
         track_id_list      = [];
     end
-    %update kml
-    try
-        kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options)
-    catch
-        keyboard
-    end
+    %update kml from kmlobj_struct
+    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options)
     %% ending loop
     %Update user
     disp([10,'vis pass complete. ',num2str(length(update_radar_id_list)),' radars updated at ',datestr(now),10]);
