@@ -1,5 +1,5 @@
 s3_log_fn      s3.log
 local_log_fn   local.log
-s3_in          s3://roames-wxradar-archive/radar_archive/1999-2014_fill/raw_fill_QLD/
-s3_out         s3://roames-wxradar-archive/odimh5_archive/
-s3_bvol        s3://roames-wxradar-archive/odimh5_archive/broken_vols/
+s3_in          s3://roames-wxradar-archive/radar_archive/19990414_hailstorm/
+s3_out         s3://roames-weather-odimh5/odimh5_archive/
+s3_bvol        s3://roames-weather-odimh5/odimh5_archive/broken_vols/

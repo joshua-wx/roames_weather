@@ -39,7 +39,7 @@ for i=1:length(proced_idx)
     kml_fn         = [data_tag,'_',num2str(subset_id,'%03.0f')];
     %extract storm latlonbox
     storm_latlonbox   = str2num(storm_jstruct(proced_idx(i)).storm_latlonbox.S);
-    storm_latlonbox   = [storm_latlonbox(1)+h_grid/2,storm_latlonbox(2)-h_grid/2,storm_latlonbox(3)+h_grid/2,storm_latlonbox(4)-h_grid/2]; %stretch for GE coords
+    %storm_latlonbox   = [storm_latlonbox(1)+h_grid/2,storm_latlonbox(2)-h_grid/2,storm_latlonbox(3)+h_grid/2,storm_latlonbox(4)-h_grid/2]; %stretch for GE coords
     %extract data from struct
     stormh5_ffn       = storm_jstruct(proced_idx(i)).local_stormh5_ffn;
     storm_data_struct = h5_data_read(stormh5_ffn,'',subset_id);

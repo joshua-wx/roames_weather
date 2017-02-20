@@ -3,8 +3,8 @@ function vol_fn_out = dailyVOL_to_VOL(input_ffn,out_path,log_fn)
 %WHAT: Breaks concat'ed rapic volumes (ascii) into individual volumes.
 
 if ~isdeployed
-    addpath('/home/meso/Dropbox/dev/wv/etc')
-    addpath('/home/meso/Dropbox/dev/wv/lib/m_lib')
+    addpath('/home/meso/dev/roames_weather/etc')
+    addpath('/home/meso/dev/roames_weather/lib/m_lib')
 end
 
 site_info_fn = 'site_info.txt';
@@ -76,9 +76,9 @@ while ischar(tline)
             %open output file
             out_fn  = [r_id,'_',datestr(dt_num,'yyyymmdd'),'_',datestr(dt_num,'HHMMSS'),'.rapic'];
             out_ffn = [out_path,out_fn];
-            %cmd = ['head -n ',num2str(file_idx),' ',input_ffn,' | sed ''s/MSSG: 30 Status information following - 3D-Rapic TxDevice//g''  | tail -n 1 > ',out_ffn];
-            f_idx_s = num2str(file_idx);
-            cmd = ['sed -n ''',f_idx_s,',',f_idx_s,'p'' ',input_ffn,' | sed -e "s/MSSG: 30 Status information following - 3D-Rapic TxDevice//g" -e "s/NAME:/$(cat /tmp/header.txt)/g" | tail -n 1 > ',out_ffn];
+            cmd = ['head -n ',num2str(file_idx),' ',input_ffn,' | sed ''s/MSSG: 30 Status information following - 3D-Rapic TxDevice//g''  | tail -n 1 > ',out_ffn];
+            %f_idx_s = num2str(file_idx);
+            %cmd = ['sed -n ''',f_idx_s,',',f_idx_s,'p'' ',input_ffn,' | sed -e "s/MSSG: 30 Status information following - 3D-Rapic TxDevice//g" -e "s/NAME:/$(cat /tmp/header.txt)/g" | tail -n 1 > ',out_ffn];
             %cmd = ['sed -n ''',f_idx_s,',',f_idx_s,'p'' ',input_ffn,' | sed -e "s/MSSG: 30 Status information following - 3D-Rapic TxDevice//g" -e "s/NAME:/',header,'/g" | tail -n 1 > ',out_ffn];
             [sout,eout] = unix(cmd);
             if sout ~= 0

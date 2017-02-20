@@ -197,7 +197,9 @@ while exist('tmp/kill_vis','file')==2
         
         %mark everything as processed in original storm_struct
         proced_idx            = find([storm_jstruct.proced]==false);
-        storm_jstruct(proced_idx).proced = true;
+        for i=1:length(proced_idx)
+            storm_jstruct(proced_idx(i)).proced = true;
+        end
     else
         storm_jstruct_filt = [];
         track_id_list      = [];

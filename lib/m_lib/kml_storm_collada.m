@@ -85,6 +85,7 @@ ffn  = [dest_root,dest_path,kmz_fn];
 
 
 function [kml_str,collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,type)
+load('tmp/global.config.mat')
 
 %generate triangles
 [triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,storm_latlonbox);
@@ -111,7 +112,7 @@ collada_fn     = [iso_tag,'.dae'];
 collada_ffn    = [tempdir,collada_fn];
 index_and_write(collada_ffn,triangles(:,2:10),textures,texcoords,colors,high_normals)
 %wrap and centre in kml
-kml_str        = ge_model('',1,collada_fn,iso_tag,clat,clon,'','');
+kml_str        = ge_model('',1,collada_fn,iso_tag,clat-h_grid,clon-h_grid,'',''); %%%%%%%OFFSET
     
  
 
@@ -147,10 +148,14 @@ triangles = [];
 %arrange face vertices to be contiunes (append) and reverse order to
 %plot as anticlockwise
 if length(fv.faces)>smallest_no_faces
-    faces    = fliplr([fv.faces,fv.faces(:,1)]);
-    vertices = fv.vertices;
+    faces       = fliplr([fv.faces,fv.faces(:,1)]);
+    fv_vertices = fv.vertices;
     %rescale vertices
-    vertices  = [(vertices(:,1).*deg2km(h_grid).*1000),(vertices(:,2).*deg2km(h_grid).*1000),(vertices(:,3).*v_grid.*1000)];
+    [vertex1,~] = distance(clat,clon,repmat(clat,size(fv_vertices,1),1),clon+(fv_vertices(:,1).*h_grid)); vertex1 = deg2km(vertex1).*1000;
+    [vertex2,~] = distance(clat,clon,clat+(fv_vertices(:,2).*h_grid),repmat(clon,size(fv_vertices,1),1)); vertex2 = deg2km(vertex2).*1000;
+    vertex3     = fv_vertices(:,3).*v_grid.*1000;
+    vertices    = [vertex1,vertex2,vertex3];
+    %vertices  = [(vertices(:,1).*deg2km(h_grid).*1000),(vertices(:,2).*deg2km(h_grid).*1000),(vertices(:,3).*v_grid.*1000)];
     %expand into full triangles
     triangles = [vertices(faces(:,1),:),vertices(faces(:,2),:),vertices(faces(:,3),:)];
 end

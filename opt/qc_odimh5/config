@@ -1,9 +1,9 @@
 %qc_odimh5 CONFIG FILE
 %
 %
-year_start     2008
-year_stop      2008
-radar_id       50
+year_start     1999
+year_stop      1999
+radar_id       54
 duplicate_flag 0
 rename_flag    0
 ddb_flag       1

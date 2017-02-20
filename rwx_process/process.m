@@ -298,7 +298,9 @@ catch err
 end
 
 %soft exit display
-delete([local_tmp_path,restart_cofig_fn])
+if exist([local_tmp_path,restart_cofig_fn],'file')==2
+    delete([local_tmp_path,restart_cofig_fn])
+end
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 %profile off
 %profile viewer
