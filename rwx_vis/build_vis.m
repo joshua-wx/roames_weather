@@ -26,7 +26,7 @@ tar(tar_fn,{'run_vis.sh','vis','run','etc/'})
 
 display('scp')
 %historical
-ec2_ip      = '13.55.62.242';
+ec2_ip      = '52.62.244.38';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_vis/'])
 
 
