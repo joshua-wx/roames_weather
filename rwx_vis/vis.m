@@ -332,7 +332,7 @@ if ~isempty(kmlobj_struct)
     if ~isempty(remove_idx)
         %clean out files
         remove_ffn_list = {kmlobj_struct(remove_idx).ffn};
-	remove_radar_id = [kmlobj_struct(remove_idx).radar_id];
+        remove_radar_id = [kmlobj_struct(remove_idx).radar_id];
         for i=1:length(remove_ffn_list)
             file_rm(remove_ffn_list{i},0,1);
         end
