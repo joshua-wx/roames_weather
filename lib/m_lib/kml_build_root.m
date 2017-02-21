@@ -47,9 +47,7 @@ if local_dest_flag==1
     mkdir([dest_root,track_obj_path]);
     mkdir([dest_root,cell_obj_path]);
 else
-    file_rm([dest_root,ppi_obj_path],1,0)
-    file_rm([dest_root,track_obj_path],1,0)
-    file_rm([dest_root,cell_obj_path],1,0)
+    file_rm([dest_root],1,0)
 end
 
 %s3 nl from doc.kml need a url prefix
@@ -114,7 +112,7 @@ ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 
 %% build master network links
 %Layers kml network link
-master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'scan.kml'],0,0,'','','','',1);
+master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'ppi.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Track Objects',[url_prefix,'track.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Cell Objects',[url_prefix,'cell.kml'],0,0,'','','','',1);
 
@@ -160,7 +158,7 @@ ppi_str  = ge_networklink(ppi_str,'Coverage','overlays/coverage.kml',0,0,'','','
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
-file_mv(temp_ffn,[dest_root,'scan.kml']);
+file_mv(temp_ffn,[dest_root,'ppi.kml']);
 wait_aws_finish
 
 %cell.kml

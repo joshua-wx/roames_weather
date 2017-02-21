@@ -179,6 +179,9 @@ while exist('tmp/kill_process','file')==2
             if exist(odimh5_ffn,'file')~=2
                 continue
             end
+            %extract odimh5 file name date
+            [~,odimh5_fn,~] = fileparts(odimh5_ffn);
+            odimh5_date     = datenum(odimh5_fn(4:end),r_tfmt);
 
             %QA the h5 file (attempt to read groups)
             [qa_flag,no_groups,radar_id,vel_flag,start_dt] = process_qa_h5(odimh5_ffn,min_n_groups,radar_id_list);
@@ -215,7 +218,7 @@ while exist('tmp/kill_process','file')==2
             
             %update storm and odimh5 index ddb, plus create storm object h5
             %as needed
-            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,remote_odimh5_ffn)
+            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,remote_odimh5_ffn,odimh5_date)
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
@@ -305,7 +308,7 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_ti
 %profile off
 %profile viewer
 
-function update_archive(dest_root,grid_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn)
+function update_archive(dest_root,grid_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn,odimh5_date)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
@@ -380,7 +383,7 @@ if ~isempty(storm_obj)
         tmp_jstruct.data_ffn.S          = stormh5_ffn;
         tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
-        tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb','%03.4f ');
+        tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb,'%03.4f ');
         tmp_jstruct.storm_z_centlat.N   = num2str(storm_dcent(1),'%03.4f ');
         tmp_jstruct.storm_z_centlon.N   = num2str(storm_dcent(2),'%03.4f ');
         tmp_jstruct.h_grid.N            = num2str(h_grid);
@@ -415,7 +418,7 @@ if ~isempty(storm_obj)
 end
 
 %update dynamodb odimh5 table
-ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',start_dt,'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
+ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(odimh5_date,ddb_tfmt),'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
