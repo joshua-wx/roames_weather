@@ -106,7 +106,7 @@ for i=1:length(site_no_selection)
     %append site latlonbox
     site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
     %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../scan.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 

@@ -112,11 +112,9 @@ if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
-try
-    track_list = track_id_list(Lib);
-catch
-    keyboard
-end
+
+track_list = track_id_list(Lib);
+
 %loop through unique tracks
 uniq_track_list = unique(track_list);
 for i=1:length(uniq_track_list)
