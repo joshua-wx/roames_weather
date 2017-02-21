@@ -77,8 +77,8 @@ track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(
 
 
 %balloon style (stats and graph)
-cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style');
-track_style_str = ge_balloon_graph_style(track_style_str,'balloon_graph_style');
+cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
+track_style_str = ge_balloon_graph_style(track_style_str,'balloon_graph_style',url_prefix,icons_path);
 
 %track path and swath style
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
@@ -126,14 +126,17 @@ ge_kml_out(temp_ffn,'RoamesWX',master_str);
 %transfer to root path
 file_mv(temp_ffn,[dest_root,'doc.kml'])
 
-%transfer overlays and coverage
-if ~strcmp(dest_root(1:2),'s3') && exist([dest_root,'overlays/'],'file')~=7
-    mkdir([dest_root,'overlays/'])
+%transfer overlays,icons and coverage
+if ~strcmp(dest_root(1:2),'s3')
+    mkdir([dest_root,overlays_path])
+    mkdir([dest_root,icons_path])
 end
 file_mv([tempdir,'coverage.kml'],[dest_root,'overlays/coverage.kml'])
 file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'ROAMES_logo.png'],0,1)
 file_cp([pwd,'/etc/',overlays_path,'dbzh_colorbar.png'],[dest_root,overlays_path,'dbzh_colorbar.png'],0,1)
 file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_path,'vradh_colorbar.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'graph_icon.png'],[dest_root,icons_path,'graph_icon.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'lightning_icon.png'],[dest_root,icons_path,'lightning_icon.png'],0,1)
 
 %% build ppi groups kml
 

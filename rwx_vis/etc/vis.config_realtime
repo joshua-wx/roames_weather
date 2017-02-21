@@ -2,20 +2,19 @@
 %WHAT: controls the input parameters of the KML config module
 %
 % DESTINATION OPTIONS
-local_dest_flag          0
+local_dest_flag          1
 local_dest_root          /home/meso/roames_weather_kml/kml_realtime_testing/
-s3_dest_root             s3://roames-weather-vis/kml_demo/
-s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_demo/
+s3_dest_root             s3://roames-weather-vis/kml_realtime/
+s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_realtime/
 %
 % REALTIME OPTIONS
-realtime_kml             0
+realtime_kml             1
 realtime_length          -1          %hours
 %
 % RESTART OPTIONS
 save_object_struct       1     %save all objects on soft exit
 %
 %FILE STRUCTURE OPTIONS
-icons_path               icons/
 overlays_path            overlays/
 ppi_obj_path             ppi_obj/
 track_obj_path           track_obj/
@@ -23,13 +22,13 @@ cell_obj_path            cell_obj/
 download_path            /tmp/vis_h5_download/
 %
 % HISTORICAL OPTIOS
-hist_oldest              2015-10-27T04:00:00
+hist_oldest              2017-02-18T05:00:00
 %yyyy_mm_ddTHH:MM : oldest time to process
-hist_newest              2015-10-27T09:00:00
+hist_newest              2017-02-18T06:00:00
 %yyyy_mm_ddTHH:MM : newest time to process
 %
 %SITE OPTIONS
-radar_id_list           [08,66,28]
+radar_id_list           all
 force_transform_update  0         %flag to force transform regeneration
 %site description
 %overrides the zone setting
