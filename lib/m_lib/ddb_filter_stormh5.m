@@ -22,8 +22,10 @@ for i=1:length(datetime_list)
     date_id     = datestr(tmp_date,'ddmmyyyy');
     sort_id     = [datestr(tmp_date,'yyyy-mm-ddTHH:MM:SS'),'_',num2str(tmp_radarid,'%02.0f')];
     jstruct     = ddb_query_begins('date_id',date_id,'sort_id',sort_id,p_exp,stormh5_ddb_table);
-    tmp_ffnlist = jstruct_to_mat([jstruct.data_ffn],'S');
-    ffn_list    = [ffn_list;tmp_ffnlist];
+    if ~isempty(jstruct)
+        tmp_ffnlist = jstruct_to_mat([jstruct.data_ffn],'S');
+        ffn_list    = [ffn_list;tmp_ffnlist];
+    end
 end
 
 %preserve unqiue filenames (stormh5 contains cells, which are stored in a
