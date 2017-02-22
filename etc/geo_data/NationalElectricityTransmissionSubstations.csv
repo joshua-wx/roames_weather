@@ -1,9 +1,9 @@
 OBJECTID,FEATURETYPE,NAME,CAPACITY_kV,CLASSIFICATION,SITESUBURB,STATE,STATUS,FEATURERELIABILITY,FEATURESOURCE,ATTRIBUTERELIABILITY,ATTRIBUTESOURCE,SPATIALACCURACY,REVISED,LATITUDE,LONGITUDE
 1,Substation,Bowen North,132,Terminal,Bowen,Queensland,Operational,20060704,East_Queensland_SPOT.ecw,20140627,Airservices Australia,5,20130812,-20.017831,148.167513
 2,Substation,Clements Gap Wind Farm,132,Zone ,Clements Gap,South Australia,Operational,20100101,ALPSM2P5_ZONE54_2010.ecw,20120712,AEMO-Australian Energy Market Operators 2012,3,20120710,-33.508265,138.130708
-3,Substation,Snowtown Wind Farm,275,,Cameron,South Australia,Operational,20100305,ESRI World Imagery,20100305,ESRI World Imagery,3,20130812,-33.830205,138.11846
+3,Substation,Snowtown Wind Farm,275,Cameron,South Australia,Operational,Operational,20100305,ESRI World Imagery,20100305,ESRI World Imagery,3,20130812,-33.830205,138.11846
 4,Substation,Blyth West,275,Switchyard,Blyth,South Australia,Operational,20100305,ESRI World Imagery,20100305,ESRI World Imagery,3,20130812,-33.846902,138.407543
-5,Substation,Belalie-North Brown Hill Wind Farm,275,,Belalie East,South Australia,Operational,20070516,alav2p5_69574270_16052007.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-33.309212,138.727294
+5,Substation,Belalie-North Brown Hill Wind Farm,275,Belalie East,South Australia,Operational,Operational,20070516,alav2p5_69574270_16052007.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-33.309212,138.727294
 6,Substation,West Angelas Mine,220,Power Station,Newman,Western Australia,Operational,20100609,ESRI World Imagery,20100609,ESRI World Imagery,5,20130812,-23.154106,118.725055
 7,Substation,West Angelas Mine,220,Switchyard,Newman,Western Australia,Operational,20100609,ESRI World Imagery,20100609,ESRI World Imagery,5,20130812,-23.148954,118.719173
 8,Substation,Blayney Wind Farm,132,Zone ,Carcoar,New South Wales,Operational,20070101,Blayney_8730_50cm_2007.ecw,20001019,Airservices Australia,5,20131220,-33.628141,149.208199
@@ -129,7 +129,7 @@ OBJECTID,FEATURETYPE,NAME,CAPACITY_kV,CLASSIFICATION,SITESUBURB,STATE,STATUS,FEA
 128,Substation,Whitmore Square,66,Zone ,Adelaide,South Australia,Operational,20110101,2011_Adelaide_MtLofty_Ranges_50cm_EdMask_MGA54.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120627,-34.932214,138.595326
 129,Substation,Keswick,66,Zone ,Adelaide,South Australia,Operational,20110101,2011_Adelaide_MtLofty_Ranges_50cm_EdMask_MGA54.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120627,-34.944567,138.57871
 130,Substation,City West,275,Zone ,Keswick Terminal,South Australia,Operational,20110101,2011_Adelaide_MtLofty_Ranges_50cm_EdMask_MGA54.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120627,-34.939635,138.579846
-131,Substation,Mornington,110,Zone ,Mornington,Tasmania,Operational,20090601,"Hobart Eastern Shore Report, Page 28",20120123,AEMO-Australian Energy Market Operators 2012,1,20120626,-42.860617,147.407549
+131,Substation,Mornington,110,Zone ,Mornington,Tasmania,Operational,20090601,Hobart Eastern Shore Report Page 28,20120123,AEMO-Australian Energy Market Operators 2012,1,20120626,-42.860617,147.407549
 132,Substation,West Wetherill,132,Transmission ,Wetherill Park,New South Wales,Operational,20070101,Penrith_9030_50cm_2007.ecw,20130214,AEMO-Australian Energy Market Operators 2013,5,20130730,-33.841978,150.881375
 133,Substation,Clare North,132,Zone ,Clare,South Australia,Operational,20060208,sp5xi2p5_365418_080206.ecw,20120712,AEMO-Australian Energy Market Operators 2012,1,20120710,-33.823233,138.629971
 134,Substation,Munyang,132,Zone ,Kosciuszko National Park,New South Wales,Operational,19990101,Kosciusko.ecw,20130214,AEMO-Australian Energy Market Operators 2013,1,20130730,-36.351041,148.411728
@@ -141,7 +141,7 @@ OBJECTID,FEATURETYPE,NAME,CAPACITY_kV,CLASSIFICATION,SITESUBURB,STATE,STATUS,FEA
 140,Substation,Hudson Creek 66,66,Zone ,Wishart,Northern Territory,Operational,20050514,Darwin_RGB.tif,20110301,Northern Territory Utilities Commission Power and Water Corporation 2011,5,20120710,-12.458952,130.931574
 141,Substation,Hudson Creek 132,132,Zone ,Wishart,Northern Territory,Operational,20050514,Darwin_RGB.tif,20110301,Northern Territory Utilities Commission Power and Water Corporation 2011,5,20120710,-12.458946,130.932286
 142,Substation,Warragamba Dam,132,Power Station,Warragamba,New South Wales,Operational,20070101,Penrith_9030_50cm_2007.ecw,20130214,AEMO-Australian Energy Market Operators 2013,5,20130730,-33.88249,150.59735
-143,Substation,Capital Hill Wind Farm,132,,Lake George,New South Wales,Operational,20090101,Braidwood_8827_50cm_2009.ecw,20130214,AEMO-Australian Energy Market Operators 2013,1,20130730,-35.187399,149.52301
+143,Substation,Capital Hill Wind Farm,132,Lake George,New South Wales,Operational,Operational,20090101,Braidwood_8827_50cm_2009.ecw,20130214,AEMO-Australian Energy Market Operators 2013,8,20130730,-35.187399,149.52301
 144,Substation,Uranquinty,132,Zone ,Uranquinty,New South Wales,Operational,20080101,WaggaWagga_8327_50cm_2008.ecw,20130214,AEMO-Australian Energy Market Operators 2013,5,20130730,-35.1773,147.215402
 145,Substation,Loy Yang,66,Power Station,Loy Yang,Victoria,Operational,20060322,latrobe_2006mar22_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-38.254875,146.571266
 146,Substation,Loy Yang ,500,Power Station,Loy Yang,Victoria,Operational,20060322,latrobe_2006mar22_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-38.256497,146.573862
@@ -158,20 +158,20 @@ OBJECTID,FEATURETYPE,NAME,CAPACITY_kV,CLASSIFICATION,SITESUBURB,STATE,STATUS,FEA
 157,Substation,Kilburn South,110,Zone ,Kilburn,South Australia,Operational,20030101,WestandEastMtLoftyRanges_2003_2005_MGA54.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-34.865193,138.585818
 158,Substation,Waterloo East,132,Zone ,Tothill Belt,South Australia,Operational,20060208,sp5xi2p5_365418_080206.ecw,20120712,AEMO-Australian Energy Market Operators 2012,1,20120710,-34.001555,138.910869
 159,Substation,Pannawomica,132,Sole Use,Fortescue,Western Australia,Operational,20000801,Pannawonica_2154_Aug_2000_mosiac,20090601,North West Interconnected System Website,3,20120710,-21.680119,116.464421
-160,Substation,Wattle Point Wind Farm,110,,Edithburgh,South Australia,Operational,20060101,MarionBay_toClinton_MGA53.ecw,20120712,AEMO-Australian Energy Market Operators 2012,1,20120710,-35.110351,137.705778
+160,Substation,Wattle Point Wind Farm,110,Edithburgh,South Australia,Operational,Operational,20060101,MarionBay_toClinton_MGA53.ecw,20120712,AEMO-Australian Energy Market Operators 2012,6,20120711,-35.110351,137.705778
 161,Substation,Ellenbrook,132,Zone ,Whiteman,Western Australia,Operational,20080301,Perth_2034_Mar_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-31.796419,115.961241
 162,Substation,Snowtown,110,Zone ,Barunga,South Australia,Operational,19990101,CFS_Midnorth_MGA53.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-33.713543,138.140394
 163,Substation,Rangeway,132,Zone ,Geraldton,Western Australia,Operational,20060201,Geraldton_1840_Feb_2006_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-28.785498,114.623741
-164,Substation,Mount Millar Wind Farm,132,,Hawker,South Australia,Operational,20080101,EasternEyrePeninsula_2008_MGA53_part.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-33.625361,136.703706
+164,Substation,Mount Millar Wind Farm,132,Hawker,South Australia,Operational,Operational,20080101,EasternEyrePeninsula_2008_MGA53_part.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-33.625361,136.703706
 165,Substation,Wangara,132,Zone ,Wangara,Western Australia,Operational,20080301,Perth_2034_Mar_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,3,20120710,-31.796719,115.824005
 166,Substation,Joondalup,132,Zone ,Joondalup,Western Australia,Operational,20080301,Perth_2034_Mar_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-31.738398,115.759015
 167,Substation,Clarkson,132,Zone ,Clarkson,Western Australia,Operational,20080301,Perth_2034_Mar_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-31.671235,115.728494
 168,Substation,Neerabup ,132,Terminal ,Pinjar,Western Australia,Operational,20080301,Perth_2034_Mar_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-31.681802,115.821955
 169,Substation,Ingle Farm,110,Zone ,Ingle Farm,South Australia,Operational,20030101,WestandEastMtLoftyRanges_2003_2005_MGA54.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-34.821431,138.651321
 170,Substation,Wells Terminal,330,Zone ,Mount Wells,Western Australia,Operational,20080701,Dwellingup_2132_Jul_2008_Mosaic.ecw,20110701,Western Power 2011 Annual Planing Report,5,20120711,-32.717311,116.316526
-171,Substation,Cape Nelson South Wind Farm,66,,Portland West,Victoria,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,1,20120710,-38.412,141.543
-172,Substation,Cape Nelson North Wind Farm,66,,Portland West,Victoria,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,5,20120710,-38.365999,141.547998
-173,Substation,Cape Bridgewater Wind Farm,66,,Cape Bridgewater,Victoria,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,5,20120710,-38.372159,141.379442
+171,Substation,Cape Nelson South Wind Farm,66,Portland West,Victoria,Operational,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,1,20120710,-38.412,141.543
+172,Substation,Cape Nelson North Wind Farm,66,Portland West,Victoria,Operational,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,5,20120710,-38.365999,141.547998
+173,Substation,Cape Bridgewater Wind Farm,66,Cape Bridgewater,Victoria,Operational,Operational,20100225,ESRI World Imagery,20100225,ESRI World Imagery,5,20120710,-38.372159,141.379442
 174,Substation,Binningup Desalination Plant,132,Sole Use,Binningup,Western Australia,Operational,20080101,Bunbury_2031_Jan_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,2,20120710,-33.129828,115.705601
 175,Substation,Meadow Springs,132,Zone ,Lakelands,Western Australia,Operational,20080701,Pinjarra_2032_Jul_2008_Mosaic.ecw,20110701,Western Power 2011 Annual Planing Report,5,20120711,-32.484782,115.765162
 176,Substation,Bluewaters ,330,Terminal ,Palmer,Western Australia,Operational,20080201,Collie_2131_Feb_2008_Mosaic.ecw,20090101,2009 Transmission and Distribution Annual Report,5,20120710,-33.331876,116.233821
@@ -709,7 +709,7 @@ OBJECTID,FEATURETYPE,NAME,CAPACITY_kV,CLASSIFICATION,SITESUBURB,STATE,STATUS,FEA
 708,Substation,Geelong,220,Terminal ,Norlane,Victoria,Operational,20091202,portphillip_2009dec02_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-38.082624,144.338498
 709,Substation,Moorabool,500,Terminal ,Moorabool,Victoria,Operational,20091202,portphillip_2009dec02_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-38.037,144.296809
 710,Substation,Burnie 110,220,Zone ,Acton,Tasmania,Operational,20070201,or1422-37_repro.ecw,20120123,AEMO-Australian Energy Market Operators 2012,5,20120710,-41.075948,145.891127
-711,Substation,Studland Bay Wind Farm,110,,Woolnorth,Tasmania,Operational,20080314,or1403-184_repro.ecw,20120123,AEMO-Australian Energy Market Operators 2012,5,20120710,-40.718753,144.697562
+711,Substation,Studland Bay Wind Farm,110,Woolnorth,Tasmania,Operational,Operational,20080314,or1403-184_repro.ecw,20120123,AEMO-Australian Energy Market Operators 2012,5,20120710,-40.718753,144.697562
 712,Substation,Altona,220,Terminal ,Laverton North,Victoria,Operational,20091202,portphillip_2009dec02_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-37.838848,144.789381
 713,Substation,Fishermans Bend,220,Zone ,Port Melbourne,Victoria,Operational,20091202,portphillip_2009dec02_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-37.825191,144.929431
 714,Substation,Brooklyn,220,Terminal ,Altona North,Victoria,Operational,20091202,portphillip_2009dec02_air_vis_35cm_mga55.ecw,20120712,AEMO-Australian Energy Market Operators 2012,5,20120710,-37.825967,144.861786
