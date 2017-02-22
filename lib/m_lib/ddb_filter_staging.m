@@ -1,4 +1,4 @@
-function pending_ffn_list = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,data_type)
+function [ffn_list,datetime_list,radarid_list] = ddb_filter_staging(ddb_table,oldest_time,newest_time,radar_id_list,data_type)
 %WHAT: filters files in scr_dir using the time and site no criteria.
 
 %INPUT
@@ -11,7 +11,10 @@ function pending_ffn_list = ddb_filter_staging(ddb_table,oldest_time,newest_time
 %pending_list: updated list of all processed ftp files
 
 %init pending_list
-pending_ffn_list = {};
+ffn_list      = {};
+datetime_list = [];
+radarid_list  = [];
+
 %read staging index
 p_exp            = 'data_type,data_id,data_ffn'; %attributes to return
 jstruct          = ddb_query_part('data_type',data_type,'S',p_exp,ddb_table);
@@ -27,7 +30,9 @@ for j=1:length(staging_ffn_list)
     tmp_timestamp   = datenum(fn(4:end),'yyyymmdd_HHMMSS');
     %filter
     if any(ismember(tmp_radar_id,radar_id_list)) && tmp_timestamp>=oldest_time && tmp_timestamp<=newest_time
-        pending_ffn_list        = [pending_ffn_list;staging_ffn_list{j}];
+        ffn_list                = [ffn_list;staging_ffn_list{j}];
+        datetime_list           = [datetime_list;tmp_timestamp];
+        radarid_list            = [radarid_list;tmp_radar_id];
         %clean ddb table
         delete_struct           = struct;
         delete_struct.data_id   = jstruct(j).data_id;

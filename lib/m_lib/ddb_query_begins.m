@@ -22,13 +22,9 @@ if sout~=0 || isempty(eout)
 end
 %convert json to struct
 %jstruct    = loadjson('tmp/eout.json','SimplifyCell',1,'FastArrayParser',1);
-try
 jstruct    = json_read(temp_fn);
 if ~isempty(jstruct)
     jstruct = jstruct.Items;
-end
-catch
-    keyboard
 end
 if exist(temp_fn,'file')==2
     delete(temp_fn)

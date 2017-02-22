@@ -131,8 +131,11 @@ while exist('tmp/kill_vis','file')==2
     delete([download_path,'*'])
     %read staging index
     if realtime_kml == 1
-        download_odimh5_list   = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
-        download_stormh5_list  = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'stormh5');
+        [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
+        %sometimes, stormh5 and odimh5 from the same volume aren't pulled in
+        %the same run due to the nonsimulatenous loading into ddb (odimh5
+        %first, stormh5 second)
+        download_stormh5_list                                     = ddb_filter_stormh5(stormh5_ddb_table,odimh5_datelist,odimh5_radaridlist); %only pull stormh5 ffn for odimh5 files (removes out of sync issue)
     else
         date_id_list           = round(oldest_time):1:round(newest_time);
         download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
@@ -206,8 +209,10 @@ while exist('tmp/kill_vis','file')==2
         storm_jstruct_filt = [];
         track_id_list      = [];
     end
+    
     %update kml from kmlobj_struct
-    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options)
+    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
+
     %% ending loop
     %Update user
     disp([10,'vis pass complete. ',num2str(length(update_radar_id_list)),' radars updated at ',datestr(now),10]);
