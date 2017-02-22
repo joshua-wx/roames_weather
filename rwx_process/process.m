@@ -429,14 +429,6 @@ if realtime_flag == 1
     ddb_staging.data_id.S                = data_id;
     ddb_staging.data_ffn.S               = odimh5_ffn;
     ddb_put_item(ddb_staging,staging_ddb_table)
-    %stormh5
-    if ~isempty(storm_obj)
-        ddb_staging                      = struct;
-        ddb_staging.data_type.S          = 'stormh5';
-        ddb_staging.data_id.S            = data_id;
-        ddb_staging.data_ffn.S           = stormh5_ffn;
-        ddb_put_item(ddb_staging,staging_ddb_table)
-    end
 end
 
 
