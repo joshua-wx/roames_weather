@@ -113,9 +113,10 @@ if isempty(Lib)
     return
 end
 
-try
+if ~any(Lib==0)
     track_list = track_id_list(Lib);
-catch
+else
+    %SORT THIS OUT..... with testing
     %error detected, write to logs
     log_cmd_write('tmp/log.update_kml',['failure on ',num2str(radar_id),' for type ',type,' at ',datestr(now)],'','');
     empty_mask = Lib==0;
@@ -125,12 +126,12 @@ catch
         return
     else
         %remove missing kml entires and complete track assignment
-        kmlobj_struct = kmlobj_struct(~empty_mask);
-        track_id_list = track_id_list(~empty_mask);
         Lib           = Lib(~empty_mask);
         track_list    = track_id_list(Lib);
     end
 end
+
+kmlobj_struct = kmlobj_struct(Lib)
 
 %loop through unique tracks
 uniq_track_list = unique(track_list);
