@@ -3,6 +3,17 @@ function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,r_id_
 %init
 load('tmp/global.config.mat')
 load('tmp/vis.config.mat')
+
+%remove kmlobj which don't have a matching entry in storm_jstruct (BUG)
+kml_sort_list       = {kmlobj_struct.sort_id};
+jstruct_sort_list   = jstruct_to_mat([storm_jstruct.sort_id],'S');
+filter_mask         = ismember(kml_sort_list,jstruct_sort_list);
+%check for entries to remove
+if any(~filter_mask)
+    kmlobj_struct = kmlobj_struct(filter_mask);
+    log_cmd_write('tmp/log.update_kml',strjoin(kml_sort_list(~filter_mask)),'','');
+end
+
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
 for i=1:length(r_id_list)
@@ -76,9 +87,6 @@ end
 %write out
 ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
 
-
-
-
 function generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,type,nl_path,altLod,minlod,maxlod)
 
 %WHAT: generates kml for cell objects listed in object_Struct using
@@ -106,32 +114,14 @@ time_list           = [kmlobj_struct.start_timestamp];
 jstruct_sort_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
+jstruct_sort_list = jstruct_sort_list(1:end-1);
 [~,Lib]    = ismember(kml_sort_list,jstruct_sort_list);
 %exist if no tracks
 if isempty(Lib)
     ge_kml_out([nl_path,nl_name,'.kml'],'','');
     return
 end
-
-if ~any(Lib==0)
-    track_list = track_id_list(Lib);
-else
-    %SORT THIS OUT..... with testing
-    %error detected, write to logs
-    log_cmd_write('tmp/log.update_kml',['failure on ',num2str(radar_id),' for type ',type,' at ',datestr(now)],'','');
-    empty_mask = Lib==0;
-    %all missing
-    if all(empty_mask)
-        ge_kml_out([nl_path,nl_name,'.kml'],'','');
-        return
-    else
-        %remove missing kml entires and complete track assignment
-        Lib           = Lib(~empty_mask);
-        track_list    = track_id_list(Lib);
-    end
-end
-
-kmlobj_struct = kmlobj_struct(Lib)
+track_list = track_id_list(Lib);
 
 %loop through unique tracks
 uniq_track_list = unique(track_list);
