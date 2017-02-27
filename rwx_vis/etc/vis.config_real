@@ -54,10 +54,20 @@ xsec_alt              [3000,6000]       %xsection altitude in m
 ppi_sweep             3                 %starting from 1st sweep = 1
 ppi_dbzh_mask         10                %gatemask which is applied to reflectivity and velocity PPI images in dBZ
 ppi_resize_scale      3                 %resize factor for ppi images
+swath_mesh_threshold  [15,30,45]        %mesh thresholds for swath generation
+smallest_no_faces     6                 %lowest number of faces for an isosurface
+min_voxels            3                 %minimum number of grid voxels for isosurface
+outer_iso_faces       2000              %maximum total number of face for the outer_iso
+inner_iso_faces       2000              %maximum number of total faces for an inner iso object
+inner_iso_percentile  95                %percentile pf dBZ for inner isosurface
+low_res_iso_factor    0.25              %low res face reduction factor
+inner_alpha           0                 %alpha for inner collada isosurface
+outer_alpha           0.5               %alpha for outer collada isosurface
+min_track_cells       3                 %minimum of unique cells for kml track generation (min 2)
 %
 % KML LAYER OPTIONS
 %                      1 2 3 4 5 6 7 8 9 10
-options               [1,0,0,0,1,1,1,1,0,1]
+options               [1,0,0,0,1,1,1,1,1,1]
 %description (T/F):
 %Entry (1)  PPI refl kml layer
 %Entry (2)  PPI vel kml layer

@@ -31,18 +31,19 @@ kill_timer = tic; %create timer object
 unix('touch tmp/kill_vis');
 
 % Add folders to path and read config files
-if ~isdeployed
+if isdeployed
+    addpath('etc/geo_data')
+    addpath('etc')
+    addpath('tmp')
+else
     addpath('/home/meso/dev/roames_weather/lib/m_lib');
     addpath('/home/meso/dev/roames_weather/lib/ge_lib');
     addpath('/home/meso/dev/shared_lib/jsonlab');
     addpath('/home/meso/dev/roames_weather/etc')
-    addpath('/home/meso/dev/roames_weather/etc/geo_data')
+    addpath('/home/meso/dev/roames_weather/rwx_vis/etc/geo_data')
     addpath('/home/meso/dev/roames_weather/bin/json_read');
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc')
     addpath('/home/meso/dev/roames_weather/rwx_vis/tmp')
-else
-    addpath('etc')
-    addpath('tmp')
 end
 
 %clear tmp
