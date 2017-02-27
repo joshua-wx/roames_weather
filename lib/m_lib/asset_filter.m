@@ -1,39 +1,13 @@
-function stats_struct = asset_filter(poly_lat,poly_lon)
+function asset_table = asset_filter(data_ffn,poly_lat,poly_lon)
 %WHAT: using the poly lat/lon filter to filter geo statbases to build
 %impact stats
 
-poly_lat = [-27.70,-27.0,-27.0,-27.70,-27.70];
-poly_lon = [152.70,152.70,153.85,153.85,152.70];
-%% load data
-
-%subsetstation
-sub_struct  = [];
-sub_fn      = '../../etc/geo_data/NationalElectricityTransmissionSubstations.csv';
-fileID      = fopen(sub_fn);
-raw_headers = textscan(fileID,'%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s',1,'Delimiter',',');
-raw_data    = textscan(fileID,'%f %s %s %f %s %s %s %s %f %s %f %s %f %f %f %f','Delimiter',',','HeaderLines',1);
-for i=1:length(raw_headers)
-    sub_struct.(raw_headers{i}{1}) = raw_data{i};
-end
-
-%powerlines
-power_fn     = '../../etc/geo_data/national_transmission_201702.shp';
-power_struct = shaperead(power_fn);
-
-%population
-pop_fn   = '../../etc/geo_data/Australian_Population_Grid_2011.tif';
-pop_grid = geotiffread(pop_fn);
-pop_info = geotiffinfo(pop_fn);
-
-save('asset_data.mat','sub_struct','power_struct','pop_grid','pop_info')
-
 %% filter data
-tic
-load('asset_data.mat')
+load(data_ffn)
 %substation
 sub_mask        = inpolygon(sub_struct.LONGITUDE,sub_struct.LATITUDE,poly_lon,poly_lat);
-sub_names       = [sub_struct.NAME(sub_mask)];
-sub_capacity    = [sub_struct.CAPACITY_kV(sub_mask)];
+sub_names    = [sub_struct.NAME(sub_mask)];
+sub_capacity = [sub_struct.CAPACITY_kV(sub_mask)];
 
 %powerlines
 %shapefile stores individual powerline segments
@@ -56,19 +30,56 @@ end
 sum_power_len        = zeros(length(sum_power_kv),1);
 for i=1:length(sum_power_len)
     sum_mask         = ic==i;
-    sum_power_len(i) = sum(power_len(sum_mask));
+    sum_power_len(i) = round(sum(power_len(sum_mask)));
 end
 
 %population
 [poly_map_x,poly_map_y] = projfwd(pop_info,poly_lat,poly_lon);
 [poly_y,poly_x]         = map2pix(pop_info.RefMatrix,poly_map_x,poly_map_y);
 pop_mask                = poly2mask(poly_x, poly_y, pop_info.Height, pop_info.Width);
-total_pop               = sum(pop_grid(pop_mask));
+total_pop               = round(sum(pop_grid(pop_mask)));
+nf                      = java.text.DecimalFormat;
+total_pop_str           = char(nf.format(total_pop));
 
-%output
-stats_struct = struct('sub_names',sub_names,'sub_capacity',sub_capacity,...
-    'power_kv',power_kv,'power_len',power_len,'total_pop',total_pop);
+%generate html
+sub_html = '';
+for i=1:length(sub_names)
+    sub_html = [sub_html,...
+                  '<tr>',10,...
+                  '<td>',sub_names{i},'</td>',10,...
+                  '<td>',num2str(sub_capacity(i)),'</td>',10,...
+                  '</tr>',10];
+end
 
-toc
+power_html = '';
+for i=1:length(sum_power_kv)
+    power_html = [power_html,...
+                  '<tr>',10,...
+                  '<td>',num2str(sum_power_kv(i)),'</td>',10,...
+                  '<td>',num2str(sum_power_len(i)),'</td>',10,...
+                  '</tr>',10];
+end
 
-keyboard
+
+
+%generate html table
+asset_table = ['<table style="width:100%">',10,...
+  '<tr>',10,...
+    '<td><b>Substation</b></td>',10,...
+    '<td><b>Substation kV</b></td>',10,...
+  '</tr>',10,...
+  '<tr>',10,...
+    sub_html,...
+  '</tr>',10,...
+  '<tr>',10,...
+    '<td><b>Lines kV</b></td>',10,...
+    '<td><b>Lines km</b></td>',10,...
+  '</tr>',10,...
+  '<tr>',10,...
+    power_html,...
+  '</tr>',10,...
+  '<tr>',10,...
+    '<td><b>Population:</b></td>',10,...
+    '<td>',total_pop_str,'</td>',10,...
+  '</tr>',10,...
+'</table>',10];

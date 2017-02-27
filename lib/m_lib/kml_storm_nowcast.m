@@ -61,4 +61,13 @@ hist_mesh   = trck_mesh;
 hist_top    = trck_top;
 hist_min    = -hist_min;
 
-nowcast_stat_kml = ge_balloon_graph_placemark(nowcast_stat_kml,1,'../track.kml#balloon_graph_style',name,hist_min,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));
+%convert fsct polys into a single polygon for the entire forecast track
+full_lat_list    = [fcst_lat_polys{1};fcst_lat_polys{end}];
+full_lon_list    = [fcst_lon_polys{1};fcst_lon_polys{end}];
+K                = convhull(full_lon_list,full_lat_list);
+conv_lat_list    = full_lat_list(K);
+conv_lon_list    = full_lon_list(K);   
+[conv_lat_list,conv_lon_list] = reducem(conv_lat_list,conv_lon_list); %simplify
+%run asset filter for polygon
+asset_table     = asset_filter(asset_data_fn,conv_lat_list,conv_lon_list);
+nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,'../track.kml#nowcast_placement_style',name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));

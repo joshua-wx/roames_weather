@@ -36,6 +36,7 @@ if ~isdeployed
     addpath('/home/meso/dev/roames_weather/lib/ge_lib');
     addpath('/home/meso/dev/shared_lib/jsonlab');
     addpath('/home/meso/dev/roames_weather/etc')
+    addpath('/home/meso/dev/roames_weather/etc/geo_data')
     addpath('/home/meso/dev/roames_weather/bin/json_read');
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc')
     addpath('/home/meso/dev/roames_weather/rwx_vis/tmp')
@@ -96,6 +97,9 @@ else
     %build root kml
     kml_build_root(dest_root,radar_id_list,local_dest_flag);
 end
+
+%build asset data
+asset_data(asset_data_fn)
 
 % Preallocate regridding coordinates
 if radar_id_list==99

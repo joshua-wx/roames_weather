@@ -76,7 +76,7 @@ track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(
 
 %balloon style (stats and graph)
 cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
-track_style_str = ge_balloon_graph_style(track_style_str,'balloon_graph_style',url_prefix,icons_path);
+track_style_str = ge_nowcast_placemark_style(track_style_str,'nowcast_placement_style',url_prefix,icons_path);
 
 %track path and swath style
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
