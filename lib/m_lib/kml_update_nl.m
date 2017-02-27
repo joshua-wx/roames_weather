@@ -39,7 +39,11 @@ for i=1:length(r_id_list)
     end
     %iso
     if options(5)==1 || options(6)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+        try
+            generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
+        catch err
+            keyboard
+        end
     end
 end
 
@@ -114,7 +118,6 @@ time_list           = [kmlobj_struct.start_timestamp];
 jstruct_sort_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
-jstruct_sort_list = jstruct_sort_list(1:end-1);
 [~,Lib]    = ismember(kml_sort_list,jstruct_sort_list);
 %exist if no tracks
 if isempty(Lib)
