@@ -64,10 +64,10 @@ end
 read_config(process_config_fn);
 load([local_tmp_path,process_config_fn,'.mat'])
 % check for restart or first start
-if exist(restart_cofig_fn,'file')==2
+if exist([local_tmp_path,restart_cofig_fn],'file')==2
     %silent restart detected, load vars from reset and remove file
     try
-        load(restart_cofig_fn);
+        load([local_tmp_path,restart_cofig_fn]);
     catch
         %corrupt file
         delete([local_tmp_path,restart_cofig_fn]);
@@ -234,7 +234,7 @@ while exist('tmp/kill_process','file')==2
             %Kill function
             if toc(kill_timer)>kill_wait
                 hist_oldest_restart = date_list(date_idx);
-                save('temp_process_vars.mat','complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
+                save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
                 %update user
                 disp(['@@@@@@@@@ wv_process restarted at ',datestr(now)])
                 %restart
