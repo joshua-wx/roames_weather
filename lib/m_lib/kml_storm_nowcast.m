@@ -70,4 +70,4 @@ conv_lon_list    = full_lon_list(K);
 [conv_lat_list,conv_lon_list] = reducem(conv_lat_list,conv_lon_list); %simplify
 %run asset filter for polygon
 asset_table      = asset_filter(asset_data_fn,conv_lat_list,conv_lon_list);
-nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,'../track.kml#nowcast_placement_style',name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));
+nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,['../track.kml#nowcast_placemark_',intensity,'_style'],name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));

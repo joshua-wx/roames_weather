@@ -24,6 +24,7 @@ function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck
 %% 
 %load config file
 load('tmp/global.config.mat');
+load('tmp/vis.config.mat');
 
 %init vars
 fcst_lat_polys = {};

@@ -70,21 +70,31 @@ forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
 forecast_N_colormap = [255/255,150/255,0/255];
 track_style_str     = ge_poly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'00FFFFFF');
+track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_S_style',url_prefix,icons_path,html_color(1,forecast_S_colormap));
 track_style_str     = ge_poly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'00FFFFFF');
+track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_W_style',url_prefix,icons_path,html_color(1,forecast_W_colormap));
 track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'00FFFFFF');
+track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_N_style',url_prefix,icons_path,html_color(1,forecast_N_colormap));
 
 
 %balloon style (stats and graph)
 cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
-track_style_str = ge_nowcast_placemark_style(track_style_str,'nowcast_placement_style',url_prefix,icons_path);
 
-%track path and swath style
+%track path
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
 close(gcf);
 for i=1:max_vis_trck_length
-    track_style_str = ge_line_style(track_style_str,['path_',num2str(i),'_style'],html_color(.8,path_colormap(i,:)),5);
-    track_style_str = ge_poly_style(track_style_str,['swath_',num2str(i),'_style'],html_color(.8,[0,0,0]),1,html_color(.4,path_colormap(i,:)));
+    track_style_str = ge_line_style(track_style_str,['path_',num2str(i),'_style'],html_color(.8,path_colormap(i,:)),3);
 end
+
+%track swath
+swath_colormap = flipud(colormap(autumn(length(swath_mesh_threshold))));
+close(gcf);
+for i=1:length(swath_mesh_threshold)
+    track_style_str = ge_poly_style(track_style_str,['swath_',num2str(i),'_style'],html_color(.8,swath_colormap(i,:)),5,'00FFFFFF');
+    track_style_str = ge_swath_placemark_style(track_style_str,['swath_placemark_',num2str(i),'_style'],url_prefix,icons_path,html_color(1,swath_colormap(i,:)));
+end
+
 
 %% Overlay Images
 
@@ -135,6 +145,7 @@ file_cp([pwd,'/etc/',overlays_path,'dbzh_colorbar.png'],[dest_root,overlays_path
 file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_path,'vradh_colorbar.png'],0,1)
 file_cp([pwd,'/etc/',icons_path,'graph_icon.png'],[dest_root,icons_path,'graph_icon.png'],0,1)
 file_cp([pwd,'/etc/',icons_path,'lightning_icon.png'],[dest_root,icons_path,'lightning_icon.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'house_icon.png'],[dest_root,icons_path,'house_icon.png'],0,1)
 
 %% build ppi groups kml
 
@@ -195,6 +206,8 @@ if options(8)==1
 end
 if options(9)==1
     tmp_str    = generate_nl('swath','Swaths',dest_root,track_obj_path,local_dest_flag);
+    track_str  = [track_str,tmp_str];
+    tmp_str    = generate_nl('swath_stat','Swath Stats',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
 if options(10)==1

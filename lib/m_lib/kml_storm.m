@@ -76,12 +76,14 @@ end
 stats_ffn         = [dest_root,track_obj_path,'stat.kml'];
 track_ffn         = [dest_root,track_obj_path,'track.kml'];
 swath_ffn         = [dest_root,track_obj_path,'swath.kml'];
+swath_stat_ffn    = [dest_root,track_obj_path,'swath_stat.kml'];
 nowcast_ffn       = [dest_root,track_obj_path,'nowcast.kml'];
-nowcast_stats_ffn = [dest_root,track_obj_path,'nowcast_stat.kml'];
+nowcast_stat_ffn  = [dest_root,track_obj_path,'nowcast_stat.kml'];
 %init vars
 stat_kml          = '';
 track_kml         = '';
 swath_kml         = '';
+swath_stat_kml    = '';
 nowcast_kml       = '';
 nowcast_stat_kml  = '';
 
@@ -110,13 +112,13 @@ if ~isempty(storm_jstruct)
         track_jstruct         = track_jstruct(sort_idx);
         %% track objects
         if options(7)==1
-            stat_kml      = kml_storm_stat(stat_kml,track_jstruct,track_id);
+            stat_kml  = kml_storm_stat(stat_kml,track_jstruct,track_id);
         end
         if options(8)==1
-            track_kml     = kml_storm_track(track_kml,track_jstruct,track_id);
+            track_kml = kml_storm_track(track_kml,track_jstruct,track_id);
         end
         if options(9)==1
-            swath_kml     = kml_storm_swath(swath_kml,track_jstruct,track_id);
+            [swath_kml,swath_stat_kml] = kml_storm_swath(swath_kml,swath_stat_kml,track_jstruct,track_id);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
         if options(10)==1
@@ -143,11 +145,12 @@ end
 %swath
 if options(9)==1
     ge_kml_out(swath_ffn,'Swaths',swath_kml);
+    ge_kml_out(swath_stat_ffn,'Swaths Stats',swath_stat_kml);
 end
 %nowcast
 if options(10)==1
     ge_kml_out(nowcast_ffn,'Nowcasts',nowcast_kml);
-    ge_kml_out(nowcast_stats_ffn,'Nowcast Stats',nowcast_stat_kml);
+    ge_kml_out(nowcast_stat_ffn,'Nowcast Stats',nowcast_stat_kml);
 end
 
 
