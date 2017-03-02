@@ -44,7 +44,7 @@ date_list     = start_datenum:end_datenum;
 %% sync s3 data
 display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
 s3_timer = tic;
-file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],datenum('1999_01_01','yyyy_mm_dd'),radar_id)
+file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
 disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
 
 %% sync ddb for s3 data
@@ -84,9 +84,8 @@ for i=1:length(uniq_stormh5_date)
     end
     %save to archive path
     date_vec     = datevec(target_date(i));
-    archive_path = [num2str(radar_id,'%02.0f'),'/'];
-    %archive_path = [num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
-    %    num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
+    archive_path = [num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
+        num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
     %save storm_jstruct
     save([db_root,archive_path,'database.mat'],'storm_jstruct')
 end
