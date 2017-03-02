@@ -26,7 +26,7 @@ load([local_tmp_path,global_config_fn,'.mat'])
 
 %create archive root
 if exist([db_root,num2str(radar_id,'%02.0f')],'file') == 7
-    str = input('db_root exists, type "rm" to remove, otherwise it will be merged');
+    str = input('db_root exists, type "rm" to remove, otherwise it will be merged: ','s');
     if strcmp(str,'rm')
         disp('removing db_root')
         rmdir([db_root,num2str(radar_id,'%02.0f')],'s')
