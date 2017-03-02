@@ -83,7 +83,7 @@ for i=1:length(uniq_stormh5_date)
         storm_jstruct = [storm_jstruct,jstruct_out.Items];
     end
     %save to archive path
-    date_vec     = datevec(target_date(i));
+    date_vec     = datevec(target_date);
     archive_path = [num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
         num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
     %save storm_jstruct
