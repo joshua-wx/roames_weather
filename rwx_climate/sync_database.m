@@ -8,10 +8,17 @@ function sync_database
 database_config_fn = 'database.config';
 global_config_fn   = 'global.config';
 local_tmp_path     = 'tmp/';
+root_tmp_folder    = 'sync_database/';
 
 %create temp paths
 if exist(local_tmp_path,'file') ~= 7
     mkdir(local_tmp_path)
+end
+if exist([tempdir,root_tmp_folder],'file') ~= 7
+    mkdir([tempdir,root_tmp_folder])
+else
+    rmdir([tempdir,root_tmp_folder],'s')
+    mkdir([tempdir,root_tmp_folder])
 end
 
 %add library paths
@@ -44,7 +51,7 @@ end
 %% sync s3 data
 display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
 s3_timer = tic;
-file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
+%file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
 disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
 
 %% sync ddb for s3 data
@@ -57,7 +64,7 @@ for i=1:length(archive_ffn_list)
     %check if this is a database file
     [~,stormh5_fn,~] = fileparts(archive_ffn_list{i});
     if strcmp(stormh5_fn,'database')
-        %delete(archive_ffn_list{i})
+        delete(archive_ffn_list{i})
         continue
     end
     stormh5_dt_list  = [stormh5_dt_list;datenum(stormh5_fn(4:18),r_tfmt)];
@@ -65,12 +72,13 @@ for i=1:length(archive_ffn_list)
 end
 %run ddb begins query for each datetime for each date
 uniq_stormh5_date = unique(floor(stormh5_dt_list));
+temp_ffn_list     = {};
+temp_date_list    = [];
 for i=1:length(uniq_stormh5_date)
     %create list of entries for target_date
     target_date   = uniq_stormh5_date(i);
-    disp(['processing ',datestr(target_date)]);
+    disp(['ddb batch get for ',datestr(target_date)]);
     target_idx    = find(floor(stormh5_dt_list) == target_date);
-    temp_ffn_list = {};
     %loop through entries
     %init read struct
     ddb_read_struct  = struct;
@@ -91,26 +99,43 @@ for i=1:length(uniq_stormh5_date)
             %parse batch read if size is 25 or last cell of last file for
             %current day
             if tmp_sz==25 || (j == length(target_idx) && k == stormh5_group_no)
+                %temp path
+                temp_path        = [tempdir,root_tmp_folder,datestr(target_date,'yyyymmdd'),'/'];
+                if exist(temp_path,'file')~=7
+                    mkdir(temp_path)
+                end
                 %batch read
-                temp_ffn         = ddb_batch_read(ddb_read_struct,storm_ddb,'');
+                temp_ffn         = ddb_batch_read(ddb_read_struct,storm_ddb,temp_path,'');
+                pause(0.1)
                 %add read filename to list
                 temp_ffn_list    = [temp_ffn_list;temp_ffn];
+                temp_date_list   = [temp_date_list;target_date];
                 %clear ddb_put_struct
                 ddb_read_struct  = struct;
-                item_no          = 1;
             end
         end
     end
-    %wait for aws batch read to finish
-    wait_aws_finish
+end
+
+%wait for aws batch read to finish
+wait_aws_finish
+%generate unique date list
+uniq_temp_date_list = unique(temp_date_list);
+
+%loop through each unique date for the ddb read file list
+for i=1:length(uniq_temp_date_list)
+    %create target_ffn_list for target_date
+    target_date     = uniq_temp_date_list(i);
+    target_ffn_list = temp_ffn_list(temp_date_list==target_date);
+    disp(['json parse for ',datestr(target_date)]);
     %read temp files into matlab
     storm_struct = [];
     %loop through file list
-    for j=1:length(temp_ffn_list)
+    for j=1:length(target_ffn_list)
         %read json in temp file
-        jstruct_out = json_read(temp_ffn_list{j});
+        jstruct_out = json_read(target_ffn_list{j});
         %delete temp file
-        delete(temp_ffn_list{j})
+        delete(target_ffn_list{j})
         %abort file if it contains unprocessed keys
         if ~isempty(fieldnames(jstruct_out.UnprocessedKeys))
             disp('UnprocessedKeys present')
@@ -145,8 +170,9 @@ for i=1:length(uniq_stormh5_date)
     %save storm_jstruct
     save([db_root,archive_path,'database.mat'],'storm_struct')
 end
-disp(['ddb sync complete in ',num2str(round(toc(ddb_timer)/60)),'min'])
 
+disp(['ddb sync complete in ',num2str(round(toc(ddb_timer)/60)),'min'])
+rmdir([tempdir,root_tmp_folder],'s')
 
 
 function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct)

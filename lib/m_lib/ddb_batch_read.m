@@ -1,8 +1,10 @@
-function json_fn = ddb_batch_read(ddb_tmp_struct,ddb_table,p_exp)
+function json_ffn = ddb_batch_read(ddb_tmp_struct,ddb_table,temp_path,p_exp)
 %WHAT: batch read for ddb using a list of index entried from temp_struct
 
 %init filenames
-json_fn        = tempname;
+temp_ffn       = tempname;
+[~,temp_fn,~]  = fileparts(temp_ffn);
+json_ffn       = [temp_path,temp_fn];
 batch_json     = '';
 ddb_items_list = fieldnames(ddb_tmp_struct);
 %generate proection expression as required
@@ -31,9 +33,9 @@ batch_json = ['{',10,...
 %pass command
 cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb batch-get-item --request-items ''',batch_json,''''];
 %run extract
-[sout,eout] = unix([cmd,' | tee ',json_fn,' &']);
+[sout,eout] = unix([cmd,' | tee ',json_ffn,' &']);
 %error catching
 if sout ~= 0
     log_cmd_write('log.ddb','',cmd,eout)
-    json_fn = '';
+    json_ffn = '';
 end
