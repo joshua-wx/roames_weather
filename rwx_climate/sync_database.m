@@ -51,7 +51,9 @@ end
 %% sync s3 data
 display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
 s3_timer = tic;
-%file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
+if resync_h5 == 1
+    file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id);
+end
 disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
 
 %% sync ddb for s3 data
@@ -155,7 +157,7 @@ for i=1:length(uniq_temp_date_list)
             %loop though fields and add to clean_struct
             for m=1:length(jnames)
                 field_name                = jnames{m};
-                field_struct              = jstruct_out.Responses.(storm_ddb).(field_name);
+                field_struct              = jstruct_out.Responses.(storm_ddb)(k).(field_name);
                 field_type                = fieldnames(field_struct); field_type = field_type{1};
                 clean_struct.(field_name) = jstruct_to_mat(field_struct,field_type);
             end

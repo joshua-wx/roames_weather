@@ -11,6 +11,9 @@ radar_time_list = sort(radar_time_list);
 if length(radar_time_list) > 1
     all_steps  = round((radar_time_list(2:end)-radar_time_list(1:end-1))*24*60);
     radar_step = mode(all_steps);
+	if radar_step > 10
+		radar_step = 10;
+	end
 else
     radar_step = 10; %minutes
 end

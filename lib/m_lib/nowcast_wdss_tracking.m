@@ -1,4 +1,4 @@
-function tracking_id_out = nowcast_wdss_tracking(storm_jstruct,vol_struct)
+function tracking_id_out = nowcast_wdss_tracking(storm_jstruct,vol_struct,jstruct_flag)
 %WHAT: For the curr dt and curr radar id, the assocaited cells in
 %ident are checks using nn and forecasting methods for temporal and spatial
 %association with other cells in ident. Tracks are compiled using ident id
@@ -19,21 +19,36 @@ function tracking_id_out = nowcast_wdss_tracking(storm_jstruct,vol_struct)
 load('tmp/global.config.mat');
 %new vars
 tracking_id_out = zeros(length(storm_jstruct),1);
-%abort as necessary
-if length(vol_struct)<2
-    %only one scan, cannot track
-    return
-end
 
 %% Load vars
 %jstruct vars
-storm_radar_id           = jstruct_to_mat([storm_jstruct.radar_id],'N');
-storm_subset_id          = jstruct_to_mat([storm_jstruct.subset_id],'N');
-storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-storm_lat                = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
-storm_lon                = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
-storm_area               = jstruct_to_mat([storm_jstruct.area],'N');
-storm_cell_vil           = jstruct_to_mat([storm_jstruct.cell_vil],'N');
+if jstruct_flag %visualisation
+    storm_radar_id           = jstruct_to_mat([storm_jstruct.radar_id],'N');
+    storm_subset_id          = jstruct_to_mat([storm_jstruct.subset_id],'N');
+    storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+    storm_lat                = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
+    storm_lon                = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
+    storm_area               = jstruct_to_mat([storm_jstruct.area],'N');
+    storm_cell_vil           = jstruct_to_mat([storm_jstruct.cell_vil],'N');
+else %climatology
+    storm_radar_id           = vertcat(storm_jstruct.radar_id);
+    storm_subset_id          = vertcat(storm_jstruct.subset_id);
+    storm_start_timestamp    = datenum([storm_jstruct.start_timestamp]',ddb_tfmt);
+    storm_lat                = vertcat(storm_jstruct.storm_z_centlat);
+    storm_lon                = vertcat(storm_jstruct.storm_z_centlon);
+    storm_area               = vertcat(storm_jstruct.area);
+    storm_cell_vil           = vertcat(storm_jstruct.cell_vil);
+    %build vol_struct
+    uniq_timestamp             = unique(storm_start_timestamp);
+    vol_struct                 = struct;
+    vol_struct.start_timestamp = uniq_timestamp;
+    vol_struct.radar_id        = repmat(storm_radar_id(1),length(uniq_timestamp),1);
+end
+%abort as necessary
+if length([vol_struct.start_timestamp])<2
+    %only one scan, cannot track
+    return
+end
 %move into struct
 storm_db                 = struct;
 storm_db.radar_id        = storm_radar_id;
@@ -66,7 +81,7 @@ for j=1:length(uniq_start_timestamp)
 
     %% Project cells identified in tn1 to their expected locations in tn
     % if the ith tn1 cell is part of a track, then use this track to forecast
-    % centroid elseif there are other tracks other than tn1, use their tracks to
+    % centroid elseif there ar        trye other tracks other than tn1, use their tracks to
     % forecast centroid else, use broad search radius
 
     %initalise stacks

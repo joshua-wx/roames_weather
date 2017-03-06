@@ -33,7 +33,7 @@ for i=1:length(config_out{1})
     var_name=config_out{1}{i};
     var_value=config_out{2}{i};
     %check variable type and convert if number
-    if and(isempty(strfind(var_value,'_')),sum(isletter(var_value))==0) || strcmp(var_value,'NaN') %convert string to number/NaN
+    if (isempty(strfind(var_value,'_')) && isempty(strfind(var_value,'-')) && isempty(strfind(var_value,':')) && sum(isletter(var_value))==0) || strcmp(var_value,'NaN') %convert string to number/NaN
         var_value=str2num(var_value);
     end
     %set string to be the variable name for that variable
