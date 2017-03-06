@@ -44,60 +44,99 @@ end
 %% sync s3 data
 display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
 s3_timer = tic;
-file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
+%file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id)
 disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
 
 %% sync ddb for s3 data
 %build stormh5 file name list and dates
 ddb_timer        = tic;
-stormh5_ffn_list = getAllFiles([db_root,num2str(radar_id,'%02.0f'),'/']);
-stormh5_dt       = [];
-for i=1:length(stormh5_ffn_list)
+archive_ffn_list = getAllFiles([db_root,num2str(radar_id,'%02.0f'),'/']);
+stormh5_dt_list  = [];
+stormh5_ffn_list = {};
+for i=1:length(archive_ffn_list)
     %check if this is a database file
-    [~,stormh5_fn,~] = fileparts(stormh5_ffn_list{i});
+    [~,stormh5_fn,~] = fileparts(archive_ffn_list{i});
     if strcmp(stormh5_fn,'database')
-        delete(stormh5_ffn_list{i})
+        %delete(archive_ffn_list{i})
         continue
     end
-    stormh5_dt       = [stormh5_dt;datenum(stormh5_fn(4:18),r_tfmt)];
+    stormh5_dt_list  = [stormh5_dt_list;datenum(stormh5_fn(4:18),r_tfmt)];
+    stormh5_ffn_list = [stormh5_ffn_list;archive_ffn_list{i}];
 end
 %run ddb begins query for each datetime for each date
-uniq_stormh5_date = unique(floor(stormh5_dt));
+uniq_stormh5_date = unique(floor(stormh5_dt_list));
 for i=1:length(uniq_stormh5_date)
     %create list of entries for target_date
     target_date   = uniq_stormh5_date(i);
     disp(['processing ',datestr(target_date)]);
-    target_idx    = find(floor(stormh5_dt) == target_date);
-    temp_fn_list  = cell(length(target_idx),1);
+    target_idx    = find(floor(stormh5_dt_list) == target_date);
+    temp_ffn_list = {};
     %loop through entries
+    %init read struct
+    ddb_read_struct  = struct;
     for j=1:length(target_idx)
         %extract storm cell entries for datetime
-        target_datetime = stormh5_dt(target_idx(j));
-        date_id         = datestr(target_datetime,ddb_dateid_tfmt);
-        sort_id         = [datestr(target_datetime,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
-        temp_fn         = ddb_query_begins_rapid('date_id',date_id,'sort_id',sort_id,'',storm_ddb);
-        temp_fn_list{j} = temp_fn;
-        %init get requires for target_date
+        target_datetime = stormh5_dt_list(target_idx(j));
+        target_stormh5  = stormh5_ffn_list{target_idx(j)};
+        %check number of cells
+        stormh5_info    = h5info(target_stormh5);
+        stormh5_group_no= length(stormh5_info.Groups);
+        %loop through storm groups
+        for k=1:stormh5_group_no
+            tmp_jstruct              = struct;
+            tmp_jstruct.date_id.N    = datestr(target_datetime,ddb_dateid_tfmt);
+            tmp_jstruct.sort_id.S    = [datestr(target_datetime,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(k,'%03.0f')];
+            %create entry for batch read for current storm
+            [ddb_read_struct,tmp_sz] = addtostruct(ddb_read_struct,tmp_jstruct);
+            %parse batch read if size is 25 or last cell of last file for
+            %current day
+            if tmp_sz==25 || (j == length(target_idx) && k == stormh5_group_no)
+                %batch read
+                temp_ffn         = ddb_batch_read(ddb_read_struct,storm_ddb,'');
+                %add read filename to list
+                temp_ffn_list    = [temp_ffn_list;temp_ffn];
+                %clear ddb_put_struct
+                ddb_read_struct  = struct;
+                item_no          = 1;
+            end
+        end
     end
+    %wait for aws batch read to finish
     wait_aws_finish
     %read temp files into matlab
     storm_struct = [];
-    for j=1:length(temp_fn_list)
-        jstruct_out = json_read(temp_fn_list{j});
-        jnames      = fieldnames(jstruct_out.Items);
-        if length(jnames) ~= ddb_fields
-            disp(['jnames not correct length for ',datestr(stormh5_dt(target_idx(j)))])
-            continue
+    %loop through file list
+    for j=1:length(temp_ffn_list)
+        %read json in temp file
+        jstruct_out = json_read(temp_ffn_list{j});
+        %delete temp file
+        delete(temp_ffn_list{j})
+        %abort file if it contains unprocessed keys
+        if ~isempty(fieldnames(jstruct_out.UnprocessedKeys))
+            disp('UnprocessedKeys present')
+            keyboard
         end
-        %remove field types from struct and append to storm_struct
-        clean_struct = struct;
-        for k=1:length(jnames)
-            field_name                = jnames{k};
-            field_struct              = jstruct_out.Items.(field_name);
-            field_type                = fieldnames(field_struct); field_type = field_type{1};
-            clean_struct.(field_name) = jstruct_to_mat(field_struct,field_type);
+        %loop through entries
+        for k=1:length(jstruct_out.Responses.(storm_ddb))
+            %extract names for entry k
+            jnames      = fieldnames(jstruct_out.Responses.(storm_ddb)(k));
+            %abort if field names are not equal to ddb_fields
+            if length(jnames) ~= ddb_fields
+                disp(['jnames not correct length for ',datestr(target_date(i))])
+                continue
+            end
+            %remove field types from struct and append to storm_struct
+            clean_struct = struct;
+            %loop though fields and add to clean_struct
+            for m=1:length(jnames)
+                field_name                = jnames{m};
+                field_struct              = jstruct_out.Responses.(storm_ddb).(field_name);
+                field_type                = fieldnames(field_struct); field_type = field_type{1};
+                clean_struct.(field_name) = jstruct_to_mat(field_struct,field_type);
+            end
+            %append clean_struct to storm_struct
+            storm_struct = [storm_struct,clean_struct];
         end
-        storm_struct = [storm_struct,clean_struct];
     end
     %save to archive path
     date_vec     = datevec(target_date);
@@ -107,3 +146,22 @@ for i=1:length(uniq_stormh5_date)
     save([db_root,archive_path,'database.mat'],'storm_struct')
 end
 disp(['ddb sync complete in ',num2str(round(toc(ddb_timer)/60)),'min'])
+
+
+
+function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct)
+
+%init
+data_name_list  = fieldnames(data_struct);
+%check size
+tmp_sz    = length(fieldnames(ddb_struct));
+item_name = ['item',num2str(tmp_sz+1)];
+for i = 1:length(data_name_list)
+    %read from data_struct
+    data_name  = data_name_list{i};
+    data_type  = fieldnames(data_struct.(data_name)); data_type = data_type{1};
+    data_value = data_struct.(data_name).(data_type);
+    %add to ddb master struct
+    ddb_struct.(item_name).(data_name).(data_type) = data_value;
+end
+
