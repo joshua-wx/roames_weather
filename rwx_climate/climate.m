@@ -28,7 +28,7 @@ load([local_tmp_path,global_config_fn,'.mat'])
 
 %% generate date list
 %span dates
-date_list        = [datenum(date_start,'yyyy-mm-dd'):datenum(date_stop,'yyyy-mm-dd')];
+date_list        = [datenum(date_start,'yyyy/mm/dd'):datenum(date_stop,'yyyy/mm/dd')];
 %filter months
 date_list_months = month(date_list);
 date_list        = date_list(ismember(date_list_months,month_list));
@@ -52,6 +52,12 @@ for i=1:length(date_list)
     disp(['loading storm database for ',datestr(target_date)]);
     load(target_ffn,'storm_struct');
     storm_database = [storm_database,storm_struct];
+end
+
+%% add tracking data
+track_vec= nowcast_wdss_tracking(storm_database,false,'');
+for i=1:length(storm_database)
+    storm_database(i).track   = track_vec(i);
 end
 
 %% mask cells by var and time
@@ -97,7 +103,7 @@ for i=1:length(uniq_date_list)
     target_mask = target_date==floor(datetime_list);
     target_db   = storm_database(target_mask);
     
-    track_vec   = nowcast_wdss_tracking(target_db,false,'')
+    track_vec   = nowcast_wdss_tracking(storm_database,false,'')
     keyboard
     
 end
