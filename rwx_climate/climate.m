@@ -103,7 +103,7 @@ for i=1:length(uniq_date_list)
     target_mask = target_date==floor(datetime_list);
     target_db   = storm_database(target_mask);
     
-    track_vec   = nowcast_wdss_tracking(storm_database,false,'')
+    track_vec   = nowcast_wdss_tracking(target_db,false,'');
     keyboard
     
 end
