@@ -2,14 +2,14 @@
 %WHAT: controls the input parameters of the KML config module
 %
 % DESTINATION OPTIONS
-local_dest_flag          1
+local_dest_flag          0
 local_dest_root          /home/meso/roames_weather_kml/kml_realtime_testing/
 s3_dest_root             s3://roames-weather-vis/kml_realtime/
 s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_realtime/
 %
 % REALTIME OPTIONS
 realtime_kml             1
-realtime_length          -1          %hours
+realtime_length          -1.5          %hours
 %
 % RESTART OPTIONS
 save_object_struct       0     %save all objects on soft exit

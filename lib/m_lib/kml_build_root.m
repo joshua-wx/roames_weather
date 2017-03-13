@@ -57,15 +57,16 @@ else
     url_prefix = '';
 end
 
-%% PPI Styles
-ppi_style_str = '';
-ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.2,[1,1,1]),1);
+%% Styles
 
-%% Track Styles
+ppi_style_str   = '';
+track_style_str = '';
+cell_style_str  = '';
 
-track_style_str     = '';
-cell_style_str      = '';
-%forecast style with a maximum of n_fcst_steps steps.
+%PPI
+ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1,1]),2);
+
+%nowcast with a maximum of n_fcst_steps steps.
 forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
 forecast_N_colormap = [255/255,150/255,0/255];
@@ -76,18 +77,15 @@ track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placem
 track_style_str     = ge_poly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'00FFFFFF');
 track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_N_style',url_prefix,icons_path,html_color(1,forecast_N_colormap));
 
-
-%balloon style (stats and graph)
-cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
-
 %track path
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
 close(gcf);
 for i=1:max_vis_trck_length
     track_style_str = ge_line_style(track_style_str,['path_',num2str(i),'_style'],html_color(.8,path_colormap(i,:)),3);
 end
-
-%track swath
+%balloon style (stats and graph)
+cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
+%impact swath
 swath_colormap = flipud(colormap(autumn(length(swath_mesh_threshold))));
 close(gcf);
 for i=1:length(swath_mesh_threshold)
@@ -95,8 +93,21 @@ for i=1:length(swath_mesh_threshold)
     track_style_str = ge_swath_placemark_style(track_style_str,['swath_placemark_',num2str(i),'_style'],url_prefix,icons_path,html_color(1,swath_colormap(i,:)));
 end
 
+%% Build overlay/icon paths and copy images
 
-%% Overlay Images
+%transfer overlays,icons and coverage
+if ~strcmp(dest_root(1:2),'s3')
+    mkdir([dest_root,overlays_path])
+    mkdir([dest_root,icons_path])
+end
+file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'ROAMES_logo.png'],0,1)
+file_cp([pwd,'/etc/',overlays_path,'dbzh_colorbar.png'],[dest_root,overlays_path,'dbzh_colorbar.png'],0,1)
+file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_path,'vradh_colorbar.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'graph_icon.png'],[dest_root,icons_path,'graph_icon.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'lightning_icon.png'],[dest_root,icons_path,'lightning_icon.png'],0,1)
+file_cp([pwd,'/etc/',icons_path,'house_icon.png'],[dest_root,icons_path,'house_icon.png'],0,1)
+
+%% Overlay Images kml
 
 %Build kml for screen Overlays (logos)
 overlay_str = ge_screenoverlay(overlay_str,'ROAMES Logo',[url_prefix,overlays_path,'ROAMES_logo.png'],.03,.04,0,.1,'','');
@@ -108,23 +119,37 @@ master_str  = ge_folder(master_str,overlay_str,'Overlays','',1);
 
 %generate coverage kml for each radar site
 site_latlonbox = [];
+cov_lat        = [];
+cov_lon        = [];
 for i=1:length(site_no_selection)
     %site list idx
     siteinfo_idx        = find(siteinfo_id_list==site_no_selection(i));
     %generate circle latlon
-    [temp_lat,temp_lon] = scircle1(siteinfo_lat_list(siteinfo_idx),siteinfo_lon_list(siteinfo_idx),km2deg(coverage_range));
+    [site_cov_lat, site_cov_lon] = scircle1(siteinfo_lat_list(siteinfo_idx),siteinfo_lon_list(siteinfo_idx),km2deg(coverage_range));
+    [site_cov_lon, site_cov_lat] = poly2cw(site_cov_lon, site_cov_lat);
+    %union with all coverage
+    [cov_lon,cov_lat]   = polybool('Union',cov_lon,cov_lat,site_cov_lon,site_cov_lat);
     %append site latlonbox
-    site_latlonbox      = [site_latlonbox;[max(temp_lat),min(temp_lat),max(temp_lon),min(temp_lon)]];
-    %write each segment to kml string
-    coverage_str        = ge_line_string(coverage_str,1,num2str(site_no_selection(i)),'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    site_latlonbox      = [site_latlonbox;[max(site_cov_lat),min(site_cov_lat),max(site_cov_lon),min(site_cov_lon)]];
 end
+%split up coverage polygons into cells
+[cov_lat,cov_lon] = polysplit(cov_lat,cov_lon);
+for i=1:length(cov_lat)
+    %write each polygon to kml string
+    temp_lat     = cov_lat{i};
+    temp_lon     = cov_lon{i};
+    coverage_str = ge_line_string(coverage_str,1,['segment_',num2str(i)],'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+end
+
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
+file_mv([tempdir,'coverage.kml'],[dest_root,overlays_path,'coverage.kml'])
 
 %% build master network links
 %Layers kml network link
 master_str = ge_networklink(master_str,'PPI Imagery',[url_prefix,'ppi.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Track Objects',[url_prefix,'track.kml'],0,0,'','','','',1);
 master_str = ge_networklink(master_str,'Cell Objects',[url_prefix,'cell.kml'],0,0,'','','','',1);
+master_str = ge_networklink(master_str,'Coverage',[url_prefix,overlays_path,'coverage.kml'],0,0,'','','','',1);
 
 %% Build master kml
 
@@ -133,19 +158,6 @@ temp_ffn = tempname;
 ge_kml_out(temp_ffn,'RoamesWX',master_str);
 %transfer to root path
 file_mv(temp_ffn,[dest_root,'doc.kml'])
-
-%transfer overlays,icons and coverage
-if ~strcmp(dest_root(1:2),'s3')
-    mkdir([dest_root,overlays_path])
-    mkdir([dest_root,icons_path])
-end
-file_mv([tempdir,'coverage.kml'],[dest_root,'overlays/coverage.kml'])
-file_cp([pwd,'/etc/',overlays_path,'ROAMES_logo.png'],[dest_root,overlays_path,'ROAMES_logo.png'],0,1)
-file_cp([pwd,'/etc/',overlays_path,'dbzh_colorbar.png'],[dest_root,overlays_path,'dbzh_colorbar.png'],0,1)
-file_cp([pwd,'/etc/',overlays_path,'vradh_colorbar.png'],[dest_root,overlays_path,'vradh_colorbar.png'],0,1)
-file_cp([pwd,'/etc/',icons_path,'graph_icon.png'],[dest_root,icons_path,'graph_icon.png'],0,1)
-file_cp([pwd,'/etc/',icons_path,'lightning_icon.png'],[dest_root,icons_path,'lightning_icon.png'],0,1)
-file_cp([pwd,'/etc/',icons_path,'house_icon.png'],[dest_root,icons_path,'house_icon.png'],0,1)
 
 %% build ppi groups kml
 
@@ -165,7 +177,6 @@ if any(options(1:2))
     display('building offline images')
     generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
-ppi_str  = ge_networklink(ppi_str,'Coverage','overlays/coverage.kml',0,0,'','','','',1);
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
