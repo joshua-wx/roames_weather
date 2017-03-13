@@ -38,6 +38,10 @@ filter_date_list = filter_date_list.(date_list_var);
 date_list        = date_list(ismember(date_list,filter_date_list));
 
 %% load database
+% cell_date_list          = [];
+% cell_stat_list          = cell(length(filt_ident_ffn),1); %speed up matrix cat'ing
+% cell_trck_list          = [];
+% cell_latloncent_list    = [];
 storm_database = [];
 for i=1:length(date_list)
     target_date = date_list(i);

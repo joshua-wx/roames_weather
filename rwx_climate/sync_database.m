@@ -76,7 +76,7 @@ end
 uniq_stormh5_date = unique(floor(stormh5_dt_list));
 temp_ffn_list     = {};
 temp_date_list    = [];
-for i=1:length(uniq_stormh5_date)
+for i=1:10%length(uniq_stormh5_date)
     %create list of entries for target_date
     target_date   = uniq_stormh5_date(i);
     disp(['ddb batch get for ',datestr(target_date)]);
@@ -165,12 +165,33 @@ for i=1:length(uniq_temp_date_list)
             storm_struct = [storm_struct,clean_struct];
         end
     end
+    %extract storm_struct to table
+    table_header = {'radar_id,','start_timestamp,',...
+        'subset_id,','v_grid,','h_grid,',...
+        'storm_z_centlat,','storm_z_centlon,','storm_i,','storm_j,','storm_i_width,','storm_j_width,',...
+        'area,','area_ewt,','max_cell_vil,','max_dbz,',...
+        'max_dbz_h,','max_g_vil,','max_mesh,',...
+        'max_posh,','max_sts_dbz_h,','max_tops,',...
+        'mean_dbz,','mass,','vol,'};
+    table_data   = [vertcat(storm_struct.radar_id),datenum(vertcat(storm_struct.start_timestamp),ddb_tfmt),...
+        vertcat(storm_struct.subset_id),vertcat(storm_struct.v_grid),vertcat(storm_struct.h_grid),...
+        vertcat(storm_struct.storm_z_centlat),vertcat(storm_struct.storm_z_centlon),str2num(cell2mat(vertcat(storm_struct.storm_ijbox))),...
+        vertcat(storm_struct.area),vertcat(storm_struct.area_ext),vertcat(storm_struct.cell_vil),vertcat(storm_struct.max_dbz),...
+        vertcat(storm_struct.max_dbz_h),vertcat(storm_struct.max_g_vil),vertcat(storm_struct.max_mesh),...
+        vertcat(storm_struct.max_posh),vertcat(storm_struct.max_sts_dbz_h),vertcat(storm_struct.max_tops),...
+        vertcat(storm_struct.mean_dbz),vertcat(storm_struct.mass),vertcat(storm_struct.vol)];
+        
     %save to archive path
     date_vec     = datevec(target_date);
     archive_path = [num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
         num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
-    %save storm_jstruct
-    save([db_root,archive_path,'database.mat'],'storm_struct')
+    archive_ffn  = [db_root,archive_path,'database.csv'];
+    %write header to file
+    fid = fopen(archive_ffn,'w'); 
+    fprintf(fid,'%s\n',cell2mat(table_header));
+    fclose(fid);
+    %write data to end of file
+    dlmwrite(archive_ffn,table_data,'-append');
 end
 
 disp(['ddb sync complete in ',num2str(round(toc(ddb_timer)/60)),'min'])
