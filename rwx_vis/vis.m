@@ -20,6 +20,7 @@ kmlobj_struct     = [];
 vol_struct        = [];
 storm_jstruct     = [];
 restart_tries     = 0;
+crash_restart     = false;
 %init tmp path
 if exist(tmp_config_path,'file') ~= 7
     mkdir(tmp_config_path)
@@ -140,7 +141,7 @@ while exist('tmp/kill_vis','file')==2
         %sometimes, stormh5 and odimh5 from the same volume aren't pulled in
         %the same run due to the nonsimulatenous loading into ddb (odimh5
         %first, stormh5 second)
-        download_stormh5_list                                     = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist); %only pull stormh5 ffn for odimh5 files (removes out of sync issue)
+        download_stormh5_list  = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist); %only pull stormh5 ffn for odimh5 files (removes out of sync issue)
     else
         date_id_list           = round(oldest_time):1:round(newest_time);
         download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
@@ -215,6 +216,11 @@ while exist('tmp/kill_vis','file')==2
         track_id_list      = [];
     end
     
+    %check for crash and force update for all radar ids
+    if crash_restart
+        crash_restart        = false;
+        update_radar_id_list = radar_id_list;
+    end
     %update kml from kmlobj_struct
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
 
@@ -273,8 +279,10 @@ catch err
         %removing kill script prevents restart
         delete('tmp/kill_vis')
     end
+    %update crash restart
+    crash_restart = true;
     %save vars
-    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
+    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
     %rethrow and crash script
     rethrow(err)
 end
@@ -284,7 +292,7 @@ end
 
 if save_object_struct == 1
     %update restart_vars_fn on kml update for realtime processing
-    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
+    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
 end
 
 %soft exit display

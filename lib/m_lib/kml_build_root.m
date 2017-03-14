@@ -71,11 +71,8 @@ forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
 forecast_N_colormap = [255/255,150/255,0/255];
 track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'00FFFFFF');
-%track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_S_style',url_prefix,icons_path,html_color(1,forecast_S_colormap));
 track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'00FFFFFF');
-%track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_W_style',url_prefix,icons_path,html_color(1,forecast_W_colormap));
 track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'00FFFFFF');
-%track_style_str     = ge_nowcast_placemark_style(track_style_str,'nowcast_placemark_N_style',url_prefix,icons_path,html_color(1,forecast_N_colormap));
 
 %track path
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
