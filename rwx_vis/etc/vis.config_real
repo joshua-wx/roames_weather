@@ -9,7 +9,7 @@ s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-
 %
 % REALTIME OPTIONS
 realtime_kml             1
-realtime_length          -1.5          %hours
+realtime_length          -2          %hours
 %
 % RESTART OPTIONS
 save_object_struct       0     %save all objects on soft exit
@@ -67,7 +67,7 @@ min_track_cells       3                 %minimum of unique cells for kml track g
 %
 % KML LAYER OPTIONS
 %                      1 2 3 4 5 6 7 8 9 10
-options               [1,0,0,0,1,1,1,1,1,1]
+options               [1,0,0,0,1,1,1,0,1,1]
 %description (T/F):
 %Entry (1)  PPI refl kml layer
 %Entry (2)  PPI vel kml layer

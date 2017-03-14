@@ -79,13 +79,8 @@ for i=1:length(swath_mesh_threshold)
             tmp_lat = swath_lat_cells{j};
             %generate kml, write to file and create networklinks for the tracks data
             place_id            = ['track_id_',num2str(track_id)];
-            swath_kml           = ge_poly_placemark(swath_kml,['../track.kml#swath_',num2str(i),'_style'],place_id,'','','clampToGround',1,tmp_lon,tmp_lat,repmat(0,length(tmp_lat),1));
-            %generate swath asset impact table
             asset_table         = asset_filter(asset_data_fn,tmp_lat,tmp_lon);
-            [~,coord_idx]       = min(tmp_lat); %assign placemark to most southern point in track
-            placemark_lat       = tmp_lat(coord_idx(1));
-            placemark_lon       = tmp_lon(coord_idx(1));
-            swath_placemark_kml = ge_swath_placemark(swath_placemark_kml,1,['../track.kml#swath_placemark_',num2str(i),'_style'],place_id,asset_table,placemark_lat,placemark_lon,5000);
+            swath_kml           = ge_swath_poly(swath_kml,['../track.kml#swath_',num2str(i),'_style'],place_id,'','','clampToGround',1,tmp_lon,tmp_lat,repmat(0,length(tmp_lat),1),asset_table);
         end  
     end
 end

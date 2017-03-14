@@ -33,21 +33,21 @@ if isempty(fcst_dt)
     return
 end
 
-tmp_kml = '';
 %% generate nowcast kml    
-for i=1:length(fcst_lat_polys)
-    %if track not at end of database, skip
-    if isempty(fcst_lat_polys{i})
-        continue
-    end
-    %generate forecast swath tag
-    single_fcst_tag = ['nowcast_',num2str((i)*fcst_step),'min'];
-    %generate poly placemark kml of swath
-    tmp_kml    = ge_poly_placemark(tmp_kml,['../track.kml#fcst_',intensity,'_style'],...
-        single_fcst_tag,'','','clampToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(0,length(fcst_lon_polys{i}),1));
-end
-%append to kml
-nowcast_kml = ge_folder(nowcast_kml,tmp_kml,name,'',1);
+% for i=1:length(fcst_lat_polys)
+%     %if track not at end of database, skip
+%     if isempty(fcst_lat_polys{i})
+%         continue
+%     end
+%     %generate forecast swath tag
+%     single_fcst_tag = ['nowcast_',num2str((i)*fcst_step),'min'];
+%     %generate poly placemark kml of swath
+%     tmp_kml    = ge_poly_placemark(tmp_kml,['../track.kml#fcst_',intensity,'_style'],...
+%         single_fcst_tag,'','','clampToGround',1,fcst_lon_polys{i},fcst_lat_polys{i},repmat(0,length(fcst_lon_polys{i}),1));
+% end
+%generate kml
+%nowcast_kml = ge_nowcast_multipoly(nowcast_kml,['../track.kml#fcst_',intensity,'_style'],name,'','','clampToGround',1,fcst_lon_polys,fcst_lat_polys,[]);
+
 %% Forecast graph balloon tag
 
 %calculate number of minutes between end timestep and all other
@@ -70,4 +70,19 @@ conv_lon_list    = full_lon_list(K);
 [conv_lat_list,conv_lon_list] = reducem(conv_lat_list,conv_lon_list); %simplify
 %run asset filter for polygon
 asset_table      = asset_filter(asset_data_fn,conv_lat_list,conv_lon_list);
-nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,['../track.kml#nowcast_placemark_',intensity,'_style'],name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));
+
+%populate struct
+ballon_struct            = struct;
+ballon_struct.table_html = asset_table;
+ballon_struct.x_data     = hist_min;
+ballon_struct.y_data1    = hist_vild;
+ballon_struct.ctitle1    = 'VILD (g/m^3)';
+ballon_struct.y_data2    = hist_mesh;
+ballon_struct.ctitle2    = 'MaxExpSizeHail (mm)';
+ballon_struct.y_data3    = hist_top;
+ballon_struct.ctitle3    = 'Echo-top Height (km)';
+
+%nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,['../track.kml#nowcast_placemark_',intensity,'_style'],name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));
+
+%% generate kml
+nowcast_kml = ge_nowcast_multipoly(nowcast_kml,['../track.kml#fcst_',intensity,'_style'],name,'','','clampToGround',1,fcst_lon_polys,fcst_lat_polys,[],ballon_struct);

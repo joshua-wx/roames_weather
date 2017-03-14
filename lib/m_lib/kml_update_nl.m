@@ -82,6 +82,10 @@ for j=1:length(target_idx)
     target_stop      = kmlobj_struct(target_idx(j)).stop_timestamp;
     target_link      = kmlobj_struct(target_idx(j)).nl;
     target_latlonbox = kmlobj_struct(target_idx(j)).latlonbox;
+	%extend stop time for last item
+	if j == length(target_idx)
+		target_stop = addtodate(target_stop,10,'minute');
+	end
     %nl
     region_kml    = ge_region(target_latlonbox,0,altLod,minlod,maxlod);
     timeSpanStart = datestr(target_start,ge_tfmt);
@@ -147,6 +151,10 @@ for i=1:length(uniq_track_list)
         target_latlonbox = kmlobj_struct(target_idx(j)).latlonbox;
         target_link      = kmlobj_struct(target_idx(j)).nl;
         target_subset_id = kmlobj_struct(target_idx(j)).sort_id(end-2:end);
+		%extend stop time for last item
+		if j == length(target_idx)
+			target_stop = addtodate(target_stop,10,'minute');
+		end
         %nl
         timeSpanStart = datestr(target_start,ge_tfmt);
         timeSpanStop  = datestr(target_stop,ge_tfmt);
