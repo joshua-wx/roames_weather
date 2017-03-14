@@ -63,9 +63,6 @@ ppi_style_str   = '';
 track_style_str = '';
 cell_style_str  = '';
 
-%PPI
-ppi_style_str = ge_line_style(ppi_style_str,'coverage_style',html_color(0.5,[1,1,1]),2);
-
 %nowcast with a maximum of n_fcst_steps steps.
 forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
@@ -129,11 +126,12 @@ for i=1:length(site_no_selection)
 end
 %split up coverage polygons into cells
 [cov_lat,cov_lon] = polysplit(cov_lat,cov_lon);
+coverage_str      = ge_line_style(coverage_str,'coverage_style',html_color(0.5,[1,1,1]),2);
 for i=1:length(cov_lat)
     %write each polygon to kml string
     temp_lat     = cov_lat{i};
     temp_lon     = cov_lon{i};
-    coverage_str = ge_line_string(coverage_str,1,['segment_',num2str(i)],'','','../ppi.kml#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
+    coverage_str = ge_line_string(coverage_str,1,['segment_',num2str(i)],'','','#coverage_style',0,'clampToGround',0,1,temp_lat(1:end-1),temp_lon(1:end-1),temp_lat(2:end),temp_lon(2:end));
 end
 
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
@@ -211,15 +209,11 @@ if options(8)==1
     track_str  = [track_str,tmp_str];
 end
 if options(9)==1
-    tmp_str    = generate_nl('swath','Swaths',dest_root,track_obj_path,local_dest_flag);
-    track_str  = [track_str,tmp_str];
-    tmp_str    = generate_nl('swath_stat','Swath Stats',dest_root,track_obj_path,local_dest_flag);
+    tmp_str    = generate_nl('swath','Impact',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
 if options(10)==1
     tmp_str    = generate_nl('nowcast','Nowcast',dest_root,track_obj_path,local_dest_flag);
-    track_str  = [track_str,tmp_str];
-    tmp_str    = generate_nl('nowcast_stat','Nowcast Stats',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
 
