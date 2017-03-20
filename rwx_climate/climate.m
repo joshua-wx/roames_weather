@@ -7,6 +7,7 @@ function climate
 climate_config_fn  = 'climate.config';
 global_config_fn   = 'global.config';
 local_tmp_path     = 'tmp/';
+site_info_fn       = 'site_info.txt';
 
 %create temp paths
 if exist(local_tmp_path,'file') ~= 7
@@ -26,6 +27,25 @@ load([local_tmp_path,climate_config_fn,'.mat'])
 read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat'])
 
+% Load site info
+read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
+
+% build transforms
+transform_path    = [local_tmp_path,'transforms/'];
+preallocate_radar_grid(radar_id,transform_path,transform_new)
+
+%% load database
+target_ffn  = [db_root,num2str(radar_id,'%02.0f'),'/','database.csv'];
+out         = dlmread(target_ffn,',',1,0);
+%build local database
+storm_date_list          = datenum(out(:,2:7));
+storm_trck_list          = out(:,8);
+storm_latloncent_list    = out(:,12:13);
+storm_stat_list          = struct('area',out(:,22),'area_ewt',out(:,23),'max_cell_vil',out(:,24),'max_dbz',out(:,25),...
+    'max_dbz_h',out(:,26),'max_g_vil',out(:,27),'max_mesh',out(:,28),...
+    'max_posh',out(:,29),'max_sts_dbz_h',out(:,30),'max_tops',out(:,31),...
+    'mean_dbz',out(:,32),'mass',out(:,33),'vol',out(:,34));
+
 %% generate date list
 %span dates
 date_list        = [datenum(date_start,'yyyy/mm/dd'):datenum(date_stop,'yyyy/mm/dd')];
@@ -36,47 +56,21 @@ date_list        = date_list(ismember(date_list_months,month_list));
 filter_date_list = load(date_list_ffn,(date_list_var));
 filter_date_list = filter_date_list.(date_list_var);
 date_list        = date_list(ismember(date_list,filter_date_list));
-
-%% load database
-% cell_date_list          = [];
-% cell_stat_list          = cell(length(filt_ident_ffn),1); %speed up matrix cat'ing
-% cell_trck_list          = [];
-% cell_latloncent_list    = [];
-storm_database = [];
-for i=1:length(date_list)
-    target_date = date_list(i);
-    date_vec    = datevec(target_date);
-    target_path = [db_root,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
-        num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
-    target_ffn  = [target_path,'database.mat'];
-    %skip date as there is no storm data
-    if exist(target_ffn,'file') ~= 2
-        continue
-    end
-    disp(['loading storm database for ',datestr(target_date)]);
-    load(target_ffn,'storm_struct');
-    storm_database = [storm_database,storm_struct];
-end
-
-%% add tracking data
-track_vec= nowcast_wdss_tracking(storm_database,false,'');
-for i=1:length(storm_database)
-    storm_database(i).track   = track_vec(i);
-end
-
-%% mask cells by var and time
+%create date mask
+date_mask        = ismember(floor(storm_date_list),date_list);
+%% mask cells by var, time and date
 %extract mask var
 switch data_type
     case 'mesh'
-        mask_var = vertcat(storm_database.max_mesh);
+        mask_var = vertcat(storm_stat_list.max_mesh);
     case 'dbz'
-        mask_var = vertcat(storm_database.max_dbz);
+        mask_var = vertcat(storm_stat_list.max_dbz);
     case 'g_vil'
-        mask_var = vertcat(storm_database.max_g_vil);
+        mask_var = vertcat(storm_stat_list.max_g_vil);
     case 'tops_h'
-        mask_var = vertcat(storm_database.max_tops);
+        mask_var = vertcat(storm_stat_list.max_tops);
     case 'sts_h'
-        mask_var = vertcat(storm_database.max_sts_dbz_h);
+        mask_var = vertcat(storm_stat_list.max_sts_dbz_h);
 end
 %create var mask
 if strcmp(data_min,'nan')
@@ -90,25 +84,28 @@ else
     max_mask = mask_var >= data_max;
 end
 %create time mask
-datestr_list   = [storm_database.start_timestamp]';
-datetime_list  = datenum(datestr_list,ddb_tfmt);
-time_list      = rem(datetime_list,1);
+time_list      = rem(storm_date_list,1);
 time_mask      = time_list>=rem(datenum(time_min,'HH:MM'),1) & time_list<=rem(datenum(time_max,'HH:MM'),1);
-%apply mask
-data_mask      = min_mask & max_mask & time_mask;
-storm_database = storm_database(data_mask);
 
-%build vol struct
+%% combine masks
+data_mask      = min_mask & max_mask & time_mask & date_mask;
 
-%% generate tracks for each day (don't want to overload tracking)
-uniq_date_list = unique(floor(datetime_list));
-for i=1:length(uniq_date_list)
-    target_date = uniq_date_list(i);
-    target_mask = target_date==floor(datetime_list);
-    target_db   = storm_database(target_mask);
-    
-    track_vec   = nowcast_wdss_tracking(target_db,false,'');
-    keyboard
-    
+%% create plots
+
+%load transform
+transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
+load(transform_fn,'grid_size','img_latlonlox')
+
+%create grid
+if strcmp(grid_type,'centroid')
+    cent_lat_vec = img_latlonlox(2):centroid_grid:img_latlonlox(1);
+    cent_lon_vec = img_latlonlox(4):centroid_grid:img_latlonlox(3);
+    out_grid     = zeros(length(cent_lat_vec),length(cent_lon_vec));
+else
+    out_grid     = zeros(grid_size(1),grid_size(2));
 end
-keyboard
+
+% to do: 
+%implement merged density plots (or centroids if too hard) and a map for
+%Sydney meeting
+%preprocess sydney data and copy onto HDD (03 and 71), also send to bom

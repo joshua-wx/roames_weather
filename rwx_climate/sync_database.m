@@ -5,7 +5,7 @@ function sync_database
 %structs.
 
 %setup config names
-database_config_fn = 'database.config';
+database_config_fn = 'sync.config';
 global_config_fn   = 'global.config';
 local_tmp_path     = 'tmp/';
 root_tmp_folder    = 'sync_database/';
@@ -38,7 +38,7 @@ load([local_tmp_path,global_config_fn,'.mat'])
 
 %create archive root
 if exist([db_root,num2str(radar_id,'%02.0f')],'file') == 7
-    str = input('db_root exists, type "rm" to remove, otherwise s3 data will be merged and ddb data will be replaced: ','s');
+    str = input('db_root exists, type "rm" to remove all data. enter updates stormh5 and replaces database','s');
     if strcmp(str,'rm')
         disp('removing db_root')
         rmdir([db_root,num2str(radar_id,'%02.0f')],'s')
@@ -46,6 +46,12 @@ if exist([db_root,num2str(radar_id,'%02.0f')],'file') == 7
     end
 else
     mkdir([db_root,num2str(radar_id,'%02.0f')])
+end
+
+%create archive file name
+archive_ffn  = [db_root,'/',num2str(radar_id,'%02.0f'),'/database.csv'];
+if exist(archive_ffn,'file') == 2
+    delete(archive_ffn)
 end
 
 %% sync s3 data
@@ -62,13 +68,9 @@ ddb_timer        = tic;
 archive_ffn_list = getAllFiles([db_root,num2str(radar_id,'%02.0f'),'/']);
 stormh5_dt_list  = [];
 stormh5_ffn_list = {};
+%extract file dates and locations of stormh5
 for i=1:length(archive_ffn_list)
-    %check if this is a database file
     [~,stormh5_fn,~] = fileparts(archive_ffn_list{i});
-    if strcmp(stormh5_fn,'database')
-        delete(archive_ffn_list{i})
-        continue
-    end
     stormh5_dt_list  = [stormh5_dt_list;datenum(stormh5_fn(4:18),r_tfmt)];
     stormh5_ffn_list = [stormh5_ffn_list;archive_ffn_list{i}];
 end
@@ -76,7 +78,7 @@ end
 uniq_stormh5_date = unique(floor(stormh5_dt_list));
 temp_ffn_list     = {};
 temp_date_list    = [];
-for i=1:10%length(uniq_stormh5_date)
+for i=1:length(uniq_stormh5_date)
     %create list of entries for target_date
     target_date   = uniq_stormh5_date(i);
     disp(['ddb batch get for ',datestr(target_date)]);
@@ -124,6 +126,21 @@ wait_aws_finish
 %generate unique date list
 uniq_temp_date_list = unique(temp_date_list);
 
+%init database
+table_header = {'radar_id,','year,','month,','day,','hour,','minute,','second,','track_id,',... %1-8
+    'subset_id,','v_grid(km),','h_grid(km),',... %9-11
+    'storm_z_centlat,','storm_z_centlon,',... %12-13
+    'storm_min_i,','storm_max_i,','storm_min_j,','storm_max_j,',... %14-17
+    'storm_min_lat,','storm_max_lat,','storm_min_lon,','storm_max_lon,',... %18-21
+    'area(km2),','area_ewt(km2),','max_cell_vil(kg/m2),','max_dbz(dbz),',... %22-25
+    'max_dbz_h(km),','max_g_vil(kg/m2),','max_mesh(mm),',... %26-28
+    'max_posh(%),','max_sts_dbz_h(km),','max_tops(km),',... %29-31
+    'mean_dbz(dbz),','mass(kt),','vol(km3),'}; %32-34
+%write header to file
+fid = fopen(archive_ffn,'w'); %discard contents
+fprintf(fid,'%s\n',cell2mat(table_header));
+fclose(fid);
+    
 %loop through each unique date for the ddb read file list
 for i=1:length(uniq_temp_date_list)
     %create target_ffn_list for target_date
@@ -165,31 +182,25 @@ for i=1:length(uniq_temp_date_list)
             storm_struct = [storm_struct,clean_struct];
         end
     end
+    %calc tracks
+    track_vec   = nowcast_wdss_tracking(storm_struct,false,'');
+    %create date vec
+    date_vec    = datevec(vertcat(storm_struct.start_timestamp),ddb_tfmt);
+    %collate storm_ij_box and storm latlon box
+    storm_ijbox      = zeros(length(storm_struct),4);
+    storm_latlonbox = zeros(length(storm_struct),4);
+    for k=1:length(storm_struct)
+        storm_ijbox(k,:)     = str2num(cell2mat(storm_struct(k).storm_ijbox));
+        storm_latlonbox(k,:) = str2num(cell2mat(storm_struct(k).storm_latlonbox));
+    end
     %extract storm_struct to table
-    table_header = {'radar_id,','start_timestamp,',...
-        'subset_id,','v_grid,','h_grid,',...
-        'storm_z_centlat,','storm_z_centlon,','storm_i,','storm_j,','storm_i_width,','storm_j_width,',...
-        'area,','area_ewt,','max_cell_vil,','max_dbz,',...
-        'max_dbz_h,','max_g_vil,','max_mesh,',...
-        'max_posh,','max_sts_dbz_h,','max_tops,',...
-        'mean_dbz,','mass,','vol,'};
-    table_data   = [vertcat(storm_struct.radar_id),datenum(vertcat(storm_struct.start_timestamp),ddb_tfmt),...
+    table_data   = [vertcat(storm_struct.radar_id),date_vec,track_vec,...
         vertcat(storm_struct.subset_id),vertcat(storm_struct.v_grid),vertcat(storm_struct.h_grid),...
-        vertcat(storm_struct.storm_z_centlat),vertcat(storm_struct.storm_z_centlon),str2num(cell2mat(vertcat(storm_struct.storm_ijbox))),...
+        vertcat(storm_struct.storm_z_centlat),vertcat(storm_struct.storm_z_centlon),storm_ijbox,storm_latlonbox,...
         vertcat(storm_struct.area),vertcat(storm_struct.area_ext),vertcat(storm_struct.cell_vil),vertcat(storm_struct.max_dbz),...
         vertcat(storm_struct.max_dbz_h),vertcat(storm_struct.max_g_vil),vertcat(storm_struct.max_mesh),...
         vertcat(storm_struct.max_posh),vertcat(storm_struct.max_sts_dbz_h),vertcat(storm_struct.max_tops),...
         vertcat(storm_struct.mean_dbz),vertcat(storm_struct.mass),vertcat(storm_struct.vol)];
-        
-    %save to archive path
-    date_vec     = datevec(target_date);
-    archive_path = [num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',...
-        num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/'];
-    archive_ffn  = [db_root,archive_path,'database.csv'];
-    %write header to file
-    fid = fopen(archive_ffn,'w'); 
-    fprintf(fid,'%s\n',cell2mat(table_header));
-    fclose(fid);
     %write data to end of file
     dlmwrite(archive_ffn,table_data,'-append');
 end
