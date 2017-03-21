@@ -38,12 +38,7 @@ load([local_tmp_path,global_config_fn,'.mat'])
 
 %create archive root
 if exist([db_root,num2str(radar_id,'%02.0f')],'file') == 7
-    str = input('db_root exists, type "rm" to remove all data. enter updates stormh5 and replaces database','s');
-    if strcmp(str,'rm')
-        disp('removing db_root')
-        rmdir([db_root,num2str(radar_id,'%02.0f')],'s')
-        mkdir([db_root,num2str(radar_id,'%02.0f')])
-    end
+    disp('db_root exists, updating stormh5 and replacing database')
 else
     mkdir([db_root,num2str(radar_id,'%02.0f')])
 end

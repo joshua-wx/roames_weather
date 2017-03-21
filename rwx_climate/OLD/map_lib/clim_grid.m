@@ -110,7 +110,7 @@ for i=1:length(filt_ident_ffn)
             %Select correct stats
             switch opt_struct.grid_opt
                 case 1
-                    mask_stats = track_stats(:,15); %mash
+                    mask_stats = track_stats(:,15); %mesh
                 case 2
                     mask_stats = track_stats(:,16); %posh
                 case 3
