@@ -1,13 +1,15 @@
 function prep
+% prep data class
+%
+% BoM volumetric lftp download manager. Downloads complete volumes (all files
+% which make up one volume scan), rather than just new files, elimating the
+% problem with delayed uploads to the ftp server. FTP server is first synced
+% to a folder in tmp before applying time/site filters as required. Complete
+% volumes which pass are cat'ed,converted to odim_h5 and moved to the
+% correct s3 or local directory. directory ls provides indexing (perhaps
+% move to dynamodb for remote?)
+
 try
-% WHAT
-%BoM volumetric lftp download manager. Downloads complete volumes (all files
-%which make up one volume scan), rather than just new files, elimating the
-%problem with delayed uploads to the ftp server. FTP server is first synced
-%to a folder in tmp before applying time/site filters as required. Complete
-%volumes which pass are cat'ed,converted to odim_h5 and moved to the
-%correct s3 or local directory. directory ls provides indexing (perhaps
-%move to dynamodb for remote?)
 
 %add paths if not deployed
 if ~isdeployed
