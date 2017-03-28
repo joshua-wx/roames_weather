@@ -1,11 +1,23 @@
 function ddb_update(part_name,part_type,part_value,sort_name,sort_type,sort_value,update_name,update_type,update_value,ddb_table)
-%queries ddb for items from radar_id between start and stop
-%datestr. p_exp is a string of attriutes to return.
-
-% if ~isdeployed
-%     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-%     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: updates a entry in ddb described by part and sort keys with update
+% values
+% INPUTS
+% part_name:  name of partition key (str)
+% part_type: variable type of parition key (1x char)
+% part_value: value of partition key (str)
+% sort_name:  name of sort key (str)
+% sort_type: variable type of sort key (1x char)
+% sort_value: value of sort key (str)
+% update_name: name of attribute to update (str)
+% update_type: type of attribute to update (str)
+% update_value: values of attribute to update
+% ddb_table: ddb table name (str)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %build expression
 exp_json = ['{":update_att": {"',update_type,'":"',update_value,'"}}'];

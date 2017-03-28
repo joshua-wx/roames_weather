@@ -1,14 +1,21 @@
 function pending_ffn_list = ddb_filter_index(ddb_table,part_key_name,part_key_value,sort_key_name,oldest_time,newest_time,radar_id_list)
-%WHAT: filters volumes in odimh5 ddb and generates a list of their respective storm.wv.tar files.
-
-%INPUT
-%src_dir (see wv_process input)
-%oldest_time: oldest time to crop files to (in datenum)
-%newest_time: newest time to crop files to (in datenum)
-%radar_id_list: site ids of selected radar sites
-
-%OUTPUT
-%pending_list: updated list of all processed ftp files
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: filters volumes in ddb and generates a list of their respective
+% h5 ffn's (either storm or odim).
+% INPUTS
+% ddb_table: ddb table name (str)
+% part_key_name: name of partition key (str)
+% part_key_value: value of partition key (str)
+% sort_key_name: name of sort key (str)
+% oldest_time: oldest time of sort key (in datenum, double)
+% newest_time: newest time of sort key (in datenum, double)
+% radar_id_list: list of radar ids
+% RETURNS
+% pending_ffn_list: list of h5 files (cell array of strings)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load('tmp/global.config.mat')
 

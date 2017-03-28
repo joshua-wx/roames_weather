@@ -1,13 +1,15 @@
 function fileList = getAllFiles(dirName)
-%WHAT:
-%recursively loops through the directories below dirName and outputs all
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: recursively loops through the directories below dirName and outputs all
 %files in a list
-
-%INPUT:
-%dirname: directory path
-
-%OUTPUT
-%filelist: filename of all files below the directory path.
+% INPUTS
+%dirname: directory path (str)
+% RETURNS
+% fileList: filenames (no path) of all files in dirName
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 dirData = dir(dirName);      % Get the data for the current directory
 dirIndex = [dirData.isdir];  % Find the index for directories

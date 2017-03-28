@@ -1,5 +1,19 @@
 function radar_step = calc_radar_step(vol_struct,radar_id)
-%init
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: using vol_struct, previous radar start_timestamps for radar_id are
+% extracted and used to calculate the interval. A default interval is used
+% of 10 min
+% INPUTS
+% vol_struct: contains struct of volumes information (see variable docs)
+% radar_id: radar id to filter vol_struct (int)
+% RETURNS
+% radar_step: radar interval in minutes (int)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%init output struct
 radar_id_list   = [vol_struct.radar_id];
 radar_time_list = [vol_struct.start_timestamp];
 %filter my radar id

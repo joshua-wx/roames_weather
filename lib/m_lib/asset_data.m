@@ -1,4 +1,15 @@
 function asset_data(out_ffn)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: customisable script to read asset data files and saves them into an
+% output file for filtering later. Filtered by asset_filter.m
+% INPUTS
+% out_ffn: output full filename (str)
+% RETURNS: saves asset information to mat file
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %WHAT: reads asset data files and saves them into a struct object in
 %out_ffn
 
@@ -21,7 +32,7 @@ pop_fn        = 'Australian_Population_Grid_2011.tif';
 pop_grid      = geotiffread(pop_fn);
 pop_info      = geotiffinfo(pop_fn);
 
-%export
+%export data to files
 if exist(out_ffn,'file') == 2
     delete(out_ffn)
 end

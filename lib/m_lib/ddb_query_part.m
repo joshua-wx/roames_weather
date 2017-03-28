@@ -1,12 +1,19 @@
 function jstruct = ddb_query_part(part_name,part_value,part_type,p_exp,ddb_table)
-%queries ddb for items from radar_id between start and stop
-%datestr. p_exp is a string of attriutes to return.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: runs a ddb query using only part value (using equality), returning p_exp
+% INPUTS
+% part_name:  name of partition key (str)
+% part_value: value of partition key (str)
+% p_exp: list of attributes to extract (str)
+% ddb_table: ddb table name (str)
+% RETURNS
+% jstruct: json struct containing extract ddb items (struct)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% if ~isdeployed
-%     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-%     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-% end
-
+%setup expression
 temp_fn  = tempname;
 exp_json = ['{":r_id": {"',part_type,'":"',part_value,'"}}'];
 cmd      = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb query --table-name ',ddb_table,' ',...

@@ -1,13 +1,22 @@
-function jstruct_out = ddb_get_item(ddb_table,part_name,part_type,part_value,sort_name,sort_type,sort_value,att_list)
-%WHAT: gets an items from a ddb table which has partition and sort key. The
-%name, type and value of these two keys can be specified. Output is
-%returned as a struct. Att_list can be specified to only retrived specific
-%attributes
-
-% if ~isdeployed
-%     addpath('/home/meso/Dropbox/dev/wv/lib/m_lib');
-%     addpath('/home/meso/Dropbox/dev/shared_lib/jsonlab');
-% end
+function jstruct_out = ddb_get_item(ddb_table,part_name,part_type,part_value,sort_name,sort_type,sort_value,p_exp)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: filters volumes in ddb and generates a list of their respective
+% h5 ffn's (either storm or odim).
+% INPUTS
+% ddb_table: ddb table name (str)
+% part_name: name of partition key (str)
+% part_type: variable type of parition key (1x char)
+% part_value: value of partition key (str)
+% sort_name: name of sort key (str)
+% sort_type: variable type of sort key (1x char)
+% sort_value: value of sort key (str)
+% p_exp: list of attributes to extract (str)
+% RETURNS
+% jstruct_out: json struct containing extract ddb items (struct)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %build struct to item key
 ddb_struct                         = struct;
@@ -20,8 +29,8 @@ json                               = savejson('',ddb_struct);
 %build command
 cmd                                = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb get-item --table-name ',ddb_table,' --key ''',json,''''];
 %add att_list if present
-if ~isempty(att_list)
-    cmd = [cmd,' --projection-expression ','"',att_list,'"'];
+if ~isempty(p_exp)
+    cmd = [cmd,' --projection-expression ','"',p_exp,'"'];
 end
 %run script
 [sout,eout]                        = unix([cmd,' | tee ',temp_fn]);

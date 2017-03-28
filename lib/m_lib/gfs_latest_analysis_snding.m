@@ -1,25 +1,34 @@
 function [extract_db,nn_snd_fz_h,nn_snd_minus20_h]=gfs_latest_analysis_snding(extract_db,r_lat,r_lon)
-%Creation 2/10/2014
-%WHAT: Extracts a realtime analysis sounding from gps .5deg at r_lat, r_lon
-%using the rucsoundings.noaa.gov utility and then converts the text data
-%from this website into interpoalted freezing and -20C levels
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-
-
-%NOTE: extract_db is a nx5 matrix composed to extract date (rounded to
-%the hour), lat, lon,nn_snd_fz_h,nn_snd_minus20_h. Prevent lags and
-%duplicated extractions
-
-nn_snd_fz_h = [];
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: Extracts a realtime analysis sounding from gps .5deg at r_lat, r_lon
+% using the rucsoundings.noaa.gov utility and then converts the text data
+% from this website into interpoalted freezing and -20C levels. Checks
+% against last extract first to determine if http request is required.
+% INPUTS
+% extract_db: structure contraining last last radar_id/time/value data for last extracts (struct)
+% r_lat: extract lat (double)
+% r_lon: extract lon (double)
+% RETURNS
+% extract_db: structure contraining last last radar_id/time/value data for last extracts (struct)
+% fz_h: freezing level height (double, m)
+% minus20_h: -20C level height (double,m)
+% NOTE: extract_db is a nx5 matrix composed to extract date (rounded to
+% the hour), lat, lon,nn_snd_fz_h,nn_snd_minus20_h. Prevent lags and
+% duplicated extractions
+%
+% source: http://rucsoundings.noaa.gov/
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%init
+nn_snd_fz_h      = [];
 nn_snd_minus20_h = [];
-
-%source: http://rucsoundings.noaa.gov/
-
 %utc time
-utc_datenum=utc_time;
-
+utc_datenum = utc_time;
 %floor hour component of datetime
-date_vec  = datevec(utc_datenum);
+date_vec    = datevec(utc_datenum);
 adj_datenum = datenum(date_vec(1),date_vec(2),date_vec(3),floor(date_vec(4)/6)*6,0,0);
 
 %check if temp data for time/lat/lon exists in extract_db
@@ -44,6 +53,8 @@ extract_db(remove_ind,:)=[];
     
 
 function [nn_snd_fz_h,nn_snd_minus20_h] = fetch_gfs_snding(adj_datenum,r_lat,r_lon)
+%WHAT: fetches gfs soundings from lat/lon for at time adj_datenum using
+%urlread
 
 %generate date strings
 date_vec  = datevec(adj_datenum);

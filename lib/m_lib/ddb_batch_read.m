@@ -1,5 +1,20 @@
 function json_ffn = ddb_batch_read(ddb_tmp_struct,ddb_table,temp_path,p_exp)
-%WHAT: batch read for ddb using a list of index entried from temp_struct
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: batch read for ddb using a list of index entries from ddb_tmp_struct
+% INPUTS
+% ddb_tmp_struct: structure contraining up to 25 items. each item has a key
+% and sort index for extraction from dynamodb (struct)
+% ddb_table: ddb table name (str)
+% temp_path: directory to use for temp json file (str)
+% p_exp: projected expression for fields to extract from ddb (str)
+% RETURNS
+% json_ffn: full filename of file which contains ddb extract json (cell
+% array)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %init filenames
 temp_ffn       = tempname;

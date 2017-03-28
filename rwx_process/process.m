@@ -210,6 +210,10 @@ while exist('tmp/kill_process','file')==2
                     %load era-interim fzlvl data from ddb
                     [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.start_dt,radar_id,eraint_ddb_table);
                 end
+                if isempty(nn_snd_fz_h)
+                    disp('###sounding data missing###')
+                    return
+                end
                 %run ident
                 proc_obj = process_storm_stats(grid_obj,ewt_refl_image,ewtBasin,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else

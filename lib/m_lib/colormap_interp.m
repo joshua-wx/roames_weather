@@ -1,11 +1,21 @@
 function colormap_interp(refl_cmap_fn,vel_cmap_fn)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: load simple original colormap config files and saves colour maps to
+% a mat file (with a fixed fn)
+% INPUTS 
+% refl_cmap_fn: fn for reflectivity colour map (str)
+% vel_cmap_fn: fn for velcoity colour map (str)
+% RETURNS
+% saves matlab colourmaps to mat file: tmp/interp_cmaps.mat
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%load simple original colormap config files
-%refl_cmap = load('refl24bit.txt');
-%vel_cmap  = load('vel24bit.txt');
+%load cmaps
 refl_cmap = load(refl_cmap_fn);
 vel_cmap  = load(vel_cmap_fn);
-
 
 %interp1 refl cmap
 refl_index=refl_cmap(1,1):refl_cmap(end,1);
@@ -15,7 +25,7 @@ interp_refl_r = interp1(refl_cmap(:,1),refl_cmap(:,2),refl_index);
 interp_refl_g = interp1(refl_cmap(:,1),refl_cmap(:,3),refl_index);
 interp_refl_b = interp1(refl_cmap(:,1),refl_cmap(:,4),refl_index);
 
-%collate and convert to decimal
+%collate and convert to fractions of 255
 interp_refl_cmap  = [interp_refl_r',interp_refl_g',interp_refl_b']./255;
 %interp1 vel cmap
 vel_index=vel_cmap(1,1):vel_cmap(end,1);
