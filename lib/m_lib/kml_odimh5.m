@@ -24,7 +24,7 @@ img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlon
 %loop through new odimh5 files
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
 [ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
-if isempty(ppi_elv)
+if isempty(ppi_elv) || isempty(ppi_struct)
     %error loading file, skip this ppi
     return
 end

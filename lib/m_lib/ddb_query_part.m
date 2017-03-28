@@ -20,7 +20,11 @@ if sout~=0 || isempty(eout)
     return
 end
 %convert json to struct
-jstruct    = json_read(temp_fn);
+try
+    jstruct    = json_read(temp_fn);
+catch %catch for corrupt file
+    jstruct = '';
+end
 if ~isempty(jstruct)
     jstruct = jstruct.Items;
 end
