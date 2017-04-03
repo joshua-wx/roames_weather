@@ -1,4 +1,18 @@
 function h5_data_write(h5_fn,h5_path,group_number,data_struct,r_scale)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: writes data_struct (containing fields) to a group number for the h5 file in a certain path.
+% designed for storm.h5 files
+% INPUTS
+% h5_fn:   storm.h5 file names (str)
+% h5_path: path to storm.h5 file (str)
+% group_number: group number for object to extract from stormh5 (double)
+% data_struct: struct containing data objects from storm.h5 file (Struct)
+% r_scale: scaling factor for data fields
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %WHAT: Writes data_struct under group_name to h5_fn
 
 %build ffn
@@ -40,17 +54,22 @@ H5F.close(h5_fid);
 function H5Acreatestring(root_id, a_name, a_val)
 %converts a matlab string into a C sting and writes to a H5 file as an att
 
+%covert to C string
 a_val(length(a_val)+1)=setstr(0);
+
+%setup attribute
 type_id  = H5T.copy('H5T_C_S1');
 H5T.set_size(type_id, length(a_val));
 
+%create attribute
 space_id = H5S.create('H5S_SCALAR');
 attr_id  = H5A.create(root_id, a_name, type_id, space_id, 'H5P_DEFAULT', 'H5P_DEFAULT');
 H5A.write(attr_id, type_id, a_val);
 
 function write_data(group_id,data_name,data)
+%writes data to field data_name in group_id
 
-%set compression
+%create compression vars
 h5_size      = fliplr(size(data));
 chunk_size   = h5_size;
 deflate_scal = 9;
@@ -58,12 +77,10 @@ deflate_scal = 9;
 %setup data variable
 dataspace_id = H5S.create_simple(length(h5_size), h5_size, h5_size);
 plist        = H5P.create('H5P_DATASET_CREATE');
-try
+
+%set compression vars
 H5P.set_chunk(plist, chunk_size);
 H5P.set_deflate(plist, deflate_scal);
-catch
-    keyboard
-end
 
 %create data variable
 dataset_id = H5D.create(group_id,data_name,'H5T_STD_I16LE',dataspace_id, 'H5P_DEFAULT', plist, 'H5P_DEFAULT');

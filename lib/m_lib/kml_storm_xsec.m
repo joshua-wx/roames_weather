@@ -1,6 +1,5 @@
 function [link,ffn] = kml_storm_xsec(dest_root,dest_path,data_tag,storm_vol,xsec_idx,xsec_alt,storm_latlonbox,cmap,min_value,data_type)
 
-
 %extract layer and extract from volume
 xsec_data = flipud(storm_vol(:,:,xsec_idx));
 xsec_img  = image_transform(xsec_data,data_type,min_value);
@@ -19,3 +18,20 @@ ge_kmz_out(kmz_fn,xsec_kml,[dest_root,dest_path],png_ffn);
 %init link
 link = kmz_fn;
 ffn  = [dest_root,dest_path,kmz_fn];
+
+function data_out = image_transform(data_in,type,min_value)
+
+%find no data regions
+data_alpha = logical(data_in==min_value);
+%scale to true value using transformation constants
+if strcmp(type,'refl')
+        %scale for colormapping
+        data_out = (data_in-min_value)*2+1;
+        %enforce no data regions
+        data_out(data_alpha) = 1;
+else strcmp(type,'vel');
+        %scale for colormapping
+        data_out = (data_in-min_value)+1;
+        %enforce no data regions
+        data_out(data_alpha) = 1;
+end

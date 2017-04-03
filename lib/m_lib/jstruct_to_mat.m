@@ -1,5 +1,17 @@
 function out = jstruct_to_mat(jstruct,type)
-%WHAT: converts jstruct to a matlab cell array (Strings) or array (numbers)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: converts jstruct item into a matlab cell array (strings) or double array (numbers)
+% INPUTS
+% jstruct: struct item name.type.data (struct)
+% type:    type, either 'S' for string or 'N' for number
+% RETURNS
+% out: matlab cell array (cell) for type 'S' or matlab double array
+% (double) for type 'N'
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if strcmp(type,'S')
     out = {jstruct.S}';
