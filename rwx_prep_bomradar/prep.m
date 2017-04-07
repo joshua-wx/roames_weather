@@ -208,6 +208,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
     unix(['tail -c 200kB  tmp/log.convert > tmp/log.convert']);
     unix(['tail -c 200kB  tmp/log.mv > tmp/log.mv']);
+	unix(['tail -c 200kB  tmp/log.sns > tmp/log.sns']);
 end
 
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(kill_timer),' @@@@@@@@@'])
@@ -398,13 +399,8 @@ h5_ffn           = [archive_dest,h5_fn];
 %move to required directory
 file_mv(tmp_h5_ffn,h5_ffn);
 
-%write to staging dynamo db
-data_id                         = [datestr(h5_start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
-ddb_struct                      = struct;
-ddb_struct.data_type.S          = 'prep_odimh5';
-ddb_struct.data_id.S            = data_id;
-ddb_struct.data_ffn.S           = h5_ffn;
-ddb_put_item(ddb_struct,staging_ddb_table)
+%publish sns for odimh5 prep
+sns_publish(sns_odimh5_prep,h5_ffn);
 
 %write to odimh5 dynamo db
 ddb_struct                      = struct;

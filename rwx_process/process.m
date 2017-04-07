@@ -148,7 +148,7 @@ while exist('tmp/kill_process','file')==2
             %Produce a list of filenames to process
             oldest_time                           = addtodate(date_list,realtime_offset,'hour');
             newest_time                           = date_list;
-            [fetch_h5_ffn_list,~,~]               = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'prep_odimh5');
+            [fetch_h5_ffn_list,~,~]               = sqs_process_staging(sqs_odimh5_prep,oldest_time,newest_time,radar_id_list);
             %update user
             disp(['Realtime processing downloading ',num2str(length(fetch_h5_ffn_list)),' files']);
             %loop through and download files
@@ -264,6 +264,8 @@ while exist('tmp/kill_process','file')==2
     unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
     unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
     unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
+    unix(['tail -c 200kB  tmp/log.sqs > tmp/log.sqs']);
+    unix(['tail -c 200kB  tmp/log.sns > tmp/log.sns']);
     
     %break loop if cts_loop=0
     if realtime_flag==0
@@ -426,13 +428,7 @@ ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(odimh5_date
 
 %add new entry to staging ddb for realtime processing
 if realtime_flag == 1
-    data_id                              = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f')];
-    %process odimh5
-    ddb_staging                          = struct;
-    ddb_staging.data_type.S              = 'process_odimh5';
-    ddb_staging.data_id.S                = data_id;
-    ddb_staging.data_ffn.S               = odimh5_ffn;
-    ddb_put_item(ddb_staging,staging_ddb_table)
+    sns_publish(sns_odimh5_process,odimh5_ffn)
 end
 
 

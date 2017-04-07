@@ -137,7 +137,7 @@ while exist('tmp/kill_vis','file')==2
     delete([download_path,'*'])
     %read staging index
     if realtime_kml == 1
-        [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = ddb_filter_staging(staging_ddb_table,oldest_time,newest_time,radar_id_list,'process_odimh5');
+        [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = sqs_process_staging(sqs_odimh5_process,oldest_time,newest_time,radar_id_list);
         %sometimes, stormh5 and odimh5 from the same volume aren't pulled in
         %the same run due to the nonsimulatenous loading into ddb (odimh5
         %first, stormh5 second)
@@ -239,6 +239,7 @@ while exist('tmp/kill_vis','file')==2
     unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
     unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
     unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
+    unix(['tail -c 200kB  tmp/log.sqs > tmp/log.sqs']);
     %Kill function
     if toc(kill_timer)>kill_wait
         %update user
