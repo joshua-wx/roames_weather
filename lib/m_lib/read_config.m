@@ -34,14 +34,13 @@ for i=1:length(config_out{1})
     var_value=config_out{2}{i};
     %check variable type and convert if number
     if (isempty(strfind(var_value,'_')) && isempty(strfind(var_value,'/')) && isempty(strfind(var_value,':')) && sum(isletter(var_value))==0) || strcmp(var_value,'NaN') %convert string to number/NaN
-        var_value=str2num(var_value);
+        var_value = str2num(var_value);
+    end
+    if ~isempty(strfind(var_value,'{'))
+        [~] = evalc(['var_value = ', var_value]);
     end
     %set string to be the variable name for that variable
-    try
     [~] = evalc([var_name '= var_value']);
-    catch
-        keyboard
-    end
     %save and append to mat file using append command if i~=1
     if i==1
         save(mat_output_path,var_name);

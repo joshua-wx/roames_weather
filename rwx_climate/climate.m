@@ -1,7 +1,21 @@
 function climate
-%WHAT: Core climatology script for roames weather which takes the local
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: Core climatology script for roames weather which takes the local
 %database built by sync_database and generate outputs for spatial and
 %statistical analysis
+% INPUTS
+% out_ffn: climate.config and mapping configs
+% RETURNS: generates images and output databases
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% init
+
+%close figures
+close all
 
 %setup config names
 climate_config_fn  = 'climate.config';
@@ -41,12 +55,15 @@ site_lon = siteinfo_lon_list(site_ind);
 
 % build transforms
 transform_path    = [local_tmp_path,'transforms/'];
-preallocate_radar_grid(radar_id,transform_path,transform_new)
+preallocate_radar_grid(radar_id,transform_path,transform_new);
 
-%% load database
+%% load database from csv
+
+%set target paths
 target_ffn  = [db_root,num2str(radar_id,'%02.0f'),'/','database.csv'];
 out         = dlmread(target_ffn,',',1,0);
-%build local database
+
+%build local database from csv
 storm_date_list          = datenum(out(:,2:7));
 storm_trck_list          = out(:,8);
 storm_latloncent_list    = out(:,12:13);
@@ -57,8 +74,10 @@ storm_stat_list          = struct('area',out(:,22),'area_ewt',out(:,23),'max_cel
     'max_posh',out(:,29),'max_sts_dbz_h',out(:,30),'max_tops',out(:,31),...
     'mean_dbz',out(:,32),'mass',out(:,33),'vol',out(:,34));
 
-%% generate date list
-%span dates
+%% generate masks
+
+%%%date mask%%%
+%generate date span
 date_list        = [datenum(date_start,'yyyy/mm/dd'):datenum(date_stop,'yyyy/mm/dd')];
 %filter months
 date_list_months = month(date_list);
@@ -71,8 +90,9 @@ if date_list_flag == 1
 end
 %create date mask
 date_mask        = ismember(floor(storm_date_list),date_list);
-%% mask cells by var, time and distance
-%extract mask var
+
+%%min/max var masks%%%
+%extract variable from database and assign stormh5 name
 switch data_type
     case 'mesh'
         stat_var        = vertcat(storm_stat_list.max_mesh);
@@ -93,26 +113,31 @@ switch data_type
         stat_var        = vertcat(storm_stat_list.max_sts_dbz_h);
 		stormh5_varname = 'sts_h_grid';
 end
-%create var mask
-if strcmp(stat_min,'nan')
+%create min mask
+if strcmp(data_min,'nan')
     min_mask = true(length(stat_var),1);
 else
-    min_mask = stat_var >= stat_min;
+    min_mask = stat_var >= data_min;
 end
-if strcmp(stat_max,'nan')
+%create max mask
+if strcmp(data_max,'nan')
     max_mask = true(length(stat_var),1);
 else
-    max_mask = stat_var >= stat_max;
+    max_mask = stat_var >= data_max;
 end
-%create time mask
+
+%%%time mask%%%
+%create time mask using database times
 time_list      = rem(storm_date_list,1);
 time_mask      = time_list>=rem(datenum(time_min,'HH:MM'),1) & time_list<=rem(datenum(time_max,'HH:MM'),1);
-%create distance mask
+
+%%% distance mask %%%
+%mask distance from radar site to storm latlon
 [arclen,~] = distance(site_lat,site_lon,storm_latloncent_list(:,1),storm_latloncent_list(:,2));
 dist_list  = deg2km(arclen);
 dist_mask  = dist_list <= data_range;
 
-%% ci/ce mask
+%%% ci/ce mask %%%
 if ci_flag == 1 || ce_flag == 1
     ci_ce_mask      = false(length(storm_date_list),1);
 	%date only
@@ -162,94 +187,189 @@ if ci_flag == 1 || ce_flag == 1
 		end
 	end
 else
+    %no ci/ce mask
     ci_ce_mask      = true(length(storm_date_list),1);
 end
 
-% combine masks
-data_mask      = min_mask & max_mask & time_mask & date_mask & ci_ce_mask & dist_mask;
+%%% combine masks %%%
+data_mask            = min_mask & max_mask & time_mask & date_mask & ci_ce_mask & dist_mask;
+
 
 %% Plotting
 
-%load transform
+%load transforms
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
 load(transform_fn,'geo_coords','grid_size','img_latlonbox')
-%apply masks
-storm_date_list       = storm_date_list(data_mask);
-storm_trck_list       = storm_trck_list(data_mask);
-storm_latloncent_list = storm_latloncent_list(data_mask,:);
-storm_subset_list     = storm_subset_list(data_mask);
-storm_ijbox_list      = storm_ijbox_list(data_mask,:);
-% centroid plot
 
-%allocate
+%%% centroid plot %%%
+
+%apply mask to database
+cent_date_list       = storm_date_list(data_mask);
+cent_latloncent_list = storm_latloncent_list(data_mask,:);
+
+%preallocate
 cent_lat_vec = img_latlonbox(1):-centroid_grid:img_latlonbox(2);
 cent_lon_vec = img_latlonbox(4):centroid_grid:img_latlonbox(3);
 cent_grid    = zeros(length(cent_lat_vec),length(cent_lon_vec));
-%bin 
-for i=1:length(storm_date_list)
-    temp_lat = storm_latloncent_list(i,1);
-    temp_lon = storm_latloncent_list(i,2);
+%create mapping georef struct
+cent_R       = makerefmat('RasterSize',[length(cent_lat_vec),length(cent_lon_vec)],'LatitudeLimits',[min(cent_lat_vec) max(cent_lat_vec)],'LongitudeLimits',[min(cent_lon_vec) max(cent_lon_vec)]);
+
+%for each centroid, bin into nearest lat/lon grid point
+for i=1:length(cent_date_list)
+    temp_lat    = cent_latloncent_list(i,1);
+    temp_lon    = cent_latloncent_list(i,2);
+    %index of closest centroid grid cell
     [~,lat_ind] = min(abs(cent_lat_vec - temp_lat));
     [~,lon_ind] = min(abs(cent_lon_vec - temp_lon));
+    %add to centroid grid
     cent_grid(lat_ind,lon_ind) = cent_grid(lat_ind,lon_ind)+1;
-end    
+end
 %plot centroid grid
-R = makerefmat('RasterSize',[length(cent_lat_vec),length(cent_lon_vec)],'LatitudeLimits',[min(cent_lat_vec) max(cent_lat_vec)],'LongitudeLimits',[min(cent_lon_vec) max(cent_lon_vec)]);
-generate_map(cent_grid,R,map_config_fn)
+generate_map(cent_grid,[],cent_R,map_config_fn)
 
-% Density/Direction plots
+%%% Density/Direction plots %%%
 
-%allocate
-blank_grid  = zeros(grid_size(1),grid_size(2));
-track_grids = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid);
+%apply masks to database
+swth_date_list       = storm_date_list(data_mask);
+swth_trck_list       = storm_trck_list(data_mask);
+swth_latloncent_list = storm_latloncent_list(data_mask,:);
+swth_subset_list     = storm_subset_list(data_mask);
+swth_ijbox_list      = storm_ijbox_list(data_mask,:);
 
-flr_storm_date_list  = floor(storm_date_list);
-uniq_storm_date_list = unique(flr_storm_date_list);
-for i=1:length(uniq_storm_date_list) %loop through each date
+%preallocate
+blank_grid    = zeros(grid_size(1),grid_size(2));
+track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid);
+%create mapping georef struct
+radar_lat_vec = geo_coords.radar_lat_vec;
+radar_lon_vec = geo_coords.radar_lon_vec;
+track_R       = makerefmat('RasterSize',[length(radar_lat_vec),length(radar_lon_vec)],'LatitudeLimits',[min(radar_lat_vec) max(radar_lat_vec)],'LongitudeLimits',[min(radar_lon_vec) max(radar_lon_vec)]);
+
+%create list of unique dates
+flr_swth_date_list  = floor(swth_date_list);
+uniq_swth_date_list = unique(flr_swth_date_list);
+%loop through each unique date
+for i=1:length(uniq_swth_date_list)
+    
+    %init
     %extract current day
-    target_date = uniq_storm_date_list(i);
+    target_date = uniq_swth_date_list(i);
     disp(datestr(target_date));
-    date_ind    = find(flr_storm_date_list==target_date);
-    track_list  = storm_trck_list(date_ind);
-    %remove no tracks
+    %find index of masked database entries which match current date
+    date_ind    = find(flr_swth_date_list==target_date);
+    track_list  = swth_trck_list(date_ind);
+    %remove date_ind values which have track=0 (no track assigned)
     remove_ind  = track_list==0;
     date_ind(remove_ind)   = [];
     track_list(remove_ind) = [];
-    %skip if no tracks left
+    %skip date if no tracks left
     if isempty(track_list)
         continue
     end
-    %loop through each track id
+    
+    %calc radar step for current day (using all timestamps to ensure
+    %continuity)
+    %find index of unmasked database entries for current date
+    storm_list_ind       = floor(storm_date_list)==target_date;
+    %generate unique list of date/times
+    step_date_list       = storm_date_list(storm_list_ind);
+    uniq_step_date_list  = unique(step_date_list);
+    %calc difference in minutes for all entries
+    all_steps            = round((uniq_step_date_list(2:end)-uniq_step_date_list(1:end-1))*24*60);
+    %set radar step to be the mode
+    radar_step           = mode(all_steps);
+    if radar_step==0 || radar_step>10
+        keyboard
+    end
+    
+    %loop through each track id in the current date
     uniq_track_list = unique(track_list);
     for j=1:length(uniq_track_list)
         %extract current track
         target_track = uniq_track_list(j);
-        track_subind = find(track_list==target_track);
+        %extract index cells in current track from mask database
+        track_subind = track_list==target_track;
         track_ind    = date_ind(track_subind);
         %skip if track too short
         if length(track_ind)<min_track
             continue
         end
-        %sort by time
-        [~,sort_ind] = sort(storm_date_list(track_ind));
+        %sort index list by time
+        [~,sort_ind] = sort(swth_date_list(track_ind));
         track_ind    = track_ind(sort_ind);
-        %pass to 2dgrid, return density and u,v
-        track_grids = track_to_grid(track_grids,track_ind,storm_date_list,storm_latloncent_list,storm_subset_list,storm_ijbox_list,db_root,radar_id,r_scale,stormh5_varname,stormh5_min);
+        %pass to track_to_grid, return track_grids containing density and u,v
+        track_grids = track_to_grid(track_grids,track_ind,swth_date_list,swth_latloncent_list,...
+            swth_subset_list,swth_ijbox_list,db_root,radar_id,r_scale,stormh5_varname,data_min,radar_step);
     end
 end
 
-keyboard
+%post process motion field
+%normalise u,v using n_grid (cumulative count)
+mean_grid_u = track_grids.u_grid./track_grids.n_grid;
+mean_grid_v = track_grids.v_grid./track_grids.n_grid;
+[radar_lat_mat,radar_lon_vec] = ndgrid(radar_lat_vec,radar_lon_vec);
+%calc streamliners
+[line_vertices,arrow_vertices] = streamslice(radar_lon_vec,radar_lat_mat,mean_grid_u,mean_grid_v,5);
+vec_data                         = [line_vertices,arrow_vertices];
 
-%loop by storm days
-%loop by tracks of length
-%for each track pair, run 2dgrid code, also calc u,v assign to 2dgrid
+%normalise density by number of years if required
+if rainyr_flag == 1
+    rain_year                = rain_year(storm_date_list,rain_yr_start);
+    rain_year_count          = length(unique(rain_year));
+    density_grid             = track_grids.density_grid./rain_year_count;
+else
+    density_grid             = track_grids.density_grid;
+end
 
-function track_grids = track_to_grid(track_grids,track_ind,storm_date_list,storm_latloncent_list,storm_subset_list,storm_ijbox_list,db_root,radar_id,r_scale,stormh5_varname,stormh5_min)
+%plot density and direction maps
+generate_map(density_grid,vec_data,track_R,map_config_fn)
 
-%store stormh5 fields in a cell array
+
+
+
+function track_grids = track_to_grid(track_grids,track_ind,storm_date_list,storm_latloncent_list,...
+    storm_subset_list,storm_ijbox_list,db_root,radar_id,r_scale,stormh5_varname,data_min,radar_step)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: For a list of database index values that form a track, generate a
+% density and motion field for that track and add these to the track_grids
+% struct.
+% This process requires extraction of data from the storm.h5 files.
+%
+% INPUTS
+% track_grids:          struct continaing accumulated density and motion
+%                       fields (density_grid: track counts, u_grid: u motion field, v_grid: v motion field,
+%                       n_grid: total overlap count for motion normalisation)
+% track_ind:            index of track entires from database (mx1)
+% storm_date_list:      date list (nx1)
+% storm_latloncent_list:lat,lon centroid list (nx2)
+% storm_subset_list:    subset id list (nx1) only unique for each scan
+% storm_ijbox_list:     ij coord list (nx4) for storm.h5 fields, in [max i,
+%                       min i, max j, min j]
+% db_root:              root for archive path (string)
+% radar_id:             radar id (double)
+% r_scale:              storm h5 data scaling (double)
+% stormh5_varname:      target variable name in storm h5 (string)
+% data_min:             min value for storm h5 data filtering (double)
+% radar_step:           radar step for current date (double)
+%
+% RETURNS track_grids: see above
+%
+% NOTES: swath polygons are generated by performing the convex hull around
+% pairs of cells in a track and applying the union to these processed
+% pairs. Pairs are composed of inital and final cells.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%preallocate cell array to store extracted storm.h5 fields
 storm_data = cell(length(track_ind),1);
 
-%load storm h5 datafield from file
+%correct data_min if nan
+if strcmp(data_min,'nan')
+    data_min = 0;
+end
+
+%load storm h5 datafield from file for each track index
 for i = 1:length(track_ind)
     %build paths to h5 from date and radar_id
     target_date    = storm_date_list(track_ind(i));
@@ -262,71 +382,108 @@ for i = 1:length(track_ind)
     h5data         = h5read(target_ffn,['/',num2str(target_subset),'/',stormh5_varname]);
     %rescale data
     h5data         = double(h5data)./r_scale;
+    %store in cell array
     storm_data{i}  = h5data;
 end
 
 %density track
 blank_grid         = zeros(size(track_grids.density_grid));
-track_density_grid = blank_grid;
+total_density_grid = blank_grid;
+track_u_grid       = blank_grid;
+track_v_grid       = blank_grid;
 
-%set
+%assign initial pair data
 init_ind        = track_ind(1:end-1);
 init_storm_data = storm_data(1:end-1);
+init_latloncent = storm_latloncent_list(init_ind,:);
+init_ijbox      = storm_ijbox_list(init_ind,:);
+init_date_list  = storm_date_list(init_ind);
+%assign final pair data
 finl_ind        = track_ind(2:end);
 finl_storm_data = storm_data(2:end);
+finl_latloncent = storm_latloncent_list(finl_ind,:);
+finl_ijbox      = storm_ijbox_list(finl_ind,:);
+finl_date_list  = storm_date_list(finl_ind);
 
+%loop through pairs
 for i=1:length(init_ind)
+    %skip if track segment not continous in time (mask removes cells from tracks which don't meet
+    %criteria, these pairs need to be skipped)
+    if floor((finl_date_list(i)-init_date_list(i))*24*60) > radar_step
+        continue
+    end
+    %create conv of inital and final
     %create inital mask
     init_grid  = blank_grid;
-    init_ijbox = storm_ijbox_list(init_ind(i),:);
-    init_grid(init_ijbox(1):init_ijbox(2),init_ijbox(3):init_ijbox(4)) = init_storm_data{i};
-    if strcmp(stormh5_min,'nan')
-        init_mask  = init_grid > min(init_grid(:));
-    else
-        init_mask  = init_grid >= stormh5_min;
-    end
+    init_grid(init_ijbox(i,1):init_ijbox(i,2),init_ijbox(i,3):init_ijbox(i,4)) = init_storm_data{i};
+    init_mask  = init_grid > data_min;
     %create final mask
-    finl_grid = blank_grid;
-    finl_ijbox = storm_ijbox_list(finl_ind(i),:);
-    finl_grid(finl_ijbox(1):finl_ijbox(2),finl_ijbox(3):finl_ijbox(4)) = finl_storm_data{i};
-    if strcmp(stormh5_min,'nan')
-        finl_mask  = finl_grid > min(finl_grid(:));
-    else
-        finl_mask  = finl_grid >= stormh5_min;
-    end
+    finl_grid  = blank_grid;
+    finl_grid(finl_ijbox(i,1):finl_ijbox(i,2),finl_ijbox(i,3):finl_ijbox(i,4)) = finl_storm_data{i};
+    finl_mask  = finl_grid > data_min;
     %apply convex hull
-    conv_mask  = init_mask | finl_mask;
-    conv_mask  = bwconvhull(conv_mask);
-    %append
-    track_density_grid = track_density_grid + conv_mask;
+    conv_mask  = bwconvhull(init_mask + finl_mask);
+    %calc u,v for pair
+    %use distance function
+    [dist,az]       = distance(init_latloncent(i,1),init_latloncent(i,2),finl_latloncent(i,1),finl_latloncent(i,2));
+    dist            = deg2km(dist); %convert deg to km
+    vel             = dist/((finl_date_list(i)-init_date_list(i))*24); %convert km to km/h
+    az              = mod(90-az,360); %convert from compass to cartesian deg
+    az_u            = vel*cosd(az); %use velocity and azimuth to calc u,v
+    az_v            = vel*sind(az); %use velocity and azimuth to calc v
+    u_mask          = conv_mask.*az_u; %apply velocity values to masked areas
+    v_mask          = conv_mask.*az_v;
+    %append masks to track grids
+    total_density_grid = total_density_grid + conv_mask;
+    track_u_grid       = track_u_grid + u_mask;
+    track_v_grid       = track_v_grid + v_mask;
 end
-%normalise
-track_density_grid = track_density_grid>1;
-track_grids.density_grid = track_grids.density_grid+track_density_grid;
+%normalise density
+norm_density_grid        = total_density_grid>0;
+%accumulate frequency
+track_grids.density_grid = track_grids.density_grid + norm_density_grid;
+track_grids.u_grid       = track_grids.u_grid       + track_u_grid;
+track_grids.v_grid       = track_grids.v_grid       + track_v_grid;
+track_grids.n_grid       = track_grids.n_grid       + total_density_grid;
 
-% track_u_grid       = blank_grid;
-% track_v_grid       = blank_grid;
-% 
-% keyboard
-%for each cell, parse stormh5 filename and storm stormh5_varname
-%mask using stormh5_min
-%for each pair, generate convex hull of combined masks and u,v
 
-function generate_map(data_grid,data_grid_R,map_config_fn)
-
+function generate_map(data_grid,vec_data,data_grid_R,map_config_fn)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: calculate the rain year for each date num entry. Example 2010 rain year runs
+%from 1/7/2010 to 31/6/2011
+% INPUTS
+% data_grid:        grid of frequeny data
+% vec_data:         vector contains locations of lines to draw for streamliner
+%                   field (both lines and arrows)
+% data_grid_R:      affine refecting matrix for grid
+% map_config_fn:    file path to mapping config
+%
+% RETURNS: images generated as figures and saved to file
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%read mapping config
 read_config(map_config_fn);
 load(['tmp/',map_config_fn,'.mat'])
 
 %create figure
 h = figure('color','w','position',[1 1 fig_w fig_h]); hold on;
+%set limits
 ax=axesm('mercator','MapLatLimit',[map_S_lat map_N_lat],'MapLonLimit',[map_W_lon map_E_lon]);
+%set options
 mlabel on; plabel on; framem on; axis off;
+%set grids and labels
 setm(ax, 'MLabelLocation', lat_label_int, 'PLabelLocation', lon_label_int,'MLabelRound',lat_label_rnd,'PLabelRound',lon_label_rnd,'LabelUnits','degrees','Fontsize',label_fontsize)
 gridm('MLineLocation',lat_grid_res,'PLineLocation',lon_grid_res)
+%set axis mode
 axis tight
 
 %plot data
 geoshow(flipud(data_grid),data_grid_R,'DisplayType','texturemap','CDataMapping','scaled'); %geoshow assumes xy coords, so need to flip ij data_grid
+%assign colourmap
 caxis([0 max(data_grid(:))]);
 cmap = colormap(hot(128));
 cmap = flipud(cmap);
@@ -351,85 +508,57 @@ if draw_topo==1
         topo_z = imfilter(topo_z,h);
     end
     %create contours
-    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[topo_min:topo_step:topo_max],'LineColor','k','LineWidth',topo_linewidth);
+    geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[topo_min:topo_step:topo_max],'LineColor',topo_linecolor,'LineWidth',topo_linewidth);
 end
 
+%draw placemarks
+for i=1:length(cities_names)
+    out_name = cities_names{i};
+    out_lat  = cities_lat(i);
+    out_lon  = cities_lon(i);
+    out_horz = cities_horz_align{i};
+    out_vert = cities_vert_align{i};
+    out_ftsz = cities_fontsize(i);
+    out_mksz = cities_marksize(i);
+    textm(out_lat,out_lon,out_name,'HorizontalAlignment',out_horz,'VerticalAlignment',out_vert,'fontsize',out_ftsz,'FontWeight','bold')
+    geoshow(out_lat,out_lon,'DisplayType','point','Marker','o','MarkerSize',out_mksz,'MarkerFaceColor','k','MarkerEdgeColor','k')
+end
+
+%plot streamliner lines and arrows
+if draw_streamliners==1
+    for i=1:length(vec_data)
+        tmp_vec = vec_data{i};
+        if ~isempty(tmp_vec)
+            linem(tmp_vec(:,2),tmp_vec(:,1),'LineWidth',stream_linewith,'color',stream_linecolor)
+        end
+    end
+end
+
+%create colorbar
 h = colorbar;
-ylabel(h, 'Hailstorm (20mm) 10km Centroid Density')
-% %create merged density plot
-% %date only
-% date_list       = floor(storm_date_list);
-% %unique list of dates
-% uniq_date_list  = unique(date_list);
-% %loop through each unique date list (track id only unique for a single day)
-% for i=1:length(uniq_date_list)
-% 	%set target date
-% 	target_date  = uniq_date_list(i);
-% 	%find index for cells in target_date
-% 	date_idx     = find(date_list == target_date);
-% 	track_list   = storm_trck_list(date_idx);
-% 	%find max track id for loop
-% 	max_track_id = max(track_list);
-% 	%loop through track ids, starting from 0, skip track id 0, no track
-% 	for j=1:length(max_track_id)
-% 		%find global index of track j
-% 		track_idx   = date_idx(track_list==j);		
-% 		if length(track_idx)<min_track
-% 			continue
-% 		end
-% 		%loop through each track
-% 		for k=2:length(track_idx)
-% 			config_path   = [local_tmp_path,climate_config_fn,'.mat'];
-%             bw_init_grid  = preprocess_grid(config_path,storm_date,subset_id,stormh5_varname,ij_box,size_grid);
-%             bw_finl_grid  = preprocess_grid(config_path,storm_date,subset_id,stormh5_varname,ij_box,size_grid);
-% 			%calc hull
-%             bw_convhull   = bwconvhull(bw_init_grid+bw_finl_grid);
-% 			%append
-% 			density_grid  = density_grid + bw_convhull;
-% 		end
-% 	end
-% end
-% %plot density grid
-% imagesc(density_grid)
-% keyboard
-% 
-% function density_out = preprocess_grid(config_path,storm_date,subset_id,stormh5_varname,ij_box,size_grid)
-% %load cliamte config
-% load(config_path)
-% scaling = 10;
-% 
-% %initalise grid
-% density_out = zeros(size_grid);
-% %generate path for storm
-% date_vec    = datevec(storm_date);
-% stormh5_fn  = [num2str(radar_id,'%02.0f'),'_',datestr(storm_date,'yyyymmdd_HHMMSS'),'.storm.h5'];
-% stormh5_ffn = [db_root,'/',num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f'),'/',stormh5_fn];
-% 
-% %read dataset out of h5
-% data_grid   = h5read(stormh5_ffn,['/',num2str(subset_id),'/',stormh5_varname]);
-% 
-% %assign to correct lcoation in grid_out
-% density_out(ij_box(1):ij_box(2),ij_box(3):ij_box(4)) = data_grid./scaling;
-% 
-% %mask as required
-% mask_grid   = data_grid >= data_min,data_max
-% 
-% %up to here
-% 
-% %extract grid bounds
-% grid_lower = opt_struct.proc_opt(2);
-% grid_upper = opt_struct.proc_opt(3);
-% 
-% %clamp grid
-% if ~isnan(grid_upper)
-%     grid_out(grid_out>=grid_upper) = grid_upper;
-% end
-% 
-% %create density grids for masking and capture
-% if ~isnan(grid_lower)
-%     density_out = grid_out >= grid_lower; %lower bound
-% else
-%     density_out = ~isnan(grid_out); %no mask
-% end
-% % %mask grid
-% grid_out    = grid_out.*density_out;
+ylabel(h, colorbar_label)
+
+function rain_year = rain_year(dt_num,start_month)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: calculate the rain year for each date num entry. Example 2010 rain year runs
+%from 1/7/2010 to 31/6/2011
+% INPUTS
+% dt_num: vector of datenums (str)
+% start_month: starting month of rain year (double)
+% RETURNS: rain_year: rain year of each dt_num
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%init, extract calendar year
+dt_vec    = datevec(dt_num);
+rain_year = dt_vec(:,1);
+%loop through every date num
+for i=1:length(dt_num)
+    %change rain_years if month is between Jan-June
+    if dt_vec(i,2)<=start_month
+        %case: Jan-June, use year before
+        rain_year(i)=dt_vec(i,1)-1;
+    end
+end

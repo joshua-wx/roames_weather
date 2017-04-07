@@ -10,8 +10,6 @@ function asset_data(out_ffn)
 % RETURNS: saves asset information to mat file
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%WHAT: reads asset data files and saves them into a struct object in
-%out_ffn
 
 %substation csv
 sub_struct  = [];
