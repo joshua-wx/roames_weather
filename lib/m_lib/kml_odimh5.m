@@ -17,8 +17,6 @@ transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.
     
 %load transform
 load(transform_fn,'img_azi','img_rng','img_latlonbox')
-img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox);
-
 %struct up atts
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
 %loop through new odimh5 files
