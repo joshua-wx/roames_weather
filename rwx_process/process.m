@@ -426,7 +426,7 @@ end
 %update dynamodb odimh5 table
 ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(odimh5_date,ddb_tfmt),'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
 
-%add new entry to staging ddb for realtime processing
+%add new entry to staging sns for realtime processing
 if realtime_flag == 1
     sns_publish(sns_odimh5_process,odimh5_ffn)
 end

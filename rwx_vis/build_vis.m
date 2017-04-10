@@ -26,8 +26,8 @@ tar(tar_fn,{'run_vis.sh','vis','run','etc/'})
 
 display('scp')
 %historical
-ec2_ip      = '52.62.244.38';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/JoshPlayKey.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_vis/'])
+ec2_ip      = '52.64.1.240';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_vis/'])
 
 
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/global.config')

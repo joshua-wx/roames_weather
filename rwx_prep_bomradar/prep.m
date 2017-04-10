@@ -197,7 +197,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,staging_ddb_table,odimh5_ddb_table);
+        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,odimh5_ddb_table);
         disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
@@ -310,7 +310,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,staging_ddb_table,odimh5_ddb_table)
+function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,odimh5_ddb_table)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
