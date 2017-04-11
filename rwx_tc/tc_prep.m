@@ -1,4 +1,4 @@
-function tc
+function tc_prep
 
 %load radar files to temp
 %provide an inital guess for the first radar image
@@ -27,6 +27,7 @@ end
 %add libs
 addpath('/home/meso/dev/roames_weather/lib/m_lib');
 addpath('/home/meso/dev/roames_weather/etc')
+addpath('/home/meso/dev/roames_weather/bin/json_read');
 addpath('etc')
 addpath('tmp')
 
@@ -143,11 +144,12 @@ for i = 1:length(radar_id_list)
     radar_bbox_list(i,:) = [min_lat_ind,max_lat_ind,min_lon_ind,max_lon_ind];
 end 
 
-%% regrid
+%% regrid and merge
+blank_grid    = ones(length(composite_lat_vec),length(composite_lon_vec)).*min_dbzh;
+comp_grid_set = repmat(blank_grid,1,1,length(composite_fn_list));
 %loop through composite list
 for i=1:length(composite_fn_list)
     %setup composite grid
-    blank_grid  = ones(length(composite_lat_vec),length(composite_lon_vec)).*min_dbzh;
     comp_grid   = blank_grid;
     %loop through files in each composite pair
     for j=1:length(composite_fn_list{i})
@@ -174,27 +176,9 @@ for i=1:length(composite_fn_list)
         %cat and max with comp grid
         comp_grid      = max(cat(3,temp_grid,comp_grid),[],3);
     end
-    %create figure
-    h = figure('color','w','position',[1 1 700 700]); hold on;
-    %set limits
-    ax=axesm('mercator','MapLatLimit',[min(composite_lat_vec) max(composite_lat_vec)],'MapLonLimit',[min(composite_lon_vec) max(composite_lon_vec)]);
-    mlabel on; plabel on; framem on; axis off;
-    setm(ax, 'MLabelLocation', 1, 'PLabelLocation', 1,'MLabelRound',0,'PLabelRound',0,'LabelUnits','degrees','Fontsize',10)
-    gridm('MLineLocation',1,'PLineLocation',1)
-    axis tight
-    geoshow(comp_grid,comp_R,'DisplayType','texturemap','CDataMapping','scaled'); %geoshow assumes xy coords, so need to flip ij data_grid
-    %assign colourmap
-    caxis([0 65]);
-    cmap = colormap(jet(128));
-    colormap([[1,1,1];cmap]);
-    h = colorbar;
-    ylabel(h, 'Reflectivity (dBZ)');
-    
-    
-    S = shaperead(coast_ffn);
-    coast_lat = S(state_id).Y;
-    coast_lon = S(state_id).X;
-    linem(coast_lat,coast_lon,'k');
-    
+    comp_grid_set(:,:,i) = comp_grid;
 end
+
+save('prep_tc.mat','comp_grid_set','composite_lon_vec','composite_lat_vec','comp_R','composite_date_list')
+    
 
