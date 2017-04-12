@@ -5,16 +5,17 @@ load('tmp/global.config.mat')
 load('tmp/vis.config.mat')
 
 %remove kmlobj which don't have a matching entry in storm_jstruct (BUG)
-kml_sort_list       = {kmlobj_struct.sort_id};
-kml_type            = {kmlobj_struct.type};
-jstruct_sort_list   = jstruct_to_mat([storm_jstruct.sort_id],'S');
-filter_mask         = ismember(kml_sort_list,jstruct_sort_list) | strncmp('ppi',kml_type,3);
-%check for entries to remove
-if any(~filter_mask)
-    kmlobj_struct = kmlobj_struct(filter_mask);
-    log_cmd_write('tmp/log.update_kml',strjoin(kml_sort_list(~filter_mask)),'','');
+if ~isempty(storm_jstruct) && ~isempty(kmlobj_struct)
+    kml_sort_list       = {kmlobj_struct.sort_id};
+    kml_type            = {kmlobj_struct.type};
+    jstruct_sort_list   = jstruct_to_mat([storm_jstruct.sort_id],'S');
+    filter_mask         = ismember(kml_sort_list,jstruct_sort_list) | strncmp('ppi',kml_type,3);
+    %check for entries to remove
+    if any(~filter_mask)
+        kmlobj_struct = kmlobj_struct(filter_mask);
+        log_cmd_write('tmp/log.update_kml',strjoin(kml_sort_list(~filter_mask)),'','');
+    end
 end
-
 %% generate new nl kml for cell and scan objects
 %load radar colormap and gobal config
 for i=1:length(r_id_list)
