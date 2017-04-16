@@ -201,16 +201,19 @@ while exist('tmp/kill_vis','file')==2
         %remove storm entries outside of domain
         filt_mask          = jstruct_to_mat([storm_jstruct.domain_mask],'N');
         storm_jstruct_filt = storm_jstruct(logical(filt_mask));
-        track_id_list      = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
+	if ~isempty(storm_jstruct_filt)
+		%generate storm tracking
+		track_id_list = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
 
-        %use tracks, cell masks to generate storm and track kml
-        kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
-        
-        %mark everything as processed in original storm_struct
-        proced_idx            = find([storm_jstruct.proced]==false);
-        for i=1:length(proced_idx)
-            storm_jstruct(proced_idx(i)).proced = true;
-        end
+		%use tracks, cell masks to generate storm and track kml
+		kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+		
+		%mark everything as processed in original storm_struct
+		proced_idx            = find([storm_jstruct.proced]==false);
+		for i=1:length(proced_idx)
+		    storm_jstruct(proced_idx(i)).proced = true;
+		end
+	end
     else
         storm_jstruct_filt = [];
         track_id_list      = [];
