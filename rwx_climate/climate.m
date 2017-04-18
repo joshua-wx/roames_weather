@@ -247,6 +247,7 @@ track_R       = makerefmat('RasterSize',[length(radar_lat_vec),length(radar_lon_
 %create list of unique dates
 flr_swth_date_list  = floor(swth_date_list);
 uniq_swth_date_list = unique(flr_swth_date_list);
+prev_radar_step     = min(round((flr_swth_date_list(2:100)-flr_swth_date_list(1:100-1))*24*60)); %use first 100 cells dataset to guess radar step (but this can change)
 %loop through each unique date
 for i=1:length(uniq_swth_date_list)
     
@@ -275,11 +276,13 @@ for i=1:length(uniq_swth_date_list)
     uniq_step_date_list  = unique(step_date_list);
     %calc difference in minutes for all entries
     all_steps            = round((uniq_step_date_list(2:end)-uniq_step_date_list(1:end-1))*24*60);
-    %set radar step to be the mode
-    radar_step           = mode(all_steps);
+    %set radar step to be the min
+    radar_step           = min(all_steps);
     if radar_step==0 || radar_step>10
-        keyboard
+        %use step from previous target_step
+        radar_step       = prev_radar_step;
     end
+    prev_radar_step      = radar_step;
     
     %loop through each track id in the current date
     uniq_track_list = unique(track_list);
@@ -499,14 +502,7 @@ end
 
 %draw topo
 if draw_topo==1
-    [topo_z, topo_refvec] = geotiffread(topo_ffn);
-    if topo_resize == 1
-       [topo_z,topo_refvec] = resizem(topo_z,topo_scale,topo_refvec);
-    end
-    if topo_filter == 1
-        h = fspecial('gaussian',[topo_filter_sz,topo_filter_sz]);
-        topo_z = imfilter(topo_z,h);
-    end
+    [topo_z,topo_refvec] = gtopo30(topo_ffn,topo_resample,[map_S_lat,map_N_lat],[map_W_lon,map_E_lon]);
     %create contours
     geoshow(topo_z,topo_refvec,'DisplayType','contour','LevelList',[topo_min:topo_step:topo_max],'LineColor',topo_linecolor,'LineWidth',topo_linewidth);
 end
