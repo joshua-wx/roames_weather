@@ -104,7 +104,3 @@ h = colorbar;
 ylabel(h, colorbar_label)
 
 %output
-%check output exists
-if exist(out_root,'file') ~= 7
-	mkdir(out_root)
-end

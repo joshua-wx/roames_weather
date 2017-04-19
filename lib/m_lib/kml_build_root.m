@@ -83,7 +83,7 @@ cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',ur
 swath_colormap = flipud(colormap(autumn(length(swath_mesh_threshold))));
 close(gcf);
 for i=1:length(swath_mesh_threshold)
-    track_style_str = ge_swath_poly_style(track_style_str,['swath_',num2str(i),'_style'],html_color(.8,swath_colormap(i,:)),5,'00FFFFFF');
+    track_style_str = ge_swath_poly_style(track_style_str,['swath_',num2str(i),'_style'],html_color(.8,swath_colormap(i,:)),5,'00FFFFFF',true);
 end
 
 %% Build overlay/icon paths and copy images

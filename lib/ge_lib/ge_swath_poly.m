@@ -14,11 +14,17 @@ else
     timekml=['<TimeSpan><begin>' timeSpanStart '</begin><end>' timeSpanStop '</end></TimeSpan>',10];
 end
 
+if isempty(table_html)
+	descrip_str = '';
+else
+	descrip_str = ['<description><![CDATA[',table_html,']]></description>',10];
+end
+
 %create custom header for multigeometry
 header=['<Placemark>',10,...
             '<name>',name,'</name>',10,...
             '<styleUrl>',Style_id,'</styleUrl>',10,...
-            '<description><![CDATA[',table_html,']]></description>',10,...
+            descrip_str,...
             timekml];
         
 %create custom footer
