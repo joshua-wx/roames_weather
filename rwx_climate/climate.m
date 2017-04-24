@@ -56,6 +56,12 @@ site_lat  = siteinfo_lat_list(site_ind);
 site_lon  = siteinfo_lon_list(site_ind);
 site_name = siteinfo_name_list{site_ind};
 
+%create map filename
+map_config_fn = ['map.',num2str(radar_id,'%02.0f'),'.config'];
+if exist(map_config_fn,'file') ~= 2
+    disp('map config file missing for selected radar')
+    return
+end
 % build transforms
 transform_path    = [local_tmp_path,'transforms/'];
 preallocate_radar_grid(radar_id,transform_path,transform_new);
@@ -233,7 +239,7 @@ for i=1:length(cent_date_list)
     cent_grid(lat_ind,lon_ind) = cent_grid(lat_ind,lon_ind)+1;
 end
 %image plot centroid grid
-%climate_generate_image(cent_grid,[],cent_R,site_lat,site_lon,map_config_fn)
+%climate_generate_image(cent_grid,site_name,[],cent_R,site_lat,site_lon,map_config_fn)
 
 %%% Density/Direction plots %%%
 
@@ -332,6 +338,8 @@ else
 end
 
 %plot density and direction maps
-climate_generate_image(density_grid,vec_data,track_R,site_lat,site_lon,map_config_fn)
+climate_generate_image(density_grid,site_name,vec_data,track_R,site_lat,site_lon,map_config_fn)
 %kml plot centroid grid
-%climate_generate_kml(density_grid,site_name,site_lat,site_lon,geo_coords)
+climate_generate_kml(density_grid,site_name,site_lat,site_lon,geo_coords,map_config_fn)
+
+disp('RWX Climate plotting complete')

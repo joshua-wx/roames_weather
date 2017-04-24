@@ -1,4 +1,4 @@
-function climate_generate_kml(data_grid,site_name,site_lat,site_lon,geo_coords)
+function climate_generate_kml(data_grid,site_name,site_lat,site_lon,geo_coords,map_config_fn)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -18,7 +18,12 @@ load(['tmp/',map_config_fn,'.mat'])
 %colorbar_ffn=generate_colorbar(opt_struct.proc_opt(4),'Density');
 
 %init colourmap
-img_cmap    = flipud(hot(128));
+%calc colormap steps
+colormap_steps = length(unique(data_grid(:)));
+if colormap_steps > 128
+    colormap_steps = 128;
+end
+img_cmap    = flipud(hot(colormap_steps));
 %init kml
 kml_str     = '';
 kml_str     = ge_swath_poly_style(kml_str,'poly_style',html_color(1,silence_edge_color),silence_line_width,html_color(1,silence_face_color),false);
@@ -29,13 +34,13 @@ kml_str     = ge_swath_poly_style(kml_str,'trans_poly',html_color(1/255,silence_
 img_grid            = double(img_grid);
 
 %create image grids
-img_grid    = img_grid./max(img_grid(:)).*128;
+img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
 
 %create transparency grid
 if kml_transparent_flag == 1
     alpha_grid = img_grid./max(img_grid(:));
     %shift transparency
-    alpha_grid(alpha_grid>0) = alpha_grid(alpha_grid>0)+0.3;
+    alpha_grid(alpha_grid>0) = alpha_grid(alpha_grid>0)+0.6;
     alpha_grid(alpha_grid>1) = 1;
 else
     alpha_grid = ones(size(img_grid));
@@ -45,8 +50,8 @@ end
 img_grid   = ind2rgb(uint8(img_grid),img_cmap);
 
 %write image to file
-tmp_image_ffn = [tempdir,'rwx_climate.png'];
-imwrite(img_grid,tmp_image_ffn,'Alpha',alpha_grid);
+image_ffn = [tempdir,'rwx_climate.png'];
+imwrite(img_grid,image_ffn,'Alpha',alpha_grid);
 
 %building latlonbox
 kml_N_lat = max(geo_coords.radar_lat_vec);
@@ -68,21 +73,37 @@ end
 %create transparent polygon containing stats
 tmp_lat = [kml_N_lat,kml_N_lat,kml_S_lat,kml_S_lat,kml_N_lat];
 tmp_lon = [kml_W_lon,kml_E_lon,kml_E_lon,kml_W_lon,kml_W_lon];
-html_str = ['<p>',kml_tag,'-',site_name,'</p>',10,...
-            '<p>start date',,'</p>',10,...
+html_str = ['<p>',kml_tag,' - ',site_name,'</p>',10,...
+            '<p>Period: ',date_start,' to ',date_stop,'</p>',10,...
+            '<img src="colorbar.png" />'];
             
-kml_str = ge_swath_poly(kml_str,'trans_poly','balloon_popup_poly','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),'<p>test</p><img src="rwx_climate.png" />');
+%generate colorbar image
+colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label);
+%generate swath poly
+kml_str = ge_swath_poly(kml_str,'trans_poly','balloon_popup_poly','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),html_str);
 
 %size kmlstr and png into a kmz
 kmz_fn    = [kml_tag,'_',site_name,'.kmz'];
-ge_kmz_out(kmz_fn,kml_str,out_root,tmp_image_ffn);
+ge_kmz_out(kmz_fn,kml_str,out_root,{image_ffn,colorbar_ffn});
 
-keyboard
-%write image to kmz
-%create ground overlay kml inside kmz
-%create placemark containing legend inside kmz
+%remove files
+delete(image_ffn)
+delete(colorbar_ffn)
 
-%link with kml
-%object_kml = ge_groundoverlay(object_kml,'GE Climatology','geclim_grid.png',latlonbox,datestr(opt_struct.td_opt(1),ge_tfmt),datestr(opt_struct.td_opt(2),ge_tfmt),'clamped',0,1);
-
-
+function colorbar_ffn = colorbar_img(cmap,data_grid,title)
+%generates kmz colorbar image
+colorbar_ffn = [tempdir,'colorbar.png'];
+%create figure and turn off axis
+figure('position',[1 1 60 200]);
+set(findall(gca),'visible','off','Fontsize',6);
+%assign colormap
+colormap(cmap);
+%create colorbar
+ch = colorbar('Location','manual','Position',[0.1 0.05 .3 .9],'YAxisLocation','right');
+%set y label
+ylabel(ch,title,'FontSize',8);
+%set color axis limits
+caxis([min(data_grid(:)) max(data_grid(:))])
+%save figure to image and close
+saveas(gca,colorbar_ffn,'png');
+close(gcf)

@@ -1,4 +1,4 @@
-function climate_generate_image(data_grid,vec_data,data_grid_R,site_lat,site_lon,map_config_fn)
+function climate_generate_image(data_grid,site_name,vec_data,data_grid_R,site_lat,site_lon,map_config_fn)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -36,9 +36,16 @@ axis tight
 
 %plot data
 geoshow(flipud(data_grid),data_grid_R,'DisplayType','texturemap','CDataMapping','scaled'); %geoshow assumes xy coords, so need to flip ij data_grid
+
+%calc colormap steps
+colormap_steps = length(unique(data_grid(:)));
+if colormap_steps > 128
+    colormap_steps = 128;
+end
+
 %assign colourmap
 caxis([0 max(data_grid(:))]);
-cmap = colormap(hot(128));
+cmap = colormap(hot(colormap_steps));
 cmap = flipud(cmap);
 colormap(cmap);
 
@@ -101,6 +108,10 @@ end
 
 %create colorbar
 h = colorbar;
-ylabel(h, colorbar_label)
+ylabel(h, colorbar_label,'FontSize',16)
 
 %output
+img_fn    = ['IDR',num2str(radar_id,'%02.0f'),'_',site_name,'.png'];
+image_ffn = [out_root,img_fn];
+saveas(gca,image_ffn,'png');
+
