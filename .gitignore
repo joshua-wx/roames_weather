@@ -1,10 +1,10 @@
-*/tmp/
-*/build/
 *~
+*tmp/
 rwx_vis/tmp/
 rwx_vis/build/
 rwx_process/tmp/
 rwx_process/build/
 rwx_prep_bomradar/tmp/
 rwx_prep_bomradar/build/
+rwx_climate/tmp/
 
