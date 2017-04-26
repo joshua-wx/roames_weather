@@ -152,7 +152,5 @@ ddb_struct.(item_id).radar_id.N             = radar_id;
 ddb_struct.(item_id).start_timestamp.S      = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
 ddb_struct.(item_id).data_size.N            = num2str(h5_size);
 ddb_struct.(item_id).data_ffn.S             = h5_ffn;
-ddb_struct.(item_id).data_rng.S             = '300';
-ddb_struct.(item_id).storm_flag.N           = '-1';
 
 tmp_sz =  length(fieldnames(ddb_struct));

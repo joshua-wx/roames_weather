@@ -3,37 +3,45 @@ function odimh5_vol_stat
 %WHAT: scans s3 database to check for missing files for a radar site
 
 %init vars
-radar_id       = 50;
-radar_int      = 10; %minutes
+radar_id_list  = [50];
+start_date     = '1999-01-01';
+end_date       = '2016-12-31';
+s3_odimh5_root = 's3://roames-weather-odimh5/odimh5_archive/';
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
-s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/';
-s3_bucket      = 's3://roames-wxradar-archive/';
-s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f'),'/'];
-log_fn         = ['broken_vol.',num2str(radar_id,'%02.0f'),'.log'];
-start_date     = '1997-07-01';
-end_date       = '2014-12-31';
-datelist       = datenum(start_date,'yyyy-mm-dd'):datenum(end_date,'yyyy-mm-dd');
-year_list      = 1997:2014;
 
-% %init vol calc
-% vol_per_day    = 60/10*24;
-% h5fn_datelist  = [];
-% for i=1:length(year_list)
-%     cur_year      = year_list(i);
-%     %ls s3 path
-%     display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),' for year ',num2str(cur_year)])
-%     cmd           = [prefix_cmd,'aws s3 ls --recursive ',s3_odimh5_path,num2str(cur_year),'/'];
-%     [sout,eout]   = unix(cmd);
-%     C             = textscan(eout,'%*s %*s %*u %s');
-%     h5fn_list     = C{1};
-%     for j=1:length(h5fn_list)
-%         %colllate date list
-%         h5fn_datelist = [h5fn_datelist;datenum(h5fn_list{j}(end-17:end-3),'yyyymmdd_HHMMSS')];
-%     end
-% end
-% 
-% %save date list to file
-% save(['odimh5_vol_stat.',num2str(radar_id,'%02.0f'),'.mat'],'h5fn_datelist');
+%build complete list
+if strcmp(radar_id_list,'all')
+    radar_id_list = [1:80];
+end
+
+%build date and year list
+datelist       = datenum(start_date,'yyyy-mm-dd'):datenum(end_date,'yyyy-mm-dd');
+yearlist       = unique(year(datelist);
+
+for i=1:length(radar_id_list)
+    s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f'),'/'];
+    log_fn         = ['missing_vol.',num2str(radar_id,'%02.0f'),'.log'];
+    for j=1:length(year_list)
+
+%init vol calc
+vol_per_day    = 60/10*24;
+h5fn_datelist  = [];
+for i=1:length(year_list)
+    cur_year      = year_list(i);
+    %ls s3 path
+    display(['s3 ls for radar_id: ',num2str(radar_id,'%02.0f'),' for year ',num2str(cur_year)])
+    cmd           = [prefix_cmd,'aws s3 ls --recursive ',s3_odimh5_path,num2str(cur_year),'/'];
+    [sout,eout]   = unix(cmd);
+    C             = textscan(eout,'%*s %*s %*u %s');
+    h5fn_list     = C{1};
+    for j=1:length(h5fn_list)
+        %colllate date list
+        h5fn_datelist = [h5fn_datelist;datenum(h5fn_list{j}(end-17:end-3),'yyyymmdd_HHMMSS')];
+    end
+end
+
+%save date list to file
+save(['odimh5_vol_stat.',num2str(radar_id,'%02.0f'),'.mat'],'h5fn_datelist');
 
 %load for stats
 load(['odimh5_vol_stat.',num2str(radar_id,'%02.0f'),'.mat'])

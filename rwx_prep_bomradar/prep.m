@@ -408,8 +408,6 @@ ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
 ddb_struct.start_timestamp.S    = datestr(h5_start_dt,ddb_tfmt);
 ddb_struct.data_size.N          = num2str(h5_size);
 ddb_struct.data_ffn.S           = h5_ffn;
-ddb_struct.data_rng.N           = num2str(radar_mask_rng);
-ddb_struct.storm_flag.N         = num2str(-1);
 ddb_put_item(ddb_struct,odimh5_ddb_table)
 
 %remove tmp rapic file

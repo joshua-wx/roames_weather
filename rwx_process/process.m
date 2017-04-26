@@ -337,7 +337,6 @@ arch_path    = [radar_id_str,...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
 dest_path    = [dest_root,arch_path];
 data_tag     = [num2str(radar_id,'%02.0f'),'_',datestr(start_dt,r_tfmt)];
-storm_flag   = 0;
 
 %create local data path
 if ~strcmp(dest_root(1:2),'s3') && exist(dest_path,'file') ~= 7
@@ -350,7 +349,6 @@ if ~isempty(storm_obj)
     h5_fn           = [data_tag,'.storm.h5'];
     tmp_h5_ffn      = [tempdir,h5_fn];
     stormh5_ffn     = [dest_path,h5_fn];
-    storm_flag      = 1; %determine sig_refl from storm analysis, not vol_grid
 
     %delete h5 if exists
     if exist(tmp_h5_ffn,'file') == 2
@@ -423,14 +421,10 @@ if ~isempty(storm_obj)
     end
 end
 
-%update dynamodb odimh5 table
-ddb_update('radar_id','N',radar_id_str,'start_timestamp','S',datestr(odimh5_date,ddb_tfmt),'storm_flag','N',num2str(storm_flag),odimh5_ddb_table)
-
 %add new entry to staging sns for realtime processing
 if realtime_flag == 1
     sns_publish(sns_odimh5_process,odimh5_ffn)
 end
-
 
 function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct,item_id)
 
