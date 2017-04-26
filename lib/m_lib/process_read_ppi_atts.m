@@ -19,5 +19,5 @@ try
     vol_time     = datenum([start_date,start_time],'yyyymmddHHMMSS');
 catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
-	log_cmd_write('tmp/log.ppi_att_read','',['/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
+	log_cmd_write('tmp/log.ppi_att_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end

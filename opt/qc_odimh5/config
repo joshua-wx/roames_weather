@@ -1,9 +1,0 @@
-%qc_odimh5 CONFIG FILE
-%
-%
-year_start     2015
-year_stop      2015
-radar_id       50
-duplicate_flag 0
-rename_flag    0
-ddb_flag       1

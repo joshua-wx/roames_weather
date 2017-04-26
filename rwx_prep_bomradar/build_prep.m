@@ -29,7 +29,7 @@ tar(tar_fn,{'run_prep.sh','prep','etc/','run'})
 
 display('scp')
 %ftp primary machine
-ec2_ip      = '52.63.180.229';
+ec2_ip      = '13.54.40.153';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_prep_bomradar'])
 
 %ftp testing/backup machine

@@ -1,4 +1,4 @@
-function file_s3sync(src_root,dest_folder,timestamp,radar_id)
+function file_s3sync(src_root,dest_folder,radar_id,year,month,day)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -21,9 +21,12 @@ function file_s3sync(src_root,dest_folder,timestamp,radar_id)
 prefix_cmd   = 'export LD_LIBRARY_PATH=/usr/lib; ';
 
 %build command
-if ~isempty(timestamp)
-	date_vec     = datevec(timestamp);
-	src_path     = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),'/',num2str(date_vec(3),'%02.0f')];
+if ~isempty(year) && ~isempty(month) && ~isempty(day)
+	src_path     = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(year),'/',num2str(month,'%02.0f'),'/',num2str(day,'%02.0f')];
+elseif ~isempty(year) && ~isempty(month)
+	src_path     = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(year),'/',num2str(month,'%02.0f')];
+elseif ~isempty(year)
+	src_path     = [src_root,num2str(radar_id,'%02.0f'),'/',num2str(year)];
 else
 	src_path     = [src_root,num2str(radar_id,'%02.0f')];
 end

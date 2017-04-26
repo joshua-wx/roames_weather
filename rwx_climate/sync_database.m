@@ -53,7 +53,7 @@ end
 display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
 s3_timer = tic;
 if resync_h5 == 1
-    file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],'',radar_id);
+    file_s3sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],radar_id,'','','');
 end
 disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
 

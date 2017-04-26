@@ -31,7 +31,11 @@ try
     end
     %save nquist data
     if i>=2
-        NI     = h5readatt(h5_ffn,['/',dataset_name,'/how'],'NI');
+		try
+        	NI     = h5readatt(h5_ffn,['/',dataset_name,'/how'],'NI');
+		catch
+			NI     = -999; %dummy fill
+		end
     else
         %dummy nyquist data
         NI     = '';
@@ -51,5 +55,5 @@ try
 catch err
     dataset_struct = [];
     disp(['/dataset',num2str(dataset_no),' is broken']);
-    log_cmd_write('tmp/log.ppi_data_read','',['/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
+    log_cmd_write('tmp/log.ppi_data_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end  

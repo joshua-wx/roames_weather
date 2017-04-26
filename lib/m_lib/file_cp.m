@@ -23,7 +23,7 @@ end
 if background_flag == 1
     back_str = ' &';
 else
-    recur_str = '';
+    back_str = '';
 end
 
 %copy from s3 to local

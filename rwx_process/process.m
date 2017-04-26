@@ -159,8 +159,8 @@ while exist('tmp/kill_process','file')==2
             wait_aws_finish
         else
             disp(['Climatology processing downloading files from ',datestr(date_list(date_idx)),' for radar ',num2str(radar_id_list)]);
-            %sync day of data from radar_id from s3 to local
-            file_s3sync(src_root,download_path,date_list(date_idx),radar_id_list)
+            %sync day of data from radar_id from s3 to local, radar_id_list must be a single number
+            file_s3sync(src_root,download_path,radar_id_list,year(date_idx),month(date_idx),day(date_idx))
         end
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
