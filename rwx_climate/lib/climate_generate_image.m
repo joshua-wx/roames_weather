@@ -1,4 +1,4 @@
-function climate_generate_image(data_grid,site_name,vec_data,data_grid_R,site_lat,site_lon,map_config_fn)
+function climate_generate_image(data_grid,img_type,radar_id,vec_data,data_grid_R,map_config_fn)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -21,6 +21,14 @@ read_config(map_config_fn);
 load(['tmp/',map_config_fn,'.mat'])
 %read climate config
 load('tmp/climate.config.mat')
+
+%site info
+site_info_fn = 'site_info.txt';
+load(['tmp/',site_info_fn,'.mat']);
+site_ind  = find(siteinfo_id_list==radar_id);
+site_lat  = siteinfo_lat_list(site_ind);
+site_lon  = siteinfo_lon_list(site_ind);
+site_name = siteinfo_name_list{site_ind};
 
 %create figure
 h = figure('color','w','position',[1 1 fig_w fig_h]); hold on;
@@ -111,7 +119,7 @@ h = colorbar;
 ylabel(h, colorbar_label,'FontSize',16)
 
 %output
-img_fn    = ['IDR',num2str(radar_id,'%02.0f'),'_',site_name,'.png'];
+img_fn    = ['IDR',num2str(radar_id,'%02.0f'),'_',site_name,'_',img_type,'.png'];
 image_ffn = [out_root,img_fn];
 saveas(gca,image_ffn,'png');
 

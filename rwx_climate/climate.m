@@ -84,7 +84,6 @@ for m = 1:length(radar_id_list)
     site_ind  = find(siteinfo_id_list==radar_id);
     site_lat  = siteinfo_lat_list(site_ind);
     site_lon  = siteinfo_lon_list(site_ind);
-    site_name = siteinfo_name_list{site_ind};
     preallocate_radar_grid(radar_id,transform_path,transform_new);
 
     %% load database from csv
@@ -255,7 +254,7 @@ for m = 1:length(radar_id_list)
         cent_grid(lat_ind,lon_ind) = cent_grid(lat_ind,lon_ind)+1;
     end
     %image plot centroid grid
-    %climate_generate_image(cent_grid,site_name,[],cent_R,site_lat,site_lon,map_config_fn)
+    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn)
 
     %%% Density/Direction plots %%%
 
@@ -354,8 +353,8 @@ for m = 1:length(radar_id_list)
     end
 
     %plot density and direction maps
-    climate_generate_image(density_grid,site_name,vec_data,track_R,site_lat,site_lon,map_config_fn)
-    %kml plot centroid grid
-    climate_generate_kml(density_grid,site_name,site_lat,site_lon,geo_coords,map_config_fn)
+    climate_generate_image(density_grid,'merged',radar_id,vec_data,track_R,map_config_fn)
+    %kml plot merged swath grid
+    climate_generate_kml(density_grid,radar_id,geo_coords,map_config_fn)
 end
 disp('RWX Climate plotting complete')
