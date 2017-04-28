@@ -41,23 +41,19 @@ empty_vec  = nan(dataset_count,1);
 dbzh_vol   = empty_vol;
 vradh_vol  = empty_vol;
 elv_vec    = empty_vec;
-start_dt   = [];
+vol_dt     = process_read_vol_time(h5_ffn);
 
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
     %load ppi attributes
-    [ppi_elv,vol_time] = process_read_ppi_atts(h5_ffn,i);
+    [ppi_elv,scan_time] = process_read_ppi_atts(h5_ffn,i);
     %skip ppi when error exists (indicated by zero elv angle)
     if isempty(ppi_elv)
         sig_flag = false;
         break %abort loop and set sig flag to false
     end
     elv_vec(i)         = ppi_elv;
-    %assign start_dt for first ppi
-    if i == 1
-        start_dt = vol_time;
-    end
 
     %read ppi data from file
     dataset_struct = process_read_ppi_data(h5_ffn,i);
@@ -140,7 +136,7 @@ end
 %output
 grid_obj = struct('dbzh_grid',dbzh_grid,'vradh_grid',vradh_grid,...
     'lon_vec',geo_coords.radar_lon_vec,'lat_vec',geo_coords.radar_lat_vec,'alt_vec',geo_coords.radar_alt_vec,...
-    'radar_id',radar_id,'start_dt',start_dt,...
+    'radar_id',radar_id,'vol_dt',vol_dt,...
     'radar_lat',geo_coords.radar_lat,'radar_lon',geo_coords.radar_lon,'radar_alt',geo_coords.radar_alt,...
     'sig_refl',sig_flag);
 

@@ -8,8 +8,7 @@ function qc_odimh5
 %(2) nowcasting_rename_flag, renames files in nowcasting format
 %(3) timestamp_rename_flag, renames files missing seconds (old error)
 %(4) duplicate_flag, removes duplicated using largest file
-%(5) ddb_flag, index to odimh5 ddb
-%(6) vol_count_flag, generates log containing number of volumes + step
+%(5) vol_count_flag, generates log containing number of volumes + step
 %
 % INPUT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -74,7 +73,7 @@ for i=1:length(year_list)
         h5_name     = C{2};
         h5_size     = C{1};
         
-        %% (1) remove cappi files (smaller than 50kB)
+        %% (1) remove empty files (smaller than 10kB)
         if remove_cappi == 1
             disp('removing cappi files')
             remove_idx = [];
@@ -93,49 +92,25 @@ for i=1:length(year_list)
             h5_size(remove_idx)  = [];
         end
 
-        %% (2) rename incorrect (filename missing seconds)
+        %% (2) remove seconds to create volume time
         if timestamp_rename_flag == 1
-            disp('renaming filenames missing seconds')
-            %check if mode of h5_seconds is 0 (therefore it's likely that
-            %seconds are missing from the filename)
-            remove_idx = [];
+            disp('renaming filenames to remove seconds')
+            %rename volumes to remove seconds
             for k = 1:length(h5_name)
                 h5_ffn = [s3_bucket,h5_name{k}];
-                [h5_path,h5_fn,~] = fileparts(h5_ffn);
+                [h5_path,h5_fn,h5_ext] = fileparts(h5_ffn);
                 %skip files with 00 seconds
-                if ~strcmp(h5_fn(end-1:end),'00')
+                if strcmp(h5_fn(end-1:end),'00')
                     %display('file already renamed, skipping')
                     continue
                 end
-                try
-                    %try to read filenames
-                    disp(['checking missing seconds in ',h5_ffn])
-                    tmp_ffn            = tempname;
-                    file_cp(h5_ffn,tmp_ffn,0,0);
-                    [~,vol_time]       = process_read_ppi_atts(tmp_ffn,1);
-                    delete(tmp_ffn);
-                catch
-                    %file corrupt, remove it and continue
-                    disp([h5_name{k},' corrupt and now removed'])
-                    delete(tmp_ffn);
-                    file_rm(h5_ffn,0,1)
-                    remove_idx = [remove_idx,k];
-                    continue
-                end
-                new_tag     = [num2str(radar_id_list(j),'%02.0f'),'_',datestr(vol_time,'yyyymmdd'),'_',datestr(vol_time,'HHMMSS'),'.h5'];
-                new_ffn     = [h5_path,'/',new_tag];
+                new_ffn     = [h5_path,'/',[h5_fn(1:end-2),'00',h5_ext]];
                 %if new ffn is different, mv to rename
-                if ~strcmp(h5_ffn,new_ffn)
-                    disp(['renaming ',h5_ffn,' to include seconds'])
-                    cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
-                    [sout,eout] = unix(cmd);
-                    pause(0.1)
-                    h5_name{k}  = [h5_path,'/',new_tag];
-                end
+                disp(['renaming ',h5_ffn,' to include seconds'])
+                cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
+                [sout,eout] = unix(cmd);
+                h5_name{k}  = [h5_path,'/',new_tag];
             end
-            %remove deleted files
-            h5_name(remove_idx)  = [];
-            h5_size(remove_idx)  = [];
         end
 
         %% (3) rename incorrect (nowcast filenames in yyyymmddHHMMSS)
@@ -193,38 +168,8 @@ for i=1:length(year_list)
             h5_name = out_h5_name;
             h5_size = out_h5_size;
         end
-        
-        %% (5) write to odimh5 ddb
-        if ddb_flag == 1
-            %confirm ddb has capacity
-            disp('building odimh5 ddb')
-            disp('WARNING: CHECK WRITE CAPACITY')
-            %write to ddb
-            display('write to ddb')
-            ddb_tmp_struct  = struct;
-            for k=1:length(h5_name)
-                %skip if not a h5 file
-                if ~strcmp(h5_name{k}(end-1:end),'h5')
-                    continue
-                end
-                %rename
-                %add to ddb struct
-                if ddb_flag == 1
-                    h5_ffn                  = [s3_bucket,h5_name{k}];
-                    [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,h5_ffn,h5_size(k));
-                    %write to ddb
-                    if tmp_sz == 25 || k == length(h5_name)
-                        display(['write to ddb ',h5_name{k}]);
-                        ddb_batch_write(ddb_tmp_struct,ddb_table,1);
-                        %clear ddb_tmp_struct
-                        ddb_tmp_struct  = struct;
-                        %display('written_to ddb')
-                    end
-                end
-            end            
-        end 
-    
-        %% (6) generate vol_count log
+           
+        %% (5) generate vol_count log
         if vol_count_flag == 1
             %generate a log file that contains three columns,
             %[yyyymmdd,vol_count,mode_step];

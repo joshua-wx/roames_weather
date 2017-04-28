@@ -21,7 +21,8 @@ load(transform_fn,'img_azi','img_rng','img_latlonbox')
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
 %loop through new odimh5 files
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
-[ppi_elv,vol_start_time] = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
+[ppi_elv,~]              = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
+vol_start_time           = process_read_vol_time(odimh5_ffn);
 if isempty(ppi_elv) || isempty(ppi_struct)
     %error loading file, skip this ppi
     return

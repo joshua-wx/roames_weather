@@ -51,7 +51,7 @@ preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
 %generate datasets
 oldest_time      = datenum(hist_oldest,ddb_tfmt);
 newest_time      = datenum(hist_newest,ddb_tfmt);
-download_s3_list = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
+download_s3_list = s3_ls_filter(odimh5_bucket,oldest_time,newest_time,radar_id_list);
 for i=1:length(download_s3_list)
     %download data file and untar into download_path
     display(['s3 cp of ',download_s3_list{i}])

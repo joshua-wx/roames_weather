@@ -138,12 +138,9 @@ while exist('tmp/kill_vis','file')==2
     %read staging index
     if realtime_kml == 1
         [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = sqs_process_staging(sqs_odimh5_process,oldest_time,newest_time,radar_id_list);
-        %sometimes, stormh5 and odimh5 from the same volume aren't pulled in
-        %the same run due to the nonsimulatenous loading into ddb (odimh5
-        %first, stormh5 second)
-        download_stormh5_list  = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist); %only pull stormh5 ffn for odimh5 files (removes out of sync issue)
+        download_stormh5_list                                     = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist);
     else
-        download_odimh5_list   = ddb_filter_index(odimh5_ddb_table,'radar_id',radar_id_list,'start_timestamp',oldest_time,newest_time,radar_id_list);
+        download_odimh5_list   = s3_ls_filter(odimh5_bucket,oldest_time,newest_time,radar_id_list);
         date_id_list           = floor(oldest_time):1:floor(newest_time);
         download_stormh5_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
@@ -437,7 +434,7 @@ for i=1:length(download_odimh5_list)
     if exist(local_odimh5_ffn,'file') == 2
         %read basic atts
         odimh5_rid          = str2num(odimh5_name(1:2));
-        [~,odimh5_start_td] = process_read_ppi_atts(local_odimh5_ffn,1);
+        odimh5_start_td     = process_read_vol_time(local_odimh5_ffn);
         %read range for masking
         [~,rng_vec]         = process_read_ppi_dims(local_odimh5_ffn,1,true);
         radar_rng           = floor(max(rng_vec)/10)*10; %round to 10s of km

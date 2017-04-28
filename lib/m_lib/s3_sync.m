@@ -1,4 +1,4 @@
-function file_s3sync(src_root,dest_folder,radar_id,year,month,day)
+function s3_sync(src_root,dest_folder,radar_id,year,month,day)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

@@ -1,4 +1,4 @@
-function [qa_flag,no_groups,radar_id,vel_flag,start_timedate] = process_qa_h5(h5_ffn,min_n_groups,site_list)
+function [qa_flag,no_groups,radar_id,vel_flag,vol_dt] = process_qa_h5(h5_ffn,min_n_groups,site_list)
 %WHAT:
 %Checks the h5 file is readable and contains atleast 8 scan levels
 
@@ -13,19 +13,17 @@ function [qa_flag,no_groups,radar_id,vel_flag,start_timedate] = process_qa_h5(h5
 qa_flag        = 0;
 no_groups      = [];
 vel_flag       = '';
-start_timedate = now;
+vol_dt         = [];
 radar_id       = [];
 %load no_groups using old_hdf5info function (much faster than newer one)
 try
     %read h5_info
-    h5_info=h5info(h5_ffn);
-    %read scan startdate
-    start_date = h5readatt(h5_ffn,strcat('/dataset',num2str(1),'/what/'),'startdate');
-    start_time = h5readatt(h5_ffn,strcat('/dataset',num2str(1),'/what/'),'starttime');
-    start_timedate=datenum(strcat(num2str(start_date),num2str(start_time)),'yyyymmddHHMMSS');
+    h5_info  = h5info(h5_ffn);
+    %read volume time date
+    vol_dt   = process_read_vol_time(h5_ffn);
     %read radar id
-    source = h5readatt(h5_ffn,'/what','source'); %source text tag (contains radar id)
-    radar_id=str2num(source(7:8));
+    source   = h5readatt(h5_ffn,'/what','source'); %source text tag (contains radar id)
+    radar_id = str2num(source(7:8));
 catch err
     %catch failed read
     log_cmd_write('tmp/log.qa',h5_ffn,'reading time/source atts',err.message);

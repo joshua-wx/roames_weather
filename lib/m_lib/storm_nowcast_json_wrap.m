@@ -28,7 +28,7 @@ load('tmp/process.config.mat');
 %blank nl strings
 jstruct        = '';
 radar_id       = grid_obj.radar_id;
-timestamp      = grid_obj.start_dt;
+timestamp      = grid_obj.vol_dt;
 
 %list tracks
 track_id               = jstruct_to_mat([storm_jstruct.track_id],'N');

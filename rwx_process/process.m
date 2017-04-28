@@ -93,19 +93,6 @@ if realtime_flag==0 && length(radar_id_list)>1
     return
 end
 
-%create/update daily archives/objects from ident and intp objects
-if local_dest_flag == 1
-    dest_root = local_dest_root;
-else
-    dest_root = s3_dest_root;
-end
-% if local_src_flag == 1 %only used for climatology processing
-%     src_root = local_src_root;
-% else
-%     src_root = s3_src_root;
-% end
-src_root = s3_src_root;
-
 %% Preallocate regridding coordinates
 if radar_id_list==99
     preallocate_mobile_grid(transform_path,force_transform_update)
@@ -160,7 +147,7 @@ while exist('tmp/kill_process','file')==2
         else
             disp(['Climatology processing downloading files from ',datestr(date_list(date_idx)),' for radar ',num2str(radar_id_list)]);
             %sync day of data from radar_id from s3 to local, radar_id_list must be a single number
-            file_s3sync(src_root,download_path,radar_id_list,year(date_idx),month(date_idx),day(date_idx))
+            s3_sync(odimh5_s3_bucket,download_path,radar_id_list,year(date_idx),month(date_idx),day(date_idx));
         end
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
@@ -179,18 +166,15 @@ while exist('tmp/kill_process','file')==2
             if exist(odimh5_ffn,'file')~=2
                 continue
             end
-            %extract odimh5 file name date
-            [~,odimh5_fn,~] = fileparts(odimh5_ffn);
-            odimh5_date     = datenum(odimh5_fn(4:end),r_tfmt);
-
+            
             %QA the h5 file (attempt to read groups)
-            [qa_flag,no_groups,radar_id,vel_flag,start_dt] = process_qa_h5(odimh5_ffn,min_n_groups,radar_id_list);
+            [qa_flag,no_groups,radar_id,vel_flag,vol_dt] = process_qa_h5(odimh5_ffn,min_n_groups,radar_id_list);
 
             %QA exit
             if qa_flag==0
                 disp(['Volume failed QA: ' pending_h5_fn_list{i}])
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt       = [complete_h5_dt;start_dt];
+                complete_h5_dt      = [complete_h5_dt;vol_dt];
                 continue
             end
 
@@ -208,7 +192,7 @@ while exist('tmp/kill_process','file')==2
                     [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(nwp_extract_list,grid_obj.radar_lat,grid_obj.radar_lon);
                 else
                     %load era-interim fzlvl data from ddb
-                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.start_dt,radar_id,eraint_ddb_table);
+                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.vol_dt,radar_id,eraint_ddb_table);
                 end
                 if isempty(nn_snd_fz_h)
                     disp('###sounding data missing###')
@@ -222,12 +206,12 @@ while exist('tmp/kill_process','file')==2
             
             %update storm and odimh5 index ddb, plus create storm object h5
             %as needed
-            update_archive(dest_root,grid_obj,proc_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,remote_odimh5_ffn,odimh5_date)
+            update_archive(grid_obj,proc_obj,storm_ddb_table,realtime_flag,remote_odimh5_ffn)
 
             %append and clean h5_list for realtime processing
             if realtime_flag == 1
                 complete_h5_fn_list = [complete_h5_fn_list;pending_h5_fn_list{i}];
-                complete_h5_dt      = [complete_h5_dt;start_dt];
+                complete_h5_dt      = [complete_h5_dt;vol_dt];
                 clean_idx           = complete_h5_dt < oldest_time;
                 complete_h5_fn_list(clean_idx) = [];
                 complete_h5_dt(clean_idx)      = [];
@@ -314,32 +298,32 @@ disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_ti
 %profile off
 %profile viewer
 
-function update_archive(dest_root,grid_obj,storm_obj,odimh5_ddb_table,storm_ddb_table,realtime_flag,odimh5_ffn,odimh5_date)
+function update_archive(grid_obj,storm_obj,storm_ddb_table,realtime_flag,odimh5_ffn)
 %WHAT: Updates the ident_db and intp_db database mat files fore
 %that day with the additional entires from input
 
 %INPUT:
 %archive_dest: path to archive destination
-%start_dt: new entires for start_dt from cart_interpol6
-%storm_obj: new entires for storm_obj from ewt2ident
+%vol_dt:       new entires for vol_dt from cart_interpol6
+%storm_obj:    new entires for storm_obj from ewt2ident
 
 %% Update vol_db and vol_data
 
 load('tmp/global.config.mat')
 
 %setup paths and tags
-date_vec     = datevec(grid_obj.start_dt);
+date_vec     = datevec(grid_obj.vol_dt);
 radar_id     = grid_obj.radar_id;
-start_dt     = grid_obj.start_dt;
+vol_dt       = grid_obj.vol_dt;
 radar_id_str = num2str(radar_id,'%02.0f');
 arch_path    = [radar_id_str,...
     '/',num2str(date_vec(1)),'/',num2str(date_vec(2),'%02.0f'),...
     '/',num2str(date_vec(3),'%02.0f'),'/'];
-dest_path    = [dest_root,arch_path];
-data_tag     = [num2str(radar_id,'%02.0f'),'_',datestr(start_dt,r_tfmt)];
+dest_path    = [stormh5_s3_bucket,arch_path];
+data_tag     = [num2str(radar_id,'%02.0f'),'_',datestr(vol_dt,r_tfmt)];
 
 %create local data path
-if ~strcmp(dest_root(1:2),'s3') && exist(dest_path,'file') ~= 7
+if ~strcmp(stormh5_s3_bucket(1:2),'s3') && exist(dest_path,'file') ~= 7
     mkdir(dest_path)
 end
 
@@ -359,10 +343,10 @@ if ~isempty(storm_obj)
     %since indicates volumes was previous processed for storms
     if clean_stormobj_index == 1
         storm_atts      = 'date_id,sort_id';
-        oldest_time_str = datestr(start_dt,ddb_tfmt);
-        newest_time_str = datestr(addtodate(start_dt,1,'second'),ddb_tfmt); %duffer time for between function
+        oldest_time_str = datestr(vol_dt,ddb_tfmt);
+        newest_time_str = datestr(addtodate(vol_dt,1,'second'),ddb_tfmt); %duffer time for between function
         %query for storm_ddb entries
-        delete_jstruct  = ddb_query('date_id',num2str(start_dt,ddb_dateid_tfmt),'sort_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+        delete_jstruct  = ddb_query('date_id',num2str(vol_dt,ddb_dateid_tfmt),'sort_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
         for i=1:length(delete_jstruct)
             %remove items
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);
@@ -379,13 +363,13 @@ if ~isempty(storm_obj)
         storm_stats    = roundn(storm_obj(i).stats,-1);
         %append and write db
         tmp_jstruct                     = struct;
-        tmp_jstruct.date_id.N           = datestr(start_dt,ddb_dateid_tfmt);
-        tmp_jstruct.sort_id.S           = [datestr(start_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(i,'%03.0f')];
+        tmp_jstruct.date_id.N           = datestr(vol_dt,ddb_dateid_tfmt);
+        tmp_jstruct.sort_id.S           = [datestr(vol_dt,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(i,'%03.0f')];
         tmp_jstruct.domain_mask.N       = '1';
         tmp_jstruct.radar_id.N          = num2str(radar_id,'%02.0f');
         tmp_jstruct.subset_id.N         = num2str(i,'%03.0f');
         tmp_jstruct.data_ffn.S          = stormh5_ffn;
-        tmp_jstruct.start_timestamp.S   = datestr(start_dt,ddb_tfmt);
+        tmp_jstruct.start_timestamp.S   = datestr(vol_dt,ddb_tfmt);
         tmp_jstruct.storm_ijbox.S       = num2str(storm_obj(i).subset_ijbox);
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb,'%03.4f ');
         tmp_jstruct.storm_z_centlat.N   = num2str(storm_dcent(1),'%03.4f ');

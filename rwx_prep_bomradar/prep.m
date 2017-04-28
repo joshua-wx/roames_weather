@@ -21,7 +21,7 @@ if ~isdeployed
 end
 
 %create temp dir
-if exist('tmp/','file')~=7
+if exist('tmp','file')~=7
     mkdir('tmp');
 end
 
@@ -58,7 +58,7 @@ end
 if local_flag == 1
     dest_path = local_path;
 else
-    dest_path = s3_path;
+    dest_path = odimh5_s3_bucket;
 end
 
 %setup kill timer
@@ -165,12 +165,12 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
             test_h5_fn      = new_h5_fn{i};
             test_volumes    = new_volumes(i);
             test_r_id       = new_r_id(i);
-            test_datetime   = new_datetime(i);
-            %pull index from dynamodb
-            jstruct_out = ddb_get_item(odimh5_ddb_table,...
-                'radar_id','N',num2str(test_r_id,'%02.0f'),...
-                'start_timestamp','S',[datestr(test_datetime,'yyyy-mm-ddTHH:MM'),':00'],''); %remove seconds because rapic filename may not match h5 time
-            if isempty(jstruct_out)
+            test_dt_vec     = datevec(new_datetime(i));
+            %check file exists in s3
+            full_path   = [odimh5_s3_bucket,num2str(test_r_id,'%02.0f'),'/',num2str(test_dt_vec(1)),'/',num2str(test_dt_vec(2),'%02.0f'),'/',num2str(test_dt_vec(3),'%02.0f'),'/',test_h5_fn];
+            cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 ls ',full_path];
+            [sout,eout] = unix(cmd);
+            if isempty(eout)
                 filt_h5_fn   = [filt_h5_fn;test_h5_fn];
                 filt_volumes = [filt_volumes;test_volumes];
                 filt_r_id    = [filt_r_id;test_r_id];
@@ -197,7 +197,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     
     for i=1:no_vols
         %cat rapic scans into volumes and convert to hdf5
-        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path,odimh5_ddb_table);
+        rapic_convert(filt_volumes{i},filt_r_id(i),local_mirror_path,dest_path);
         disp(['Volume ',num2str(i),' processed of ',num2str(no_vols),' ',filt_volumes{i}{1}])
     end
     %output ftp open time and number of files downloaded
@@ -238,6 +238,7 @@ function [fetch_volumes,fetch_h5_datetime,fetch_h5_r_id,fetch_h5_fn] = lftp_to_v
 %OUTPUT
 %fetch_volumes: a cell array where each element contains a list of
 %filenames from a complete volume
+%fetch_h5_datetime: volume times derived from first tilt times without seconds
 %fetch_h5_fn:   h5 filenames of each volume (not implemented)
 
 fetch_volumes     = {};
@@ -253,7 +254,7 @@ if ~isempty(scan_filenames)
     cell_out = textscan([scan_filenames{:}],'%*3s %2f %*4s %12s %*1s %2f %*1s %2f %*4s');
 
     %sort and extract parts
-    [date_num,IX]  = sort(datenum(cell_out{2},'yyyymmddHHMM')); %remove seconds because rapic filename may not match h5 time
+    [date_num,IX]  = sort(datenum(cell_out{2},'yyyymmddHHMM')); %remove seconds from dataset times to guess volume time (volume time = dataset1 time without seconds), option 2 would be to read from rapic file...
     r_id           = cell_out{1}(IX);
     scan_no        = cell_out{3}(IX);
     total_scans    = cell_out{4}(IX);
@@ -298,9 +299,6 @@ if ~isempty(scan_filenames)
                     fetch_h5_r_id     = [fetch_h5_r_id;uniq_r_id];
                     temp_h5_fn        = [num2str(uniq_r_id,'%02.0f'),'_',datestr(temp_dt(1),'yyyymmdd'),'_',datestr(temp_dt(1),'HHMMSS'),'.h5'];
                     fetch_h5_fn       = [fetch_h5_fn;temp_h5_fn];
-                %elseif str2num(temp_vol{1}(23:24))==1 && length(temp_vol)>=8
-                    %volume missing end/middle scans, 1st scan is still there.
-                    %sorted_volumes=[sorted_volumes,{temp_vol}];
                 end
                 temp_vol = {};
                 temp_dt  = [];
@@ -310,7 +308,7 @@ if ~isempty(scan_filenames)
 end
 
 
-function rapic_convert(file_list,radar_id,local_mirror_path,arch_path,odimh5_ddb_table)
+function rapic_convert(file_list,radar_id,local_mirror_path,arch_path)
 %WHAT
 %Takes a list of ftp_rapic (individual elevation scan files) and cat's them
 %with grep into a single txt file. It then converts to odimh5
@@ -381,19 +379,14 @@ if exist(tmp_h5_ffn,'file')~=2
     broken_file(tmp_rapic_ffn,broken_rapic_fn,broken_dest)
     return
 else
-    %extract h5 start date number 
-    h5_start_date = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','startdate'));
-    h5_start_time = deblank(h5readatt(tmp_h5_ffn,'/dataset1/what/','starttime'));
-    %remove seconds for BoM radar volumes becuase of issues with the
-    %starttime in some rapic volumes
-    h5_start_dt   = datenum([h5_start_date,h5_start_time(1:6)],'yyyymmddHHMMSS');
+    vol_dt        = process_read_vol_time(tmp_h5_ffn);
     h5_dir        = dir(tmp_h5_ffn);
     h5_size       = round(h5_dir.bytes/1000);
 end
 %create correct archive folder
-h5_start_dt_vec  = datevec(h5_start_dt);
-archive_dest     = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(h5_start_dt_vec(1)),'/',num2str(h5_start_dt_vec(2),'%02.0f'),'/',num2str(h5_start_dt_vec(3),'%02.0f'),'/'];
-h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(h5_start_dt,r_tfmt),'.h5'];
+vol_dt_vec       = datevec(vol_dt);
+archive_dest     = [arch_path,num2str(radar_id,'%02.0f'),'/',num2str(vol_dt_vec(1)),'/',num2str(vol_dt_vec(2),'%02.0f'),'/',num2str(vol_dt_vec(3),'%02.0f'),'/'];
+h5_fn            = [num2str(radar_id,'%02.0f'),'_',datestr(vol_dt,r_tfmt),'.h5'];
 h5_ffn           = [archive_dest,h5_fn];
 
 %move to required directory
@@ -401,14 +394,6 @@ file_mv(tmp_h5_ffn,h5_ffn);
 
 %publish sns for odimh5 prep
 sns_publish(sns_odimh5_prep,h5_ffn);
-
-%write to odimh5 dynamo db
-ddb_struct                      = struct;
-ddb_struct.radar_id.N           = num2str(radar_id,'%02.0f');
-ddb_struct.start_timestamp.S    = datestr(h5_start_dt,ddb_tfmt);
-ddb_struct.data_size.N          = num2str(h5_size);
-ddb_struct.data_ffn.S           = h5_ffn;
-ddb_put_item(ddb_struct,odimh5_ddb_table)
 
 %remove tmp rapic file
 delete(tmp_rapic_ffn)

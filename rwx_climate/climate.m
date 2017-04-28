@@ -36,6 +36,7 @@ addpath('/home/meso/dev/roames_weather/lib/m_lib')
 addpath('/home/meso/dev/roames_weather/lib/ge_lib')
 addpath('/home/meso/dev/roames_weather/etc')
 addpath('etc/')
+addpath('etc/map/')
 addpath('lib/')
 
 % load climate config
