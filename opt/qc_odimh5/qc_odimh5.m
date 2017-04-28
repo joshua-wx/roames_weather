@@ -86,6 +86,7 @@ for i=1:length(year_list)
                     disp([h5_name{k},' of size ',num2str(h5_size(k)),' removed'])
                     file_rm([s3_bucket,h5_name{k}],0,1)
                     pause(0.1)
+                    wait_aws_finish(200)
                     remove_idx = [remove_idx,k];
                 end
             end
@@ -114,6 +115,7 @@ for i=1:length(year_list)
                 [sout,eout] = unix(cmd);
                 h5_name{k}  = [h5_path,'/',new_fn];
                 pause(0.1)
+                wait_aws_finish(200)
             end
         end
 
@@ -131,7 +133,8 @@ for i=1:length(year_list)
                 new_tag     = [num2str(radar_id_list(j),'%02.0f'),'_',datestr(h5_date,'yyyymmdd'),'_',datestr(h5_date,'HHMMSS'),'.h5'];
                 new_ffn     = [s3_bucket,h5_path,'/',new_tag];
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
-                pause(0.3)
+                pause(0.1)
+                wait_aws_finish(200)
                 [sout,eout] = unix(cmd);
                 h5_name(k)  = [h5_path,'/',new_tag];
             end
@@ -166,6 +169,7 @@ for i=1:length(year_list)
                     cmd             = [prefix_cmd,'aws s3 rm ',s3_bucket,h5_name{duplicate_idx(l)},' &'];
                     [sout,eout]     = unix(cmd);
                     pause(0.1)
+                    wait_aws_finish(200)
                     display(['removing ',h5_name{duplicate_idx(l)}])
                 end
             end
@@ -220,8 +224,8 @@ for i=1:length(year_list)
         end
     end
 end
-display('complete')
-pushover('qc_odimh5','qc complete!')
+display(['qc complete for ',num2str(radar_id_list)])
+pushover('qc_odimh5',['qc complete for ',num2str(radar_id_list)])
 
 function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,h5_ffn,h5_size)
 
@@ -240,3 +244,17 @@ ddb_struct.(item_id).data_size.N            = num2str(h5_size);
 ddb_struct.(item_id).data_ffn.S             = h5_ffn;
 
 tmp_sz =  length(fieldnames(ddb_struct));
+
+
+function wait_aws_finish(limit)
+
+%wait for aws processes to finish
+while true
+    [~,eout] = unix('pgrep aws | wc -l');
+    if str2num(eout)>limit
+        pause(0.2);
+        disp(['aws jobs running: ',eout,' , waiting']);
+    else
+        break
+    end
+end
