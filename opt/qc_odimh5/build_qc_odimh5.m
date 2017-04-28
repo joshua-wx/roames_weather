@@ -28,7 +28,8 @@ tar(tar_fn,{'run_qc_odimh5.sh','qc_odimh5','run','etc/'})
 display('scp')
 %ftp machine 1
 ssh_ip      = '52.62.40.126';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
+[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5_1'])
+[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5_2'])
 
 delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/site_info.txt')
 delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/pushover.token')

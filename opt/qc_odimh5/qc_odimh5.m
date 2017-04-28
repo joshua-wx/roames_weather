@@ -33,9 +33,11 @@ if exist(local_tmp_path,'file') ~= 7
 end
 
 %ensure log directory exists
-if exist(local_log_path,'file') ~= 7
-    mkdir(local_log_path)
+if exist(local_log_path,'file') == 7
+    disp('old log folder renamed')
+    movefile(local_log_path,[local_log_path,'_',datestr(now,'yyyymmdd_HHMMSS')]);
 end
+mkdir(local_log_path)
 
 %load global config file
 read_config(config_input_fn);
@@ -79,7 +81,7 @@ for i=1:length(year_list)
             remove_idx = [];
             for k = 1:length(h5_name)
                 %check for cappi files using size
-                if h5_size(k) < min_vol_size
+                if h5_size(k) < empty_vol_size
                     %remove these files
                     disp([h5_name{k},' of size ',num2str(h5_size(k)),' removed'])
                     file_rm([s3_bucket,h5_name{k}],0,1)
@@ -104,12 +106,14 @@ for i=1:length(year_list)
                     %display('file already renamed, skipping')
                     continue
                 end
-                new_ffn     = [h5_path,'/',[h5_fn(1:end-2),'00',h5_ext]];
+                new_fn      = [h5_fn(1:end-2),'00',h5_ext];
+                new_ffn     = [h5_path,'/',new_fn];
                 %if new ffn is different, mv to rename
-                disp(['renaming ',h5_ffn,' to include seconds'])
+                disp(['renaming ',h5_ffn,' to remove seconds'])
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
                 [sout,eout] = unix(cmd);
-                h5_name{k}  = [h5_path,'/',new_tag];
+                h5_name{k}  = [h5_path,'/',new_fn];
+                pause(0.1)
             end
         end
 
@@ -132,13 +136,13 @@ for i=1:length(year_list)
                 h5_name(k)  = [h5_path,'/',new_tag];
             end
         end
-        %% (4) remove duplicates using size
+        %% (4) remove duplicates by removing seconds and comparing size
         if duplicate_flag == 1
             %create file name without seconds to check for unique files
             disp('removing duplicates')
             h5_name_custom = cell(length(h5_name),1);
             for k=1:length(h5_name)
-                h5_name_custom{k} = [h5_name{k}(1:end-5)];
+                h5_name_custom{k} = [h5_name{k}(1:end-5)]; %remove seconds
             end
             [uniq_h5_name,~,ic] = unique(h5_name_custom);
             out_h5_name        = cell(length(uniq_h5_name),1);
@@ -172,7 +176,7 @@ for i=1:length(year_list)
         %% (5) generate vol_count log
         if vol_count_flag == 1
             %generate a log file that contains three columns,
-            %[yyyymmdd,vol_count,mode_step];
+            %[yyyymmdd,vol_count,vol_count_with_size_threshold,mode_step];
             %build h5_Date
             disp('running vol count log')
             date_list = zeros(length(h5_name),1);
@@ -182,16 +186,19 @@ for i=1:length(year_list)
                 date_list(k) = datenum(h5_fn(4:end),'yyyymmdd_HHMMSS');
             end
             %generate dateonly and uniq lists
-            dateonly_list   = floor(date_list);
-            index_date_list = datenum(year_list(i),1,1):datenum(year_list(i),12,31);
-            vol_count_list  = zeros(length(index_date_list),1);
-            vol_step_list   = zeros(length(index_date_list),1);
+            dateonly_list       = floor(date_list);
+            index_date_list     = datenum(year_list(i),1,1):datenum(year_list(i),12,31);
+            vol_count_list      = zeros(length(index_date_list),1);
+            vol_size_count_list = zeros(length(index_date_list),1);
+            vol_step_list       = zeros(length(index_date_list),1);
             %for each unique date, count the number of volumes ang the
             %number of steps
             for k = 1:length(index_date_list)
                 %count number of volumes
-                date_subset       = date_list(dateonly_list == index_date_list(k));
-                vol_count_list(k) = length(date_subset);
+                date_subset            = date_list(dateonly_list == index_date_list(k));
+                size_subset            = h5_size(dateonly_list == index_date_list(k));
+                vol_count_list(k)      = length(date_subset);
+                vol_size_count_list(k) = sum(size_subset>=thresh_vol_size);
                 %calc radar step
                 if length(date_subset) > 1
                     vol_diff          = round((date_subset(2:end)-date_subset(1:end-1))*24*60);
@@ -208,7 +215,7 @@ for i=1:length(year_list)
             log_fn = [local_log_path,'/vol_count_',num2str(radar_id_list(j),'%02.0f'),'.log'];
             fid = fopen(log_fn,'at');
             for k = 1:length(index_date_list)
-                fprintf(fid,'%s %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_step_list(k));
+                fprintf(fid,'%s %d %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_size_count_list(k),vol_step_list(k));
             end
         end
     end
