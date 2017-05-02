@@ -1,4 +1,4 @@
-function climate_generate_image(data_grid,img_type,radar_id,vec_data,data_grid_R,map_config_fn)
+function climate_generate_image(data_grid,img_type,radar_id,vec_data,data_grid_R,map_config_fn,rain_year_count)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -42,6 +42,11 @@ gridm('MLineLocation',lat_grid_res,'PLineLocation',lon_grid_res)
 %set axis mode
 axis tight
 
+%normalise density by number of years if required
+if rainyr_flag == 1
+    data_grid       = data_grid./rain_year_count;
+end
+
 %plot data
 geoshow(flipud(data_grid),data_grid_R,'DisplayType','texturemap','CDataMapping','scaled'); %geoshow assumes xy coords, so need to flip ij data_grid
 
@@ -52,17 +57,23 @@ if colormap_steps > 128
 end
 
 %assign colourmap
-caxis([0 max(data_grid(:))]);
+if fixed_caxis == 1 && strcmp(img_type,'merged')
+    caxis([caxis_min caxis_max]);
+else
+    caxis([0 max(data_grid(:))]);
+end
 cmap = colormap(hot(colormap_steps));
 cmap = flipud(cmap);
 colormap(cmap);
 
 %draw coast
 if draw_coast==1
-    S = shaperead(coast_ffn);
-    coast_lat = S(state_id).Y;
-    coast_lon = S(state_id).X;
-    linem(coast_lat,coast_lon,'k');
+    for i=1:length(state_id)
+        S = shaperead(coast_ffn);
+        coast_lat = S(state_id(i)).Y;
+        coast_lon = S(state_id(i)).X;
+        linem(coast_lat,coast_lon,'k');
+    end
 end
 
 %draw topo
@@ -116,10 +127,12 @@ end
 
 %create colorbar
 h = colorbar;
-ylabel(h, colorbar_label,'FontSize',16)
+ylabel(h, replace(colorbar_label,'.',' '),'FontSize',16)
 
 %output
 img_fn    = ['IDR',num2str(radar_id,'%02.0f'),'_',site_name,'_',img_type,'.png'];
-image_ffn = [out_root,img_fn];
+image_ffn = [out_root,num2str(radar_id,'%02.0f'),'/',img_fn];
 saveas(gca,image_ffn,'png');
 
+%close figure
+close gcf

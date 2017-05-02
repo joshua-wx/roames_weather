@@ -1,4 +1,4 @@
-function climate_generate_kml(data_grid,radar_id,geo_coords,map_config_fn)
+function climate_generate_kml(data_grid,radar_id,geo_coords,map_config_fn,rain_year_count,date_list)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -46,7 +46,7 @@ img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
 
 %create transparency grid
 if kml_transparent_flag == 1
-    alpha_grid = img_grid./max(img_grid(:));
+    alpha_grid = img_grid./colormap_steps;
     %shift transparency
     alpha_grid(alpha_grid>0) = alpha_grid(alpha_grid>0)+0.6;
     alpha_grid(alpha_grid>1) = 1;
@@ -79,26 +79,32 @@ if draw_silence == 1
 end
 
 %create transparent polygon containing stats
-tmp_lat = [kml_N_lat,kml_N_lat,kml_S_lat,kml_S_lat,kml_N_lat];
-tmp_lon = [kml_W_lon,kml_E_lon,kml_E_lon,kml_W_lon,kml_W_lon];
-html_str = ['<p>',kml_tag,' - ',site_name,'</p>',10,...
+date_start = datestr(min(date_list),'dd-mm-yyyy');
+date_stop  = datestr(max(date_list),'dd-mm-yyyy');
+html_str   = ['<header><h1>',kml_tag,' - ',site_name,'</h1></header>',10,...
             '<p>Period: ',date_start,' to ',date_stop,'</p>',10,...
+            '<p>Variable: ',data_type,'</p>',10,...
+            '<p>Min Theshold: ',num2str(data_min),'</p>',10,...
             '<img src="colorbar.png" />'];
             
 %generate colorbar image
-colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label);
+colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label,rain_year_count);
 %generate swath poly
+[tmp_lat,tmp_lon] = scircle1(site_lat,site_lon,km2deg(data_range));
 kml_str = ge_swath_poly(kml_str,'trans_poly','balloon_popup_poly','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),html_str);
 
 %size kmlstr and png into a kmz
 kmz_fn    = [kml_tag,'_',site_name,'.kmz'];
-ge_kmz_out(kmz_fn,kml_str,out_root,{image_ffn,colorbar_ffn});
+ge_kmz_out(kmz_fn,kml_str,[out_root,num2str(radar_id,'%02.0f'),'/'],{image_ffn,colorbar_ffn});
 
 %remove files
 delete(image_ffn)
 delete(colorbar_ffn)
 
-function colorbar_ffn = colorbar_img(cmap,data_grid,title)
+function colorbar_ffn = colorbar_img(cmap,data_grid,title,rain_year_count)
+%read climate config
+load('tmp/climate.config.mat')
+
 %generates kmz colorbar image
 colorbar_ffn = [tempdir,'colorbar.png'];
 %create figure and turn off axis
@@ -109,9 +115,16 @@ colormap(cmap);
 %create colorbar
 ch = colorbar('Location','manual','Position',[0.1 0.05 .3 .9],'YAxisLocation','right');
 %set y label
-ylabel(ch,title,'FontSize',8);
+ylabel(ch,replace(title,'.',' '),'FontSize',8);
 %set color axis limits
-caxis([min(data_grid(:)) max(data_grid(:))])
+if fixed_caxis == 1
+    caxis([caxis_min caxis_max]);
+else
+    if rainyr_flag == 1 %apply rainyear normalisation to data_grid
+        data_grid = data_grid./rain_year_count;
+    end
+    caxis([min(data_grid(:)) max(data_grid(:))])
+end
 %save figure to image and close
 saveas(gca,colorbar_ffn,'png');
 close(gcf)

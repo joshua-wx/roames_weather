@@ -39,7 +39,10 @@ read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
 
 
 %% list kmz files and copy to s3
-dir_out = dir(local_path); dir_out(1:2) = [];
+dir_out          = dir(local_path); dir_out(1:2) = [];
+old_idx          = find(strcmp({dir_out.name},'OLD'));
+dir_out(old_idx) = [];
+
 %halt on no files in local path
 if isempty(dir_out)
     disp('No files in local_path')
@@ -49,10 +52,21 @@ end
 kmz_fn_list = {};
 siteid_list = [];
 for i=1:length(dir_out)
-   [~,fn,ext] = fileparts(dir_out(i).name);
-   if strcmp(ext,'.kmz')
-       kmz_fn_list = [kmz_fn_list;[fn,ext]];
-       siteid_list = [siteid_list;str2num(fn(4:5))];
+   %set upper path name
+   upper_path = dir_out(i).name;
+   %skip if not dir
+   if dir_out(i).isdir == 0
+       continue
+   end
+   %scan sub directory
+   sub_dir = dir([local_path,upper_path]); sub_dir(1:2) = [];
+   %for each sub dir entry
+   for j=1:length(sub_dir)
+       [~,fn,ext] = fileparts(sub_dir(j).name);
+       if strcmp(ext,'.kmz')
+           kmz_fn_list = [kmz_fn_list;[upper_path,'/',fn,ext]];
+           siteid_list = [siteid_list;str2num(fn(4:5))];
+       end
    end
 end
 %halt on no kmz files in local path

@@ -48,6 +48,7 @@ end
 for m = 1:length(radar_id_list)
     %set radar_id
     radar_id = radar_id_list(m);
+    disp(['sync for ',num2str(radar_id,'%02.0f')]);
     
     %create archive root
     if exist([db_root,num2str(radar_id,'%02.0f')],'file') == 7
@@ -106,7 +107,23 @@ for m = 1:length(radar_id_list)
         filt_mask        = floor(stormh5_dt_list)>=uniq_date(end);
         stormh5_ffn_list = stormh5_ffn_list(filt_mask);
         stormh5_dt_list  = stormh5_dt_list(filt_mask);
+    else
+        %init database
+        table_header = {'radar_id,','year,','month,','day,','hour,','minute,','second,','track_id,',... %1-8
+            'subset_id,','v_grid(km),','h_grid(km),',... %9-11
+            'storm_z_centlat,','storm_z_centlon,',... %12-13
+            'storm_min_i,','storm_max_i,','storm_min_j,','storm_max_j,',... %14-17
+            'storm_min_lat,','storm_max_lat,','storm_min_lon,','storm_max_lon,',... %18-21
+            'area(km2),','area_ewt(km2),','max_cell_vil(kg/m2),','max_dbz(dbz),',... %22-25
+            'max_dbz_h(km),','max_g_vil(kg/m2),','max_mesh(mm),',... %26-28
+            'max_posh(%),','max_sts_dbz_h(km),','max_tops(km),',... %29-31
+            'mean_dbz(dbz),','mass(kt),','vol(km3),'}; %32-34
+        %write header to file
+        fid = fopen(archive_ffn,'a+'); %discard contents
+        fprintf(fid,'%s\n',cell2mat(table_header));
+        fclose(fid);
     end
+    
     
     %run ddb begins query for each datetime for each date
     ddb_timer         = tic;
@@ -160,21 +177,6 @@ for m = 1:length(radar_id_list)
     wait_aws_finish
     %generate unique date list
     uniq_temp_date_list = unique(temp_date_list);
-
-    %init database
-    table_header = {'radar_id,','year,','month,','day,','hour,','minute,','second,','track_id,',... %1-8
-        'subset_id,','v_grid(km),','h_grid(km),',... %9-11
-        'storm_z_centlat,','storm_z_centlon,',... %12-13
-        'storm_min_i,','storm_max_i,','storm_min_j,','storm_max_j,',... %14-17
-        'storm_min_lat,','storm_max_lat,','storm_min_lon,','storm_max_lon,',... %18-21
-        'area(km2),','area_ewt(km2),','max_cell_vil(kg/m2),','max_dbz(dbz),',... %22-25
-        'max_dbz_h(km),','max_g_vil(kg/m2),','max_mesh(mm),',... %26-28
-        'max_posh(%),','max_sts_dbz_h(km),','max_tops(km),',... %29-31
-        'mean_dbz(dbz),','mass(kt),','vol(km3),'}; %32-34
-    %write header to file
-    fid = fopen(archive_ffn,'a+'); %discard contents
-    fprintf(fid,'%s\n',cell2mat(table_header));
-    fclose(fid);
 
     %loop through each unique date for the ddb read file list
     for i=1:length(uniq_temp_date_list)

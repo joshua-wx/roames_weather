@@ -56,20 +56,25 @@ load([local_tmp_path,global_config_fn,'.mat'])
 % Load site info
 read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
 
-%create temp paths
-if exist(out_root,'file') ~= 7
-    mkdir(out_root)
+%create old path
+if exist(old_root,'file') ~= 7
+    mkdir(old_root)
 end
 
 %read local archive path folders for 'all'
 if strcmp(radar_id_list,'all')
-    path_dir      = dir(db_root); path_dir(1:2)=[];
+    path_dir      = dir(db_root); path_dir(1:2) = [];
+    %remove OLD
+    old_idx       = find(strcmp({path_dir.name},'OLD'));
+    path_dir(old_idx) = [];
+    %keep only folders and create radar list
     radar_id_list = vertcat(path_dir.name);
     is_folder     = vertcat(path_dir.isdir);
     radar_id_list = cell2mat(radar_id_list(is_folder));
 end
 
 for m = 1:length(radar_id_list)
+    
     %process radar m
     radar_id = radar_id_list(m);
     
@@ -79,6 +84,20 @@ for m = 1:length(radar_id_list)
         disp('map config file missing for selected radar')
         return
     end
+    
+    %create output paths and populate with configs
+    out_path = [out_root,num2str(radar_id,'%02.0f')];
+    %if out path exists, rename and move to old path
+    if exist(out_path,'file') == 7
+        old_path = [old_root,num2str(radar_id,'%02.0f'),'_',datestr(now,'yyyymmdd-HHMMSS')];
+        mkdir(old_path)
+        movefile(out_path,old_path);
+    end
+    %create out path
+    mkdir(out_path);
+    %copy configs
+    copyfile(['etc/',climate_config_fn],out_path);
+    copyfile(['etc/map/',map_config_fn],out_path);
     
     %init site info
     site_ind  = find(siteinfo_id_list==radar_id);
@@ -162,9 +181,11 @@ for m = 1:length(radar_id_list)
 
     %%% distance mask %%%
     %mask distance from radar site to storm latlon
-    [arclen,~] = distance(site_lat,site_lon,storm_latloncent_list(:,1),storm_latloncent_list(:,2));
-    dist_list  = deg2km(arclen);
-    dist_mask  = dist_list <= data_range;
+    if range_flag == 1
+        [arclen,~] = distance(site_lat,site_lon,storm_latloncent_list(:,1),storm_latloncent_list(:,2));
+        dist_list  = deg2km(arclen);
+        dist_mask  = dist_list <= data_range;
+    end
 
     %%% ci/ce mask %%%
     if ci_flag == 1 || ce_flag == 1
@@ -235,7 +256,9 @@ for m = 1:length(radar_id_list)
     %apply mask to database
     cent_date_list       = storm_date_list(data_mask);
     cent_latloncent_list = storm_latloncent_list(data_mask,:);
-
+    cent_rain_year       = climate_rain_year(cent_date_list,rain_yr_start);
+    cent_rain_year_count = length(unique(cent_rain_year));
+    
     %preallocate
     cent_lat_vec = img_latlonbox(1):-centroid_grid:img_latlonbox(2);
     cent_lon_vec = img_latlonbox(4):centroid_grid:img_latlonbox(3);
@@ -253,8 +276,9 @@ for m = 1:length(radar_id_list)
         %add to centroid grid
         cent_grid(lat_ind,lon_ind) = cent_grid(lat_ind,lon_ind)+1;
     end
+    
     %image plot centroid grid
-    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn)
+    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn,cent_rain_year_count)
 
     %%% Density/Direction plots %%%
 
@@ -264,7 +288,10 @@ for m = 1:length(radar_id_list)
     swth_latloncent_list = storm_latloncent_list(data_mask,:);
     swth_subset_list     = storm_subset_list(data_mask);
     swth_ijbox_list      = storm_ijbox_list(data_mask,:);
-
+    %rain years
+    swth_rain_year       = climate_rain_year(swth_date_list,rain_yr_start);
+    swth_rain_year_count = length(unique(swth_rain_year));
+    
     %preallocate
     blank_grid    = zeros(grid_size(1),grid_size(2));
     track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid);
@@ -343,18 +370,9 @@ for m = 1:length(radar_id_list)
     [line_vertices,arrow_vertices] = streamslice(radar_lon_vec,radar_lat_mat,mean_grid_u,mean_grid_v,5);
     vec_data                         = [line_vertices,arrow_vertices];
 
-    %normalise density by number of years if required
-    if rainyr_flag == 1
-        rain_year                = climate_rain_year(storm_date_list,rain_yr_start);
-        rain_year_count          = length(unique(rain_year));
-        density_grid             = track_grids.density_grid./rain_year_count;
-    else
-        density_grid             = track_grids.density_grid;
-    end
-
     %plot density and direction maps
-    climate_generate_image(density_grid,'merged',radar_id,vec_data,track_R,map_config_fn)
+    climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count)
     %kml plot merged swath grid
-    climate_generate_kml(density_grid,radar_id,geo_coords,map_config_fn)
+    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list)
 end
 disp('RWX Climate plotting complete')
