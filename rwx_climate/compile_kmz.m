@@ -15,7 +15,8 @@ function compile_kmz
 %% init
 
 %setup config names
-config_fn      = 'compile.config';
+climate_fn     = 'climate.config';
+compile_fn     = 'compile.config';
 site_info_fn   = 'site_info.txt';
 local_tmp_path = 'tmp/';
 
@@ -31,8 +32,13 @@ addpath('etc/')
 addpath('lib/')
 
 % load climate config
-read_config(config_fn);
-load([local_tmp_path,config_fn,'.mat']);
+read_config(climate_fn);
+load([local_tmp_path,climate_fn,'.mat']);
+
+% load compile config
+read_config(compile_fn);
+load([local_tmp_path,compile_fn,'.mat']);
+
 
 % Load site info
 read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
@@ -112,9 +118,14 @@ end
 ge_kml_out([tempdir,'coverage.kml'],'Coverage',coverage_str)
 file_mv([tempdir,'coverage.kml'],[s3_path,'coverage.kml'])
 
+%% build style kml (duplicated from individual radar kmz)
+kml_style = '';
+kml_style = ge_swath_poly_style(kml_style,'poly_style',html_color(1,silence_edge_color),silence_line_width,html_color(1,silence_face_color),false);
+kml_style = ge_swath_poly_style(kml_style,'trans_poly',html_color(1/255,silence_edge_color),silence_line_width,html_color(1/255,silence_face_color),true);
+
 %% build index kml
 %init master and link 
-master_str = '';
+master_str = kml_style;
 master_str = ge_networklink(master_str,'Coverage',[url_prefix,'coverage.kml'],0,0,'','','','',1);
 %build network link for each kmz file
 for i=1:length(kmz_fn_list)
