@@ -53,7 +53,9 @@ for i=1:length(year_list)
     
     %loop through radar sites
     for j=1:length(siteinfo_id_list)
-        
+        if siteinfo_id_list(j) ~= 21
+           continue
+        end
         %init radar data
         site_lat     = siteinfo_lat_list(j);
         site_lon     = siteinfo_lon_list(j);
