@@ -36,7 +36,7 @@ load([local_tmp_path,site_info_fn,'.mat']);
 
 ddb_tmp_struct  = struct;
 year_list       = 1997:2016;
-ddb_table       = 'wxradar-eraint-fzlvl';
+ddb_table       = 'wxradar_eraint_fzlvl';
 
 for i=1:length(year_list)
     target_year = num2str(year_list(i));
@@ -53,15 +53,11 @@ for i=1:length(year_list)
     
     %loop through radar sites
     for j=1:length(siteinfo_id_list)
-        if siteinfo_id_list(j)~=21
-            continue
-        end
         
         %init radar data
         site_lat     = siteinfo_lat_list(j);
         site_lon     = siteinfo_lon_list(j);
         site_id      = siteinfo_id_list(j);
-        site_id_str  = ['r',num2str(site_id)];
         site_start   = siteinfo_start_list(j);
         site_stop    = siteinfo_stop_list(j);
         [~,lat_ind]  = min(abs(era_lat-site_lat));
@@ -91,12 +87,11 @@ for i=1:length(year_list)
                 %display('written_to ddb')
             end
         end
-        disp(['finished site ',site_id_str,' for year ',num2str(target_year)]);
+        disp(['finished site ',num2str(site_id),' for year ',num2str(target_year)]);
     end
     disp(['finished year ',num2str(target_year)]);
 end
 disp(['finished all']);
-keyboard
 
 function intp_h = sounding_interp(snd_temp,snd_height,target_temp)
 %WHAT: Provides an interpolated height for a target temperature using a
