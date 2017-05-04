@@ -136,7 +136,7 @@ for i=1:length(year_list)
                 pause(0.1)
                 wait_aws_finish(200)
                 [sout,eout] = unix(cmd);
-                h5_name(k)  = [h5_path,'/',new_tag];
+                h5_name{k}  = [h5_path,'/',new_tag];
             end
         end
         %% (4) remove duplicates by removing seconds and comparing size
