@@ -10,8 +10,8 @@ global_config_fn  = 'global.config';
 tmp_config_path   = 'tmp/';
 
 %read configs
-load([tmp_config_path,site_info_fn,'.mat'])
 load([tmp_config_path,global_config_fn,'.mat']);
+load([tmp_config_path,site_info_fn,'.mat'])
 
 %% SETUP RADAR GRID
 
