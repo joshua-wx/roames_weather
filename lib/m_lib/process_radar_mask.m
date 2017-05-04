@@ -3,8 +3,9 @@ function [mask_grid,geo_coords] = process_radar_mask(radar_id,start_timestep,vol
 %% init
 %paths
 priority_fn = 'priority_list.txt';
-load('tmp/global.config.mat')
-load('tmp/site_info.txt.mat')
+load('global.config.mat')
+load([site_info_fn,'.mat']);
+
 %load priority
 priority_id_list = dlmread(priority_fn);
 %load transform data

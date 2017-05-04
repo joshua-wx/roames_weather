@@ -17,7 +17,6 @@ function compile_kmz
 %setup config names
 climate_fn     = 'climate.config';
 compile_fn     = 'compile.config';
-site_info_fn   = 'site_info.txt';
 local_tmp_path = 'tmp/';
 
 %create temp paths
@@ -39,10 +38,13 @@ load([local_tmp_path,climate_fn,'.mat']);
 read_config(compile_fn);
 load([local_tmp_path,compile_fn,'.mat']);
 
-
-% Load site info
-read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
-
+% site_info.txt
+site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),1);
+if site_warning == 1
+    disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+    return
+end
+load([local_tmp_path,site_info_fn,'.mat']);
 
 %% list kmz files and copy to s3
 dir_out          = dir(local_path); dir_out(1:2) = [];
@@ -97,13 +99,16 @@ coverage_str   = '';
 for i=1:length(siteid_list)
     %site list idx
     siteinfo_idx        = find(siteinfo_id_list==siteid_list(i));
-    %generate circle latlon
-    [site_cov_lat, site_cov_lon] = scircle1(siteinfo_lat_list(siteinfo_idx),siteinfo_lon_list(siteinfo_idx),km2deg(range_ring));
-    [site_cov_lon, site_cov_lat] = poly2cw(site_cov_lon, site_cov_lat);
-    %union with all coverage
-    [cov_lon,cov_lat]   = polybool('Union',cov_lon,cov_lat,site_cov_lon,site_cov_lat);
-    %append site latlonbox
-    site_latlonbox      = [site_latlonbox;[max(site_cov_lat),min(site_cov_lat),max(site_cov_lon),min(site_cov_lon)]];
+    %generates range rings for all site locations over time
+    for j=1:length(siteinfo_idx)
+        %generate circle latlon
+        [site_cov_lat, site_cov_lon] = scircle1(siteinfo_lat_list(siteinfo_idx(j)),siteinfo_lon_list(siteinfo_idx(j)),km2deg(range_ring));
+        [site_cov_lon, site_cov_lat] = poly2cw(site_cov_lon, site_cov_lat);
+        %union with all coverage
+        [cov_lon,cov_lat]   = polybool('Union',cov_lon,cov_lat,site_cov_lon,site_cov_lat);
+        %append site latlonbox
+        site_latlonbox      = [site_latlonbox;[max(site_cov_lat),min(site_cov_lat),max(site_cov_lon),min(site_cov_lon)]];
+    end
 end
 %split up coverage polygons into cells
 [cov_lat,cov_lon] = polysplit(cov_lat,cov_lon);

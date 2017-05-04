@@ -11,6 +11,9 @@ function prep
 
 try
 
+global_config_fn  = 'global.config';
+config_input_path = 'prep.config';
+    
 %add paths if not deployed
 if ~isdeployed
     addpath('/home/meso/dev/roames_weather/etc');
@@ -33,18 +36,15 @@ addpath('tmp/');
 delete('/tmp/*rapic')
 
 %load ftp config file
-config_input_path = 'prep.config';
 read_config(config_input_path);
 load(['tmp/',config_input_path,'.mat'])
 
 % Load global config files
-global_config_fn = 'global.config';
 read_config(global_config_fn);
 load(['tmp/',global_config_fn,'.mat']);
 
 % site_info.txt
-site_info_fn = 'site_info.txt';
-read_site_info(site_info_fn);
+[~] = read_site_info(site_info_fn);
 load(['tmp/',site_info_fn,'.mat']);
 
 %init local mirror folder
@@ -319,8 +319,8 @@ function rapic_convert(file_list,radar_id,local_mirror_path,arch_path)
 %dest_path: path to destination dir for h5 file
 
 %read site_info
-load(['tmp/site_info.txt.mat']);
 load(['tmp/global.config.mat']);
+load(['tmp/',site_info_fn,'.mat']);
 %find radar lat lon
 site_idx  = find(radar_id==siteinfo_id_list);
 radar_lat = siteinfo_lat_list(site_idx);

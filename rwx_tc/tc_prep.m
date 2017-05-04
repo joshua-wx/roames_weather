@@ -8,7 +8,6 @@ close all
 %vars
 tc_config_fn      = 'tc.config';
 global_config_fn  = 'global.config';
-site_info_fn      = 'site_info.txt';
 local_tmp_path    = 'tmp/';
 download_path     = [tempdir,'tc_download/'];
 transform_path    = [local_tmp_path,'transforms/'];
@@ -39,8 +38,12 @@ load([local_tmp_path,tc_config_fn,'.mat'])
 read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat']);
 
-% site_info.txt
-read_site_info(site_info_fn);
+% load site info
+site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
+if site_warning == 1
+    disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+    return
+end
 load([local_tmp_path,site_info_fn,'.mat']);
 
 % Preallocate regridding coordinates
@@ -49,9 +52,9 @@ preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
 %% load datasets
 
 %generate datasets
-oldest_time      = datenum(hist_oldest,ddb_tfmt);
-newest_time      = datenum(hist_newest,ddb_tfmt);
-download_s3_list = s3_ls_filter(odimh5_bucket,oldest_time,newest_time,radar_id_list);
+date_start       = datenum(date_start,ddb_tfmt);
+date_stop        = datenum(date_stop,ddb_tfmt);
+download_s3_list = s3_ls_filter(odimh5_bucket,date_start,date_stop,radar_id_list);
 for i=1:length(download_s3_list)
     %download data file and untar into download_path
     display(['s3 cp of ',download_s3_list{i}])

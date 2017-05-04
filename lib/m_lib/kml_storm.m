@@ -4,10 +4,10 @@ function kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct,tracki
 %network tree structure for a single radar_id
 
 %load radar colormap and gobal config
-load('tmp/interp_cmaps.mat')
-load('tmp/global.config.mat')
-load('tmp/site_info.txt.mat')
-load('tmp/vis.config.mat')
+load('interp_cmaps.mat')
+load('global.config.mat')
+load([site_info_fn,'.mat']);
+load('vis.config.mat')
 
 %extract storm ids
 if ~isempty(storm_jstruct)

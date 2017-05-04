@@ -15,6 +15,7 @@ display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/dev/roames_weather/etc/global.config',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/site_info.txt',etc_path)
+copyfile('/home/meso/dev/roames_weather/etc/site_info_old.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/priority_list.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/refl24bit.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/vel24bit.txt',etc_path)
@@ -32,6 +33,7 @@ ec2_ip      = '52.64.1.240';
 
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/global.config')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/site_info.txt')
+delete('/home/meso/dev/roames_weather/rwx_vis/etc/site_info_old.txt')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/pushover.token')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/refl24bit.txt')
 delete('/home/meso/dev/roames_weather/rwx_vis/etc/vel24bit.txt')

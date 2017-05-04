@@ -6,7 +6,7 @@ function kmlobj_struct = kml_odimh5(kmlobj_struct,odimh5_ffn,mask_grid,radar_id,
 %load radar colormap and gobal config
 load('tmp/interp_cmaps.mat')
 load('tmp/global.config.mat')
-load('tmp/site_info.txt.mat')
+load(['tmp/',site_info_fn,'.mat']);
 load('tmp/vis.config.mat')
 
 %init vars

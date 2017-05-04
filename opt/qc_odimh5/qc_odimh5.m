@@ -25,7 +25,7 @@ addpath('etc')
 local_tmp_path   = 'tmp';
 local_log_path   = 'log';
 config_input_fn  = 'qc.config';
-site_info_fn     = 'site_info.txt';
+global_config_fn = 'global.config';
 
 %ensure temp directory exists
 if exist(local_tmp_path,'file') ~= 7
@@ -39,18 +39,13 @@ if exist(local_log_path,'file') == 7
 end
 mkdir(local_log_path)
 
-%load global config file
+% Load global config files
+read_config(global_config_fn);
+load([local_tmp_path,global_config_fn,'.mat'])
+
+%load qc config file
 read_config(config_input_fn);
 load([local_tmp_path,'/',config_input_fn,'.mat'])
-
-%load sites
-site_info_fn      = 'site_info.txt';
-read_site_info(site_info_fn); load([local_tmp_path,'/',site_info_fn,'.mat']);
-if strcmp(radar_id,'all')
-    radar_id_list = siteinfo_id_list;
-else
-    radar_id_list = radar_id;
-end
 
 %init vars
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
@@ -131,7 +126,7 @@ for i=1:length(year_list)
                 end
                 h5_date     = datenum(h5_fn(1:14),'yyyymmddHHMMSS');
                 new_tag     = [num2str(radar_id_list(j),'%02.0f'),'_',datestr(h5_date,'yyyymmdd'),'_',datestr(h5_date,'HHMMSS'),'.h5'];
-                new_ffn     = [s3_bucket,h5_path,'/',new_tag];
+                new_ffn     = [h5_path,'/',new_tag];
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
                 pause(0.1)
                 wait_aws_finish(200)

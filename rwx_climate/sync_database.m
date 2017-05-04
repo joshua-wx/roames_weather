@@ -9,7 +9,6 @@ database_config_fn = 'sync.config';
 global_config_fn   = 'global.config';
 local_tmp_path     = 'tmp/';
 root_tmp_folder    = 'sync_database/';
-site_info_fn       = 'site_info.txt';
 
 %create temp paths
 if exist(local_tmp_path,'file') ~= 7
@@ -38,7 +37,8 @@ read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat'])
 
 % Load site info
-read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
+[~] = read_site_info(site_info_fn);
+load([local_tmp_path,site_info_fn,'.mat']);
 
 %read local archive path folders for 'all'
 if strcmp(radar_id_list,'all')

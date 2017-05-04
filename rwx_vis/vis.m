@@ -11,7 +11,6 @@ try
 % general vars
 vis_config_fn     = 'vis.config';
 global_config_fn  = 'global.config';
-site_info_fn      = 'site_info.txt';
 restart_vars_fn   = 'tmp/vis_restart_vars.mat';
 tmp_config_path   = 'tmp/';
 pushover_flag     = 1;
@@ -76,7 +75,16 @@ read_config(global_config_fn);
 load([tmp_config_path,global_config_fn,'.mat'])
 
 % site_info.txt
-read_site_info(site_info_fn); load([tmp_config_path,site_info_fn,'.mat']);
+if realtime_flag == 0 %radar_id_list will always be a single and list of int
+    site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
+    if site_warning == 1
+        disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+        return
+    end
+else
+    [~] = read_site_info(site_info_fn);
+end
+load([local_tmp_path,site_info_fn,'.mat']);
 % check if all sites are needed
 if strcmp(radar_id_list,'all')
     radar_id_list = siteinfo_id_list;
@@ -124,19 +132,19 @@ while exist('tmp/kill_vis','file')==2
     pause(5)
     
     % Calculate time limits from time options
-    if realtime_kml == 1
+    if realtime_flag == 1
         oldest_time = addtodate(utc_time,realtime_length,'hour');
         newest_time = utc_time;
     else
-        oldest_time = datenum(hist_oldest,ddb_tfmt);
-        newest_time = datenum(hist_newest,ddb_tfmt);
+        oldest_time = datenum(date_start,ddb_tfmt);
+        newest_time = datenum(date_stop,ddb_tfmt);
     end
     
     %% download odimh5/storm data
     %empty download path
     delete([download_path,'*'])
     %read staging index
-    if realtime_kml == 1
+    if realtime_flag == 1
         [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = sqs_process_staging(sqs_odimh5_process,oldest_time,newest_time,radar_id_list);
         download_stormh5_list                                     = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist);
     else
@@ -229,7 +237,7 @@ while exist('tmp/kill_vis','file')==2
     disp([10,'vis pass complete. ',num2str(length(update_radar_id_list)),' radars updated at ',datestr(now),10]);
     
     %break loop for not realtime
-    if realtime_kml == 0
+    if realtime_flag == 0
         delete('tmp/kill_vis')
         break
     end

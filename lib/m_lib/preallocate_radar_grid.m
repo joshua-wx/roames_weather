@@ -5,12 +5,11 @@ function preallocate_radar_grid(radar_id_list,out_path,force_update)
 %% init
 %paths
 global_config_fn  = 'global.config';
-site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
-%load sites
-load([tmp_config_path,site_info_fn,'.mat']);
 % Load global config files
 load([tmp_config_path,global_config_fn,'.mat']);
+%load sites
+load([tmp_config_path,site_info_fn,'.mat']);
 %create output path
 if exist(out_path,'file')~=7
     mkdir(out_path)

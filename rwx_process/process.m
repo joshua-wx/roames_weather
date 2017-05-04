@@ -16,7 +16,6 @@ clearvars
 restart_cofig_fn  = 'temp_process_vars.mat';
 process_config_fn = 'process.config';
 global_config_fn  = 'global.config';
-site_info_fn      = 'site_info.txt';
 local_tmp_path    = 'tmp/';
 download_path     = [tempdir,'process_h5_download/'];
 transform_path    = [local_tmp_path,'transforms/'];
@@ -80,7 +79,16 @@ read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat']);
 
 % site_info.txt
-read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
+if realtime_flag == 0 %radar_id_list will always be a single int
+    site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
+    if site_warning == 1
+        disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+        return
+    end
+else
+    [~] = read_site_info(site_info_fn);
+end
+load([local_tmp_path,site_info_fn,'.mat']);
 % check if all sites are needed
 if strcmp(radar_id_list,'all')
     radar_id_list = siteinfo_id_list;
@@ -116,10 +124,10 @@ while exist('tmp/kill_process','file')==2
     % create time span
     if realtime_flag == 1
         date_list = utc_time;
-    elseif isempty(hist_oldest_restart) %new climatology processing instance
-        date_list = datenum(hist_oldest,'yyyy_mm_dd'):datenum(hist_newest,'yyyy_mm_dd');
+    elseif isempty(date_start_restart) %new climatology processing instance
+        date_list = datenum(date_start,'yyyy_mm_dd'):datenum(date_stop,'yyyy_mm_dd');
     else %restart climatology processing
-        date_list = hist_oldest_restart:datenum(hist_newest,'yyyy_mm_dd');
+        date_list = date_start_restart:datenum(date_stop,'yyyy_mm_dd');
     end
     %loop through target ffn's
     for date_idx = 1:length(date_list)
@@ -147,15 +155,19 @@ while exist('tmp/kill_process','file')==2
         else
             disp(['Climatology processing downloading files from ',datestr(date_list(date_idx)),' for radar ',num2str(radar_id_list)]);
             %sync day of data from radar_id from s3 to local, radar_id_list must be a single number
-            s3_sync(odimh5_s3_bucket,download_path,radar_id_list,year(date_idx),month(date_idx),day(date_idx));
+            s3_sync(odimh5_s3_bucket,download_path,radar_id_list,year(date_list(date_idx)),month(date_list(date_idx)),day(date_list(date_idx)));
         end
         %build filelist
         download_path_dir = dir(download_path); download_path_dir(1:2) = [];
         pending_h5_fn_list = {download_path_dir.name};
-
+        if isempty(pending_h5_fn_list)
+            disp('no files present for target day')
+            continue
+        end
+        
         %primary loop
         for i=1:length(pending_h5_fn_list)
-            display(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
+            disp(['processing file of ',num2str(i),' of ',num2str(length(pending_h5_fn_list))])
             %init local filename for processing
             odimh5_ffn        = [download_path,pending_h5_fn_list{i}];
             if realtime_flag == 1
@@ -221,8 +233,8 @@ while exist('tmp/kill_process','file')==2
 
             %Kill function
             if toc(kill_timer)>kill_wait
-                hist_oldest_restart = date_list(date_idx);
-                save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list')
+                date_start_restart = date_list(date_idx);
+                save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','date_start_restart','nwp_extract_list')
                 %update user
                 disp(['@@@@@@@@@ wv_process restarted at ',datestr(now)])
                 %restart
@@ -254,7 +266,7 @@ while exist('tmp/kill_process','file')==2
     %break loop if cts_loop=0
     if realtime_flag==0
         delete('tmp/kill_process')
-        message = ['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',hist_oldest,' to ',hist_newest,' in ',num2str(toc(kill_timer)/60/60),'hrs'];
+        message = ['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',date_start,' to ',date_stop,' in ',num2str(toc(kill_timer)/60/60),'hrs'];
         pushover(['process ',pushover_tag],message);
         break
     end
@@ -284,8 +296,8 @@ catch err
         delete('tmp/kill_vis')
     end
     %save vars
-    hist_oldest_restart = date_list(date_idx);
-    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','hist_oldest_restart','nwp_extract_list','restart_tries')
+    date_start_restart = date_list(date_idx);
+    save([local_tmp_path,restart_cofig_fn],'complete_h5_fn_list','complete_h5_dt','date_start_restart','nwp_extract_list','restart_tries')
     %rethrow error and crash script
     rethrow(err)
 end

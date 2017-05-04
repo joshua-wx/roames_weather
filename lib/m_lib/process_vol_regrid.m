@@ -7,7 +7,6 @@ function grid_obj = process_vol_regrid(h5_ffn,transform_path,clim_radar_coords)
 
 %init paths and vars
 global_config_fn  = 'global.config';
-site_info_fn      = 'site_info.txt';
 tmp_config_path   = 'tmp/';
 
 %read configs

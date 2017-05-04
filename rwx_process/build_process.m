@@ -16,6 +16,7 @@ display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/dev/roames_weather/etc/global.config',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/site_info.txt',etc_path)
+copyfile('/home/meso/dev/roames_weather/etc/site_info_old.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
 
 display('tar')
@@ -23,22 +24,15 @@ tar_fn = [build_path,'process.tar'];
 tar(tar_fn,{'run_process.sh','process','run','etc/'})
 
 display('scp')
-% %historical - 1
-% ec2_ip      = '13.54.93.203';
-% [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
-% %historical - 2
-% ec2_ip      = '13.55.102.172';
-% [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
-% %historical - 3
-% ec2_ip      = '13.55.175.18';
-% [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
-% %historical - 4
-% ec2_ip      = '52.62.245.34';
-% [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
-% %realtime
-ec2_ip      = '52.62.240.73';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_process'])
+%historical - 2
+ec2_ip      = '13.55.160.117';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
+%historical - 3
+ec2_ip      = '52.62.188.225';
+[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
+
 
 delete('/home/meso/dev/roames_weather/rwx_process/etc/global.config')
 delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info.txt')
+delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info_old.txt')
 delete('/home/meso/dev/roames_weather/rwx_process/etc/pushover.token')

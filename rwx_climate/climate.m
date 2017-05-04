@@ -21,7 +21,6 @@ close all
 climate_config_fn  = 'climate.config';
 global_config_fn   = 'global.config';
 local_tmp_path     = 'tmp/';
-site_info_fn       = 'site_info.txt';
 
 %create temp paths
 if exist(local_tmp_path,'file') ~= 7
@@ -43,18 +42,23 @@ addpath('lib/')
 read_config(climate_config_fn);
 load([local_tmp_path,climate_config_fn,'.mat'])
 
+% Load global config files
+read_config(global_config_fn);
+load([local_tmp_path,global_config_fn,'.mat'])
+
 % check for conflicts
 if ci_flag == 1 && ce_flag == 1
 	disp('ce and ci are true, conflicting')
 	return
 end
 
-% Load global config files
-read_config(global_config_fn);
-load([local_tmp_path,global_config_fn,'.mat'])
-
-% Load site info
-read_site_info(site_info_fn); load([local_tmp_path,site_info_fn,'.mat']);
+% site_info.txt
+site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
+if site_warning == 1
+    disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+    return
+end
+load([local_tmp_path,site_info_fn,'.mat']);
 
 %create old path
 if exist(old_root,'file') ~= 7
@@ -126,7 +130,7 @@ for m = 1:length(radar_id_list)
 
     %%%date mask%%%
     %generate date span
-    date_list        = [datenum(date_start,'yyyy/mm/dd'):datenum(date_stop,'yyyy/mm/dd')];
+    date_list        = [datenum(date_start,'yyyy_mm_dd'):datenum(date_stop,'yyyy_mm_dd')];
     %filter months
     date_list_months = month(date_list);
     date_list        = date_list(ismember(date_list_months,month_list));

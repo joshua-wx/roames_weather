@@ -3,8 +3,20 @@ function era_rsite_temps()
 %freezing and -20C heights for each radar site across the country
 
 %add paths for lib/etc
-addpath('/home/meso/Dropbox/dev/wv/lib/m_lib/')
-addpath('/home/meso/Dropbox/dev/wv/etc/')
+addpath('/home/meso/Dropbox/dev/roames_weather/lib/m_lib/')
+addpath('/home/meso/Dropbox/dev/roames_weather/etc/')
+%init
+local_tmp_path  = 'tmp/';
+config_input_fn = 'global.config';
+
+%create temp paths
+if exist(local_tmp_path,'file') ~= 7
+    mkdir(local_tmp_path)
+end
+
+%load global config file
+read_config(config_input_fn);
+load([local_tmp_path,'/',config_input_fn,'.mat'])
 
 %out_dir
 out_path = 'out/';
@@ -13,9 +25,14 @@ if exist(out_path,'file')==7
 end
 mkdir(out_path)
 
-%read site
-%read_site_info('site_info.txt');
-load('site_info.txt.mat');
+% site_info.txt
+site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum('1997_01_01,'yyyy_mm_dd'),floor(now),1);
+if site_warning == 1
+    disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
+    return
+end
+load([local_tmp_path,site_info_fn,'.mat']);
+
 
 ddb_tmp_struct  = struct;
 year_list       = 1997:2016;
@@ -37,14 +54,19 @@ for i=1:length(year_list)
     %loop through radar sites
     for j=1:length(site_id_list)
         %init radar data
-        site_lat     = site_lat_list(j);
-        site_lon     = site_lon_list(j);
-        site_id      = site_id_list(j);
+        site_lat     = siteinfo_lat_list(j);
+        site_lon     = siteinfo_lon_list(j);
+        site_id      = siteinfo_id_list(j);
         site_id_str  = ['r',num2str(site_id)];
-        
+        site_start   = siteinfo_start_list(j);
+        site_stop    = siteinfo_stop_list(j);
         [~,lat_ind]  = min(abs(era_lat-site_lat));
         [~,lon_ind]  = min(abs(era_lon-site_lon));
         for k=1:length(era_dt)
+            %skip era_dates outside site start/stop
+            if era_dt<site_start || era_dt>site_stop
+                continue
+            end
             %extract profile for single time
             t_profile = era_t(lon_ind,lat_ind,:,k);
             z_profile = era_z(lon_ind,lat_ind,:,k);

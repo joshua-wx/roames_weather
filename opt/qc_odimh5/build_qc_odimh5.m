@@ -16,7 +16,6 @@ mcc('-m','qc_odimh5.m','-d',build_path)
 %build etc from global
 display('create etc')
 etc_path = 'etc';
-copyfile('/home/meso/dev/roames_weather/etc/site_info.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
 
 %build tar
@@ -51,5 +50,4 @@ ssh_ip      = '52.64.139.211';
 ssh_ip      = '13.55.179.118';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
 
-delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/site_info.txt')
 delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/pushover.token')

@@ -21,9 +21,9 @@ read_config(map_config_fn);
 load(['tmp/',map_config_fn,'.mat'])
 %read climate config
 load('tmp/climate.config.mat')
+load('tmp/global.config.mat')
 
 %site info
-site_info_fn = 'site_info.txt';
 load(['tmp/',site_info_fn,'.mat']);
 site_ind  = find(siteinfo_id_list==radar_id);
 site_lat  = siteinfo_lat_list(site_ind);
