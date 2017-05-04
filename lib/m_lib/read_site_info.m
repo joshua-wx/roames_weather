@@ -108,7 +108,8 @@ if nargin>1
                 end
             end
         end
+    end
 end
 
 %write to file
-save(['tmp/',site_info_fn,'.mat'],'siteinfo_id_list','siteinfo_name_list','siteinfo_lat_list','siteinfo_lon_list','siteinfo_alt_list','siteinfo_centroid','siteinfo_start_list','siteinfo_end_list')
+save(['tmp/',site_info_fn,'.mat'],'siteinfo_id_list','siteinfo_name_list','siteinfo_lat_list','siteinfo_lon_list','siteinfo_alt_list','siteinfo_start_list','siteinfo_stop_list')

@@ -1,10 +1,10 @@
-function era_rsite_temps()
+function era_rsite_temps
 %WHAT: processes an era-interim dataset of pressure level temps into
 %freezing and -20C heights for each radar site across the country
 
 %add paths for lib/etc
-addpath('/home/meso/Dropbox/dev/roames_weather/lib/m_lib/')
-addpath('/home/meso/Dropbox/dev/roames_weather/etc/')
+addpath('/home/meso/dev/roames_weather/lib/m_lib/')
+addpath('/home/meso/dev/roames_weather/etc/')
 %init
 local_tmp_path  = 'tmp/';
 config_input_fn = 'global.config';
@@ -26,7 +26,7 @@ end
 mkdir(out_path)
 
 % site_info.txt
-site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum('1997_01_01,'yyyy_mm_dd'),floor(now),1);
+site_warning = read_site_info(site_info_fn,site_info_old_fn,[1:99],datenum('1997_01_01','yyyy_mm_dd'),floor(now),1);
 if site_warning == 1
     disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
     return
@@ -52,7 +52,11 @@ for i=1:length(year_list)
     era_dt    = offset_dt + era_hour./24;
     
     %loop through radar sites
-    for j=1:length(site_id_list)
+    for j=1:length(siteinfo_id_list)
+        if siteinfo_id_list(j)~=21
+            continue
+        end
+        
         %init radar data
         site_lat     = siteinfo_lat_list(j);
         site_lon     = siteinfo_lon_list(j);
@@ -64,7 +68,7 @@ for i=1:length(year_list)
         [~,lon_ind]  = min(abs(era_lon-site_lon));
         for k=1:length(era_dt)
             %skip era_dates outside site start/stop
-            if era_dt<site_start || era_dt>site_stop
+            if era_dt(k)<site_start || era_dt(k)>site_stop
                 continue
             end
             %extract profile for single time
@@ -80,7 +84,8 @@ for i=1:length(year_list)
             [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,fz_level,minus20_level,era_dt(k),site_id);
             %write to ddb
             if tmp_sz==25 || k == length(era_dt)
-                ddb_batch_write(ddb_tmp_struct,ddb_table);
+                ddb_batch_write(ddb_tmp_struct,ddb_table,1);
+                pause(0.3)
                 %clear ddb_tmp_struct
                 ddb_tmp_struct  = struct;
                 %display('written_to ddb')
