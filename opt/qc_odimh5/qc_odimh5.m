@@ -22,7 +22,7 @@ end
 addpath('etc')
 
 %configs
-local_tmp_path   = 'tmp';
+local_tmp_path   = 'tmp/';
 local_log_path   = 'log';
 config_input_fn  = 'qc.config';
 global_config_fn = 'global.config';

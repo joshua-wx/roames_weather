@@ -75,7 +75,7 @@ kml_str = ge_groundoverlay(kml_str,['Radar Climatology for ',site_name,' ',kml_t
 %create silence mask
 if draw_silence == 1
     [tmp_lat,tmp_lon] = scircle1(site_lat,site_lon,km2deg(silence_radius));
-    kml_str = ge_swath_poly(kml_str,'poly_style','radar_blind_spot','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),'');
+    kml_str = ge_swath_poly(kml_str,'#poly_style','radar_blind_spot','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),'');
 end
 
 %create transparent polygon containing stats
@@ -85,17 +85,21 @@ html_str   = ['<header><h1>',kml_tag,' - ',site_name,'</h1></header>',10,...
             '<p>Period: ',date_start,' to ',date_stop,'</p>',10,...
             '<p>Variable: ',data_type,'</p>',10,...
             '<p>Min Theshold: ',num2str(data_min),'</p>',10,...
-            '<img src="colorbar.png" />'];
+            '<img src="',url_prefix,num2str(radar_id,'%02.0f'),'/colorbar.png" />'];
             
 %generate colorbar image
 colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label,rain_year_count);
+%copy to s3 folder
+s3_radar_path = [s3_path,num2str(radar_id,'%02.0f'),'/colorbar.png'];
+file_cp(colorbar_ffn,s3_radar_path,0,1);
+
 %generate swath poly
 [tmp_lat,tmp_lon] = scircle1(site_lat,site_lon,km2deg(data_range));
-kml_str = ge_swath_poly(kml_str,'trans_poly','balloon_popup_poly','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),html_str);
+kml_str = ge_swath_poly(kml_str,'#trans_poly','balloon_popup_poly','','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),html_str);
 
 %size kmlstr and png into a kmz
 kmz_fn    = [kml_tag,'_',site_name,'.kmz'];
-ge_kmz_out(kmz_fn,kml_str,[out_root,num2str(radar_id,'%02.0f'),'/'],{image_ffn,colorbar_ffn});
+ge_kmz_out(kmz_fn,kml_str,[out_root,num2str(radar_id,'%02.0f'),'/'],image_ffn);
 
 %remove files
 delete(image_ffn)
@@ -128,3 +132,4 @@ end
 %save figure to image and close
 saveas(gca,colorbar_ffn,'png');
 close(gcf)
+pause(0.1)

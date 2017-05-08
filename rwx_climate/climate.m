@@ -1,4 +1,4 @@
-function climate
+function climate(radar_id_list_in)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -8,6 +8,7 @@ function climate
 %statistical analysis
 % INPUTS
 % out_ffn: climate.config and mapping configs
+% radar_id_list_in: vector of radar ids
 % RETURNS: generates images and output databases
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,6 +76,10 @@ if strcmp(radar_id_list,'all')
     radar_id_list = vertcat(path_dir.name);
     is_folder     = vertcat(path_dir.isdir);
     radar_id_list = cell2mat(radar_id_list(is_folder));
+end
+%override with input var if present
+if nargin==1
+    radar_id_list = radar_id_list_in;
 end
 
 for m = 1:length(radar_id_list)

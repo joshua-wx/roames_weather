@@ -17,6 +17,7 @@ mcc('-m','qc_odimh5.m','-d',build_path)
 display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
+copyfile('/home/meso/dev/roames_weather/etc/global.config',etc_path)
 
 %build tar
 display('tar')
@@ -43,11 +44,9 @@ ssh_ip      = '52.65.131.100';
 %ftp machine 51-60
 ssh_ip      = '52.65.132.91';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
-%ftp machine 61-70
-ssh_ip      = '52.64.139.211';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
-%ftp machine 71-80
-ssh_ip      = '13.55.179.118';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
+% %ftp machine 61-70
+% ssh_ip      = '52.64.139.211';
+% [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
 
 delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/pushover.token')
+delete('/home/meso/dev/roames_weather/opt/qc_odimh5/etc/global.config')

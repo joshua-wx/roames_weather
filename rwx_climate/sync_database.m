@@ -1,8 +1,19 @@
-function sync_database
-
-%WHAT: Syncs the s3 stormh5 and stormddb data for a single radar id to a
+function sync_database(radar_id_list_in)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: Syncs the s3 stormh5 and stormddb data for a single radar id to a
 %local database structure. ddb data is cut from jstructs into daily
 %structs.
+% INPUTS
+% out_ffn: sync.config
+% radar_id_list_in: vector of radar ids
+% RETURNS: database on disk
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %setup config names
 database_config_fn = 'sync.config';
@@ -43,6 +54,10 @@ load([local_tmp_path,site_info_fn,'.mat']);
 %read local archive path folders for 'all'
 if strcmp(radar_id_list,'all')
     radar_id_list = siteinfo_id_list;
+end
+%override with input var if present
+if nargin==1
+    radar_id_list = radar_id_list_in;
 end
 
 for m = 1:length(radar_id_list)
