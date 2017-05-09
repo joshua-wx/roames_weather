@@ -15,9 +15,11 @@ function compile_kmz
 %% init
 
 %setup config names
-climate_fn     = 'climate.config';
-compile_fn     = 'compile.config';
-local_tmp_path = 'tmp/';
+climate_fn       = 'climate.config';
+compile_fn       = 'compile.config';
+site_info_fn     = 'site_info.txt';
+site_info_old_fn = 'site_info_old.txt';
+local_tmp_path   = 'tmp/';
 
 %create temp paths
 if exist(local_tmp_path,'file') ~= 7

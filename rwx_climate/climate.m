@@ -73,9 +73,9 @@ if strcmp(radar_id_list,'all')
     old_idx       = find(strcmp({path_dir.name},'OLD'));
     path_dir(old_idx) = [];
     %keep only folders and create radar list
-    radar_id_list = vertcat(path_dir.name);
+    radar_id_list = str2num(vertcat(path_dir.name));
     is_folder     = vertcat(path_dir.isdir);
-    radar_id_list = cell2mat(radar_id_list(is_folder));
+    radar_id_list = radar_id_list(is_folder);
 end
 %override with input var if present
 if nargin==1
