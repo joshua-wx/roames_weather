@@ -43,6 +43,13 @@ if options(2)==1
     [link,ffn]                = kml_odimh5_ppi(ppi_path,ppi_tag,img_atts,ppi_struct,2);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_vradh',link,ffn);
 end
+%Single Doppler Velocity
+if options(10)==1
+    %create kml for vel ppi
+    ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
+    [link,ffn]                = kml_singledop(ppi_path,ppi_tag,img_atts,ppi_struct,2);
+    kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
+end
 
 function kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,vol_start_time,vol_stop_time,storm_latlonbox,type,link,ffn)
 %WHAT: Append entry to kmlobj_struct

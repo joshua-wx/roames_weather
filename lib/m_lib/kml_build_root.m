@@ -165,8 +165,12 @@ if options(2)==1
     tmp_str = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
 end
+if options(10)==1
+    tmp_str = generate_radar_nl('ppi_singledop',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    ppi_str = ge_folder(ppi_str,tmp_str,'SingleDoppler','',1);
+end
 
-if any(options(1:2))
+if any(options([1,2,10]))
     display('building offline images')
     generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
