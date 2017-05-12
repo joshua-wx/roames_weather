@@ -12,7 +12,7 @@ function qc_odimh5
 %
 % INPUT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+try
 %check if is deployed
 if ~isdeployed
     addpath('/home/meso/dev/roames_weather/lib/m_lib');
@@ -182,7 +182,11 @@ for i=1:length(year_list)
             for k = 1:length(h5_name)
                 h5_ffn       = [s3_bucket,h5_name{k}];
                 [~,h5_fn,~]  = fileparts(h5_ffn);
+                try
                 date_list(k) = datenum(h5_fn(4:end),'yyyymmdd_HHMMSS');
+                catch
+                    keyboard
+                end
             end
             %generate dateonly and uniq lists
             dateonly_list       = floor(date_list);
@@ -221,7 +225,10 @@ for i=1:length(year_list)
 end
 display(['qc complete for ',num2str(radar_id_list)])
 pushover('qc_odimh5',['qc complete for ',num2str(radar_id_list)])
-
+catch err
+    pushover('qc_odimh5',['qc CRASHED for ',num2str(radar_id_list)])
+    rethrow(err)
+end
 function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,h5_ffn,h5_size)
 
 %init
