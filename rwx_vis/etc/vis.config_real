@@ -66,8 +66,8 @@ outer_alpha           0.5               %alpha for outer collada isosurface
 min_track_cells       3                 %minimum of unique cells for kml track generation (min 2)
 %
 % KML LAYER OPTIONS
-%                      1 2 3 4 5 6 7 8 9 10
-options               [1,0,0,0,1,1,1,0,1,1]
+%                      1 2 3 4 5 6 7 8 9 10 11
+options               [1,0,0,0,1,1,1,0,1,1,1]
 %description (T/F):
 %Entry (1)  PPI refl kml layer
 %Entry (2)  PPI vel kml layer
@@ -79,6 +79,15 @@ options               [1,0,0,0,1,1,1,0,1,1]
 %Entry (8)  track
 %Entry (9)  swath
 %Entry (10) nowcast
+%Entry (11) single doppler wind speed
+%
+% SingleDop Products (sweep is determined by ppi_sweep)
+sd_l              3                     %sd decorrelation length (km)
+sd_min_rng        5                     %sd min range (km)
+sd_max_rng        60                    %sd max range (km)
+sd_thin_azi       2                     %sd thin in azi dim
+sd_thin_rng       12                    %sd thin in rng dim
+sd_plt_thin       5                     %thin integer for vectors 
 %
 % ERROR NOTIFICATION
 %

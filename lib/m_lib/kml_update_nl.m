@@ -32,7 +32,7 @@ for i=1:length(r_id_list)
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_vradh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
     %SingleDoppler
-    if options(10)==1
+    if options(11)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_singledop',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
     end
     %xsec_refl

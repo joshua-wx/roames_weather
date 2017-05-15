@@ -1,4 +1,3 @@
-#! /meso/home/anaconda2/bin/python
 ##############################################################################
 #
 # Joshua Soderholm, Fugro ROAMES, 2017
@@ -6,6 +5,7 @@
 # WHAT: computes the single dop transform and output to netcdf using 
 # NASA SingleDop code https://github.com/nasa/SingleDop based on 
 # Xu et al., 2006: Background error covariance functions for vector wind analyses using Doppler-radar radial-velocity observations. Q. J. R. Meteorol. Soc., 132, 2887-2904.
+#
 # INPUTS
 # h5_ffn:      full file path to odimh5 input file
 # nc_ffn:      full file path to netcdf output file
@@ -15,12 +15,13 @@
 # sweep:       integer of radar sweep to process (starting from 0)
 # thin_i:      integer specifiying thin factors of i dim
 # thin_j:      integer specifiying thin factors of j dim
-# 
-# RETURNS: saves asset information to mat file
 #
 ##############################################################################
 
 #import lbraries
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 import pyart.aux_io as aux_io
 import pyart.correct as correct
 import singledop

@@ -23,10 +23,10 @@ copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
 
 display('tar')
 tar_fn = [build_path,'vis.tar'];
-tar(tar_fn,{'run_vis.sh','vis','run','etc/'})
+tar(tar_fn,{'run_vis.sh','vis','run','etc/','py_lib/'})
 
 display('scp')
-%historical
+%realtime
 ec2_ip      = '52.64.1.240';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/rwx_vis/'])
 

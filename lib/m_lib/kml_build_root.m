@@ -165,7 +165,7 @@ if options(2)==1
     tmp_str = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
 end
-if options(10)==1
+if options(11)==1
     tmp_str = generate_radar_nl('ppi_singledop',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'SingleDoppler','',1);
 end
@@ -283,7 +283,7 @@ function generate_offline_radar(dest_root,file_path,radar_id_list,site_latlonbox
 png_ffn = [pwd,'/etc/overlays/radar_offline.png'];
 for i=1:length(radar_id_list)
     radar_id_str = num2str(radar_id_list(i),'%02.0f');
-    offline_kml  = ge_groundoverlay('','Radar Offline','radar_offline.png',site_latlonbox(i,:),'','','clamped','',1);
+    offline_kml  = ge_groundoverlay('','Radar Offline','radar_offline.png',site_latlonbox(i,:),'','','clamped','',1,0);
     kmz_fn       = ['radar_offline_',radar_id_str,'.kmz'];
     kml_path     = [dest_root,file_path,radar_id_str,'/'];
     ge_kmz_out(kmz_fn,offline_kml,kml_path,png_ffn);

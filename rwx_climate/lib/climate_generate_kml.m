@@ -70,7 +70,7 @@ latlonbox = [kml_N_lat,kml_S_lat,kml_E_lon,kml_W_lon];
 
 %create ground overlay kml
 kml_tag   = ['IDR',num2str(radar_id,'%02.0f')];
-kml_str = ge_groundoverlay(kml_str,['Radar Climatology for ',site_name,' ',kml_tag],'rwx_climate.png',latlonbox,'','','clamped','',1);
+kml_str = ge_groundoverlay(kml_str,['Radar Climatology for ',site_name,' ',kml_tag],'rwx_climate.png',latlonbox,'','','clamped','',1,0);
 
 %create silence mask
 if draw_silence == 1

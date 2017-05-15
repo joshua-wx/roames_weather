@@ -12,17 +12,17 @@ try
 vis_config_fn     = 'vis.config';
 global_config_fn  = 'global.config';
 restart_vars_fn   = 'tmp/vis_restart_vars.mat';
-tmp_config_path   = 'tmp/';
+local_tmp_path    = 'tmp/';
 pushover_flag     = 1;
-transform_path    = [tmp_config_path,'transforms/'];
+transform_path    = [local_tmp_path,'transforms/'];
 kmlobj_struct     = [];
 vol_struct        = [];
 storm_jstruct     = [];
 restart_tries     = 0;
 crash_restart     = false;
 %init tmp path
-if exist(tmp_config_path,'file') ~= 7
-    mkdir(tmp_config_path)
+if exist(local_tmp_path,'file') ~= 7
+    mkdir(local_tmp_path)
 end
     
 % setup kill time (restart program to prevent memory fragmentation)
@@ -35,15 +35,17 @@ if isdeployed
     addpath('etc/geo_data')
     addpath('etc')
     addpath('tmp')
+    addpath('py_lib')
 else
-    addpath('/home/meso/dev/roames_weather/lib/m_lib');
-    addpath('/home/meso/dev/roames_weather/lib/ge_lib');
-    addpath('/home/meso/dev/shared_lib/jsonlab');
+    addpath('/home/meso/dev/roames_weather/lib/m_lib')
+    addpath('/home/meso/dev/roames_weather/lib/ge_lib')
+    addpath('/home/meso/dev/shared_lib/jsonlab')
     addpath('/home/meso/dev/roames_weather/etc')
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc/geo_data')
-    addpath('/home/meso/dev/roames_weather/bin/json_read');
+    addpath('/home/meso/dev/roames_weather/bin/json_read')
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc')
     addpath('/home/meso/dev/roames_weather/rwx_vis/tmp')
+    addpath('/home/meso/dev/roames_weather/rwx_vis/py_lib')
 end
 
 %clear tmp
@@ -53,7 +55,7 @@ delete('/tmp/*png')
 
 % load kml_config
 read_config(vis_config_fn);
-load([tmp_config_path,vis_config_fn,'.mat'])
+load([local_tmp_path,vis_config_fn,'.mat'])
 
 %init download path
 if exist(download_path,'file')~=7
@@ -72,7 +74,7 @@ colormap_interp('refl24bit.txt','vel24bit.txt');
 
 % Load global config files
 read_config(global_config_fn);
-load([tmp_config_path,global_config_fn,'.mat'])
+load([local_tmp_path,global_config_fn,'.mat'])
 
 % site_info.txt
 if realtime_flag == 0 %radar_id_list will always be a single and list of int
@@ -148,7 +150,7 @@ while exist('tmp/kill_vis','file')==2
         [download_odimh5_list,odimh5_datelist,odimh5_radaridlist] = sqs_process_staging(sqs_odimh5_process,oldest_time,newest_time,radar_id_list);
         download_stormh5_list                                     = ddb_filter_stormh5(storm_ddb_table,odimh5_datelist,odimh5_radaridlist);
     else
-        download_odimh5_list   = s3_ls_filter(odimh5_bucket,oldest_time,newest_time,radar_id_list);
+        download_odimh5_list   = s3_ls_filter(odimh5_s3_bucket,oldest_time,newest_time,radar_id_list);
         date_id_list           = floor(oldest_time):1:floor(newest_time);
         download_stormh5_list  = ddb_filter_index(storm_ddb_table,'date_id',date_id_list,'sort_id',oldest_time,newest_time,radar_id_list);
     end
@@ -372,7 +374,7 @@ function storm_jstruct = update_storm_jstruct(storm_jstruct,download_stormh5_lis
 %sources stormh5 ddb entries for each stormh5 file and adds this to
 %storm_jstruct. Removes entries older than oldest_time
 load('tmp/global.config.mat')
-
+disp('extract required data from stormh5 ddb')
 %clean storm_jstruct
 if ~isempty(storm_jstruct)
     %find old entries

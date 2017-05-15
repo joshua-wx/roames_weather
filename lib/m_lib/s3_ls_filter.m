@@ -27,7 +27,7 @@ for i = 1:length(radar_id_list)
 		%loop through each file name and check date
 		for k = 1:length(h5_name)
 			%extract fileparts
-			h5_ffn      = [s3_bucket,h5_name{k}];
+			h5_ffn      = [s3_bucket,sub_path,h5_name{k}];
 			[~,h5_fn,~] = fileparts(h5_ffn);
 			%extract file date
 			h5_dt       = datenum(h5_fn(4:end),'yyyymmdd_HHMMSS');

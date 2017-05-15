@@ -24,8 +24,8 @@ tar_fn = [build_path,'process.tar'];
 tar(tar_fn,{'run_process.sh','process','run','etc/'})
 
 display('scp')
-%historical - 2
-ec2_ip      = '52.65.143.108';
+%realtime
+ec2_ip      = '52.62.240.73';
 [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
 
 

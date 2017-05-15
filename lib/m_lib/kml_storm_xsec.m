@@ -12,7 +12,7 @@ kmz_fn   = [xsec_tag,'.kmz'];
 kmz_ffn  = [tempdir,kmz_fn];
 alpha_map = ones(length(cmap),1); alpha_map(1) = 0;
 imwrite(xsec_img,cmap,png_ffn,'Transparency',alpha_map);
-xsec_kml  = ge_groundoverlay('',xsec_tag,png_fn,storm_latlonbox,'','','absolute',xsec_alt,1);
+xsec_kml  = ge_groundoverlay('',xsec_tag,png_fn,storm_latlonbox,'','','absolute',xsec_alt,1,1);
 %use xsec_kml to create a kmz file containing the xsec image file.
 ge_kmz_out(kmz_fn,xsec_kml,[dest_root,dest_path],png_ffn);
 %init link

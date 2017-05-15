@@ -16,10 +16,10 @@ transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.
 %% ppi ground overlays ########### CHANGE LOOP TO RUN odimh5_fn_list
     
 %load transform
-load(transform_fn,'img_azi','img_rng','img_latlonbox')
+load(transform_fn,'img_azi','img_rng','img_latlonbox','geo_coords')
 %struct up atts
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
-%loop through new odimh5 files
+%process odimh5
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
 [ppi_elv,~]              = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
 vol_start_time           = process_read_vol_time(odimh5_ffn);
@@ -37,18 +37,23 @@ if options(1)==1
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_dbzh',link,ffn);
 end
 %PPI Velocity
-if options(2)==1
+if options(2)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
     ppi_tag                   = [data_tag,'.ppi_vradh.sweep_',num2str(ppi_elv,'%02.1f')];
     [link,ffn]                = kml_odimh5_ppi(ppi_path,ppi_tag,img_atts,ppi_struct,2);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_vradh',link,ffn);
 end
 %Single Doppler Velocity
-if options(10)==1
+if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
+	try
     ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn]                = kml_singledop(ppi_path,ppi_tag,img_atts,ppi_struct,2);
+    [link,ffn]                = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
+	catch err
+		message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
+		pushover('SingleDop Error',message)
+	end
 end
 
 function kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,vol_start_time,vol_stop_time,storm_latlonbox,type,link,ffn)

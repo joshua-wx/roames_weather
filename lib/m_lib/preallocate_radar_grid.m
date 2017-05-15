@@ -33,10 +33,11 @@ for i=1:length(radar_id_list)
 
     %check if transform file exists and needs replacing
 	out_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-	if exist(out_fn,'file')==2 && force_update==0
-		display(['Skipping transform build for ',num2str(radar_id)]);
+    if exist(out_fn,'file')==2 && force_update==0
+		disp(['Skipping transform build for ',num2str(radar_id)]);
 		continue
 	end
+    disp(['Building transform for ',num2str(radar_id)]);
     %subset to radar using radar_mask_rng
     [x_ind,y_ind,radar_lat_vec,radar_lon_vec]      = radar_grid(radar_lat,radar_lon,lat_vec,lon_vec,radar_mask_rng);
     

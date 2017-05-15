@@ -34,7 +34,7 @@ try
 		try
         	NI     = h5readatt(h5_ffn,['/',dataset_name,'/how'],'NI');
 		catch
-			NI     = -999; %dummy fill
+			NI     = max(abs(dataset_struct.data2.data(:))); %dummy fill using max of abs
 		end
     else
         %dummy nyquist data
