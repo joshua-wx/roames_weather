@@ -128,6 +128,7 @@ for i=1:length(year_list)
                 new_tag     = [num2str(radar_id_list(j),'%02.0f'),'_',datestr(h5_date,'yyyymmdd'),'_',datestr(h5_date,'HHMMSS'),'.h5'];
                 new_ffn     = [h5_path,'/',new_tag];
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
+                disp(['renaming ',h5_ffn,' to remove nowcast filename'])
                 pause(0.1)
                 wait_aws_finish(200)
                 [sout,eout] = unix(cmd);

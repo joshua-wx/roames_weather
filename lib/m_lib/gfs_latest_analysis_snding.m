@@ -1,4 +1,4 @@
-function [extract_db,nn_snd_fz_h,nn_snd_minus20_h]=gfs_latest_analysis_snding(extract_db,r_lat,r_lon)
+function [extract_db,nn_snd_fz_h,nn_snd_minus20_h]=gfs_latest_analysis_snding(extract_db,r_lat,r_lon,radar_id,eraint_ddb_table)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -44,12 +44,24 @@ end
 %fetch from web if nothing returned via extract_db
 if isempty(nn_snd_fz_h)
     [nn_snd_fz_h,nn_snd_minus20_h] = fetch_gfs_snding(adj_datenum,r_lat,r_lon);
-    extract_db                     = [extract_db;[adj_datenum,r_lat,r_lon,nn_snd_fz_h,nn_snd_minus20_h]];
+    %catch if gfs extract fails
+    if isempty(nn_snd_fz_h)
+        %if gfs extract failes, pull data from pervious year in eraint
+        %(best guess)
+        offset_date = addtodate(now,-2,'year');
+        [~,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract([],offset_date,radar_id,eraint_ddb_table);
+        %don't append to extract_db
+    else
+        %append gfs data to extract_db
+        extract_db                 = [extract_db;[adj_datenum,r_lat,r_lon,nn_snd_fz_h,nn_snd_minus20_h]];
+    end
 end
 
 %clean gfs extract list (older than 1 day)
-remove_ind = adj_datenum-extract_db(:,1)>1;
-extract_db(remove_ind,:)=[];
+if ~isempty(extract_db)
+    remove_ind = adj_datenum-extract_db(:,1)>1;
+    extract_db(remove_ind,:)=[];
+end
     
 
 function [nn_snd_fz_h,nn_snd_minus20_h] = fetch_gfs_snding(adj_datenum,r_lat,r_lon)
@@ -71,8 +83,16 @@ snd_url = ['https://rucsoundings.noaa.gov/get_soundings.cgi?data_source=GFS&late
 
 %fetch from web
 web_str = '';
-while isempty(web_str)
-    web_str = urlread(snd_url);
+try
+    while isempty(web_str)
+        web_str = urlread(snd_url);
+    end
+catch
+    %gfs extract failed url request... send pushover update
+    pushover('process gfs fetch failed',snd_url);
+    nn_snd_fz_h      = [];
+    nn_snd_minus20_h = [];
+    return
 end
 
 %read into formatted data
