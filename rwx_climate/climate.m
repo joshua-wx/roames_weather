@@ -54,7 +54,7 @@ if ci_flag == 1 && ce_flag == 1
 end
 
 % site_info.txt
-site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
+site_warning = read_site_info(site_info_fn,site_info_moved_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
 if site_warning == 1
     disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
     return

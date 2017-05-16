@@ -80,7 +80,7 @@ load([local_tmp_path,global_config_fn,'.mat']);
 
 % site_info.txt
 if realtime_flag == 0 %radar_id_list will always be a single int
-    site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
+    site_warning = read_site_info(site_info_fn,site_info_moved_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),0);
     if site_warning == 1
         disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
         return

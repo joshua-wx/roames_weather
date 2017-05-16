@@ -154,23 +154,27 @@ file_mv(temp_ffn,[dest_root,'doc.kml'])
 
 %% build ppi groups kml
 
-%scan.kml
+%ppi.kml
 display('building ppi nl kml')
-ppi_str  = ppi_style_str;
+ppi_str         = ppi_style_str;
+offline_nl_flag = false;
 if options(1)==1
-    tmp_str = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    tmp_str = generate_radar_nl('ppi_dbzh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,offline_nl_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'PPI DBZH','',1);
+    offline_nl_flag = true;
 end
 if options(2)==1
-    tmp_str = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    tmp_str = generate_radar_nl('ppi_vradh',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,offline_nl_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
+    offline_nl_flag = true;
 end
 if options(11)==1
-    tmp_str = generate_radar_nl('ppi_singledop',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag);
+    tmp_str = generate_radar_nl('ppi_singledop',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,offline_nl_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'SingleDoppler','',1);
+    offline_nl_flag = true;
 end
-
-if any(options([1,2,10]))
+%build offline ground overlays
+if any(options([1,2,11]))
     display('building offline images')
     generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
@@ -226,7 +230,7 @@ ge_kml_out(temp_ffn,'Track Objects',track_str);
 file_mv(temp_ffn,[dest_root,'track.kml']);
 wait_aws_finish
 
-function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag)
+function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag,offline_nl_flag)
 %WHAT: creates network links and empty kml points which the nl point to for
 %each radar for the specified prefix
 kml_out       = '';
@@ -249,8 +253,8 @@ for i=1:length(radar_id_list)
     kml_name     = radar_id_str;
     kml_fn       = [kml_path,prefix,'_',radar_id_str,'.kml'];
     kml_out      = ge_networklink(kml_out,kml_name,kml_fn,0,0,60,region_kml,'','',1); %refresh every minute or onRegion
-    %init radar offline kml network link for ppis, empty for others
-    if strcmp(prefix(1:3),'ppi')
+    %init radar offline kml network link for first (using offline_nl_flag) ppi, empty for others
+    if strcmp(prefix(1:3),'ppi') && ~offline_nl_flag
         kml2_nl = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
     else
         kml2_nl = '';

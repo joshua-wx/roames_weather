@@ -26,7 +26,7 @@ end
 mkdir(out_path)
 
 % site_info.txt
-site_warning = read_site_info(site_info_fn,site_info_old_fn,[1:99],datenum('1997_01_01','yyyy_mm_dd'),floor(now),1);
+site_warning = read_site_info(site_info_fn,site_info_moved_fn,[1:99],datenum('1997_01_01','yyyy_mm_dd'),floor(now),1);
 if site_warning == 1
     disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
     return

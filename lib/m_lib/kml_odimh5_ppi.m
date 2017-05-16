@@ -43,7 +43,7 @@ imwrite(ppi_img_png,img_cmap,png_ffn,'Transparency',alpha_map);
 ppi_img_kml  = ge_groundoverlay('',data_tag,[data_tag,'.png'],img_atts.img_latlonbox,'','','clamped','',1,0);
 %size kmlstr and png into a kmz
 kmz_fn  = [data_tag,'.kmz'];
-ge_kmz_out(kmz_fn,ppi_img_kml,dest_path,png_ffn); %TO FIX
+ge_kmz_out(kmz_fn,ppi_img_kml,dest_path,png_ffn);
 %create link
 link = kmz_fn;
 ffn  = [dest_path,kmz_fn];

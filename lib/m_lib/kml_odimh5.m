@@ -48,11 +48,10 @@ if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
 	try
     ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn]                = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
+    [link,ffn,eout]                = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
-	catch err
-		message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
-		pushover('SingleDop Error',message)
+    catch
+		pushover('SingleDop Error',eout)
 	end
 end
 

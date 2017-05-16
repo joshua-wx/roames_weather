@@ -1,4 +1,4 @@
-function [link,ffn] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords)
+function [link,ffn,sout] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords)
 
 load('tmp/interp_cmaps.mat')
 load('tmp/vis.config.mat')

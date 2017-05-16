@@ -17,8 +17,7 @@ function compile_kmz
 %setup config names
 climate_fn       = 'climate.config';
 compile_fn       = 'compile.config';
-site_info_fn     = 'site_info.txt';
-site_info_old_fn = 'site_info_old.txt';
+global_config_fn = 'global.config';
 local_tmp_path   = 'tmp/';
 
 %create temp paths
@@ -27,6 +26,7 @@ if exist(local_tmp_path,'file') ~= 7
 end
 
 %add library paths
+addpath('/home/meso/dev/roames_weather/etc')
 addpath('/home/meso/dev/roames_weather/lib/m_lib')
 addpath('/home/meso/dev/roames_weather/lib/ge_lib')
 addpath('etc/')
@@ -40,8 +40,12 @@ load([local_tmp_path,climate_fn,'.mat']);
 read_config(compile_fn);
 load([local_tmp_path,compile_fn,'.mat']);
 
+% Load global config files
+read_config(global_config_fn);
+load([local_tmp_path,global_config_fn,'.mat'])
+
 % site_info.txt
-site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),1);
+site_warning = read_site_info(site_info_fn,site_info_moved_fn,radar_id_list,datenum(date_start,'yyyy_mm_dd'),datenum(date_stop,'yyyy_mm_dd'),1);
 if site_warning == 1
     disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
     return

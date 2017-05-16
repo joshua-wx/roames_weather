@@ -1,0 +1,34 @@
+# SITE FORMAT is formatted as
+#   stnid name
+#
+# Contains IDs for sites which do not send realtime data.
+#
+# RADAR SITE DATA
+1 CampRd
+5 Carnvn
+7 Wyndham
+10 Darwin
+11 Adel
+12 Perth
+13 Syd_A_P
+18 Weipa
+20 Twnsvl
+21 Mt_Strt
+26 PrthA/P
+32 Esprnce
+34 CairnAP
+35 Coffs_H
+37 Hobart
+38 Charlvl
+39 HallsCk
+43 BrisA/P
+45 Eucla
+47 R/hmptn
+51 MelbnAP
+57 E_Sale
+59 Gunn_Pt
+60 Nadi
+61 Nausori
+62 Norfolk
+65 Tennant
+74 Labasa

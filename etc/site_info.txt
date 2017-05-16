@@ -139,7 +139,7 @@
 #   by OEB (A Apostolou).
 #
 # RADAR SITE DATA
-  0 server_   0.000    0.000      0  0 No_Radar    0      
+#  0 server_   0.000    0.000      0  0 No_Radar    0      
   1 CampRd_  37.691  144.946    110  4 WSR81C-8    0     
   2 Melb___  37.85525 144.75544  42 14 Meteor1500S 087031 
   3 Wollgng  34.2625  150.8752  449 15 DWSR8502S-14 068219 

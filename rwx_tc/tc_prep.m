@@ -39,7 +39,7 @@ read_config(global_config_fn);
 load([local_tmp_path,global_config_fn,'.mat']);
 
 % load site info
-site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
+site_warning = read_site_info(site_info_fn,site_info_moved_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
 if site_warning == 1
     disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
     return

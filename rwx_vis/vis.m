@@ -78,7 +78,7 @@ load([local_tmp_path,global_config_fn,'.mat'])
 
 % site_info.txt
 if realtime_flag == 0 %radar_id_list will always be a single and list of int
-    site_warning = read_site_info(site_info_fn,site_info_old_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
+    site_warning = read_site_info(site_info_fn,site_info_moved_fn,radar_id_list,datenum(date_start,ddb_tfmt),datenum(date_stop,ddb_tfmt),0);
     if site_warning == 1
         disp('site id list and contains ids which exist at two locations (its been reused or shifted), fix using stricter date range (see site_info_old)')
         return
@@ -90,6 +90,16 @@ load([local_tmp_path,site_info_fn,'.mat']);
 % check if all sites are needed
 if strcmp(radar_id_list,'all')
     radar_id_list = siteinfo_id_list;
+end
+
+%load ignore radar id list for realtime data
+if realtime_flag == 1
+    %read ignore list
+    fid = fopen(site_info_ignore_fn);
+    ignore_list = textscan(fid, '%f %*s','CommentStyle','#','MultipleDelimsAsOne',true); ignore_list=ignore_list{1};
+    fclose(fid);
+    %apply ignore list
+    radar_id_list = setxor(radar_id_list,ignore_list);
 end
 
 %init vars

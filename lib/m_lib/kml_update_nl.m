@@ -23,18 +23,29 @@ for i=1:length(r_id_list)
     radar_id  = r_id_list(i);
     ppi_path  = [dest_root,ppi_obj_path,num2str(radar_id,'%02.0f'),'/'];
     cell_path = [dest_root,cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
+     
     %PPI Reflectivity
     if options(1)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_dbzh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        offline_type = 'ppi_dbzh';
     end
     %PPI Velcoity
     if options(2)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_vradh',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        offline_type = 'ppi_vradh';
     end
     %SingleDoppler
     if options(11)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_singledop',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
+        offline_type = 'ppi_singledop';
     end
+    
+    %offline ppi data
+    if any(options([1,2,11]))
+        display('building offline images')
+        generate_offline_nl(radar_id,kmlobj_struct,offline_type,ppi_path);
+    end
+    
     %xsec_refl
     if options(3)==1
         generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_refl',cell_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
@@ -70,9 +81,7 @@ name         = [type,'_',num2str(radar_id,'%02.0f')];
 target_idx   = find(ismember(type_list,type) & r_id_list==radar_id);
 %write out offline radar image if no data is present
 if isempty(target_idx)
-    radar_id_str = num2str(radar_id,'%02.0f');
-    nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
-    ge_kml_out([nl_path,name,'.kml'],name,nl_kml);
+    ge_kml_out([nl_path,name,'.kml'],'','');
     return
 end
 
@@ -174,3 +183,16 @@ for i=1:length(uniq_track_list)
 end
 %write out
 ge_kml_out([nl_path,nl_name,'.kml'],nl_name,nl_kml);
+
+
+function generate_offline_nl(radar_id,kmlobj_struct,type,nl_path)
+%find entries from correct radar_id
+r_id_list  = [kmlobj_struct.radar_id];
+%write out offline radar image if no data is present
+if ~any(r_id_list==radar_id)
+    radar_id_str = num2str(radar_id,'%02.0f');
+    nl_kml       = ge_networklink('','Radar Offline',['radar_offline_',radar_id_str,'.kmz'],0,0,60,'','','',1);
+    name         = [type,'_',num2str(radar_id,'%02.0f')];
+    ge_kml_out([nl_path,name,'.kml'],radar_id_str,nl_kml);
+    return
+end
