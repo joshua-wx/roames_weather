@@ -9,6 +9,7 @@
 # INPUTS
 # h5_ffn:      full file path to odimh5 input file
 # plt_ffn:     full file path to output plot file
+# NI:          nyquist velocity (m/s)
 # sd_l:        decorrelation length scale for single dop (km)
 # min_rng:     min rng of single dop grid (km)
 # max_rng      max rng of single dop grid (km)
@@ -16,8 +17,6 @@
 # thin_azi:    integer specifiying thin factors of azimuth dim
 # thin_rng:    integer specifiying thin factors of slant range dim
 # plt_thin:    index for thinning wind vectors on plot
-# wspd_max:    maximum colormap value
-# vec_scale:   size scaling for vector plot
 # 
 ##############################################################################
 
@@ -30,7 +29,8 @@ import pyart.correct as correct
 import singledop
 import sys
 import numpy as np
-
+from scipy import ndimage
+from copy import deepcopy
 #assign args
 h5_ffn      = sys.argv[1]
 plt_ffn     = sys.argv[2]
@@ -45,12 +45,25 @@ plt_thin    = int(sys.argv[10])
 
 #read h5_path into radar object
 py_radar = aux_io.read_odim_h5(h5_ffn, file_field_names=True)
+# despeckle
+gatefilter = correct.despeckle.despeckle_field(py_radar,'VRADH', size = 50)
 # dealais using NI
-corr_vel = correct.dealias_region_based(py_radar, vel_field='VRADH', nyquist_vel=NI)
+corr_vel = correct.dealias_region_based(py_radar, vel_field='VRADH', nyquist_vel=NI, gatefilter=gatefilter)
 py_radar.add_field('VRADH_corr', corr_vel, False)
+#median filter
+start     = py_radar.get_start(sweep)
+end       = py_radar.get_end(sweep) + 1
+data      = py_radar.fields['VRADH_corr']['data'][start:end]
+flt_data  = ndimage.median_filter(data, size = 9)
+flt_data  = np.ma.masked_where(flt_data == 0, flt_data)
+py_radar.fields['VRADH_corr']['data'][start:end] = flt_data
+#plt.matshow(flt_data)
+#plt.savefig('filt_data.png',transparent=True)
+
 #generate sdop fields
 sd_obj = singledop.SingleDoppler2D(L=sd_l, radar=py_radar, range_limits=[min_rng,max_rng],
-	                                sweep_number=sweep,name_vr='VRADH_corr',thin_factor=[thin_azi,thin_rng],max_range=max_rng,grid_edge=max_rng)
+	                                sweep_number=sweep,name_vr='VRADH_corr',thin_factor=[thin_azi,thin_rng],max_range=max_rng,grid_edge=max_rng,
+                                    filter_data=True,filter_distance=5)
 
 #setup figure
 fig = plt.figure(figsize=(12, 12),frameon=False)
