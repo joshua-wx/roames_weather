@@ -19,7 +19,6 @@
 34 CairnAP
 35 Coffs_H
 37 Hobart
-38 Charlvl
 39 HallsCk
 43 BrisA/P
 45 Eucla
