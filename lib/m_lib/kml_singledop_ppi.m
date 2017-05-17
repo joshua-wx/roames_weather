@@ -1,4 +1,4 @@
-function [link,ffn,sout] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords)
+function [link,ffn,error] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords)
 
 load('tmp/interp_cmaps.mat')
 load('tmp/vis.config.mat')
@@ -11,6 +11,15 @@ cmd     = ['python py_lib/sd_winds_pltout.py',' ',odimh5_ffn,' ',png_ffn,' ',...
 		num2str(sd_max_rng),' ',num2str(ppi_sweep),' ',num2str(sd_thin_azi),' '...
 		num2str(sd_thin_rng),' ',num2str(sd_plt_thin)];
 [sout,eout] = unix(cmd);
+%halt on exception
+if sout ~= 0
+    ffn   = [];
+    link  = [];
+    error = eout;
+    return
+else
+    error = [];
+end
 
 %build img_latlonbox
 [img_lat_N,~] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),0);
@@ -28,3 +37,5 @@ ge_kmz_out(kmz_fn,ppi_img_kml,dest_path,png_ffn); %TO FIX
 %create link
 link = kmz_fn;
 ffn  = [dest_path,kmz_fn];
+
+    

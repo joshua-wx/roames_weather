@@ -46,13 +46,13 @@ end
 %Single Doppler Velocity
 if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
-	try
     ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn,eout]                = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
-    kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
-    catch
-		pushover('SingleDop Error',eout)
-	end
+    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
+    if isempty(error)
+        kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
+    else
+        pushover('SingleDop Error',error)
+    end
 end
 
 function kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,vol_start_time,vol_stop_time,storm_latlonbox,type,link,ffn)
