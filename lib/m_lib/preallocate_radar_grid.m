@@ -39,7 +39,7 @@ for i=1:length(radar_id_list)
 	end
     disp(['Building transform for ',num2str(radar_id)]);
     %subset to radar using radar_mask_rng
-    [x_ind,y_ind,radar_lat_vec,radar_lon_vec]      = radar_grid(radar_lat,radar_lon,lat_vec,lon_vec,radar_mask_rng);
+    [~,~,radar_lat_vec,radar_lon_vec]      = radar_grid(radar_lat,radar_lon,lat_vec,lon_vec,radar_mask_rng);
     
     %generate regrid coords
     [radar_azi_grid,radar_elv_grid,radar_rng_grid] = preallocate_transform(radar_lat,radar_lon,radar_alt,radar_lat_vec,radar_lon_vec,radar_alt_vec,earth_rad,ke);

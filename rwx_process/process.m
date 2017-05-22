@@ -203,8 +203,14 @@ while exist('tmp/kill_process','file')==2
                     %retrieve current GFS temperature data for above radar site
                     [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(nwp_extract_list,grid_obj.radar_lat,grid_obj.radar_lon,radar_id,eraint_ddb_table);
                 else
-                    %load era-interim fzlvl data from ddb
-                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.vol_dt,radar_id,eraint_ddb_table);
+                    %dummy radar for UQXPOL
+                    if radar_id==99
+                        nn_snd_fz_h      = 4500;
+                        nn_snd_minus20_h = 7600;
+                    else
+                        %load era-interim fzlvl data from ddb
+                        [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.vol_dt,radar_id,eraint_ddb_table);
+                    end
                 end
                 if isempty(nn_snd_fz_h)
                     disp('###sounding data missing###')

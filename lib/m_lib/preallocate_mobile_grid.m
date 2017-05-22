@@ -6,7 +6,7 @@ function preallocate_mobile_grid(out_path,force_update)
 %paths
 global_config_fn  = 'global.config';
 tmp_config_path   = 'tmp/';
-out_path          = 'transforms/';
+out_path          = 'tmp/transforms/';
 % Load global config files
 load([tmp_config_path,global_config_fn,'.mat']);
 %create output path
@@ -28,8 +28,8 @@ mstruct            = defaultm(mstruct);
 %check if transform file exists and needs replacing
 out_fn       = [out_path,'regrid_transform_',num2str(mobile_id,'%02.0f'),'.mat'];
 if exist(out_fn,'file')==2 && force_update==0
-	display(['Skipping transform build for ',num2str(radar_id)]);
-	contine
+	display(['Skipping transform build for ',num2str(99)]);
+	return
 end
 
 %% convert to radar geometry coords
@@ -42,19 +42,13 @@ geo_coords       = struct('radar_lon_vec',radar_lon_vec,'radar_lat_vec',radar_la
     'radar_lat',mobile_lat,'radar_lon',mobile_lon,'radar_alt',mobile_alt);
 radar_coords     = [radar_azi_grid(:),radar_rng_grid(:),radar_elv_grid(:)];
 grid_size        = size(radar_azi_grid);
-%apply boundary filter
-filter_ind       = boundary_filter(radar_coords,0,mobile_max_elv,mobile_h_grid,mobile_h_rng);
-radar_coords     = radar_coords(filter_ind,:);
 %convert to more efficent types
 radar_coords     = uint16(radar_coords.*100);
-filter_ind       = uint32(filter_ind);
 img_azi          = radar_azi_grid(:,:,1);
 img_rng          = radar_rng_grid(:,:,1);
 img_latlonbox    = [max(radar_lat_vec);min(radar_lat_vec);max(radar_lon_vec);min(radar_lon_vec)];
 %save
-save(out_fn,'radar_coords','geo_coords','grid_size','filter_ind','img_azi','img_rng','img_latlonbox')
-
-
+save(out_fn,'radar_coords','geo_coords','grid_size','img_azi','img_rng','img_latlonbox')
 
 function filter_ind = boundary_filter(radar_coords,elv_min,elv_max,rng_min,rng_max)
 %Function: identifies the indicies of bins outsite the natural radar domain
