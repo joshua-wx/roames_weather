@@ -12,7 +12,7 @@ realtime_flag            0
 realtime_length          -2          %hours
 %
 % RESTART OPTIONS
-save_object_struct       0     %save all objects on soft exit
+save_object_struct       1     %save all objects on soft exit
 %
 %FILE STRUCTURE OPTIONS
 icons_path               icons/
@@ -83,7 +83,7 @@ options               [1,0,0,0,0,0,0,0,0,0,1]
 %
 % SingleDop Products (sweep is determined by ppi_sweep)
 sd_l              5                     %sd decorrelation length (km)
-sd_min_rng        5                     %sd min range (km)
+sd_min_rng        0                     %sd min range (km)
 sd_max_rng        100                    %sd max range (km)
 sd_thin_azi       2                     %sd thin in azi dim
 sd_thin_rng       12                    %sd thin in rng dim

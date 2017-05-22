@@ -303,7 +303,9 @@ catch err
     %update crash restart
     crash_restart = true;
     %save vars
-    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
+	if save_object_struct == 1
+    	save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
+	end
     %rethrow and crash script
     rethrow(err)
 end

@@ -51,7 +51,8 @@ if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     if isempty(error)
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
     else
-        pushover('SingleDop Error',error)
+        pushover('SingleDop Error',odimh5_ffn)
+		disp(error)
     end
 end
 
