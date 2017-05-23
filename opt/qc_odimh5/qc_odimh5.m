@@ -230,24 +230,6 @@ catch err
     pushover('qc_odimh5',['qc CRASHED for ',num2str(radar_id_list)])
     rethrow(err)
 end
-function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,h5_ffn,h5_size)
-
-%init
-h5_fn              = h5_ffn(end-20:end);
-radar_id           = h5_fn(1:2);
-
-radar_timestamp    = datenum(h5_fn(4:end-3),'yyyymmdd_HHMMSS');
-
-item_id            = ['item_',radar_id,'_',datestr(radar_timestamp,'yyyymmddHHMMSS')];
-
-%build ddb struct
-ddb_struct.(item_id).radar_id.N             = radar_id;
-ddb_struct.(item_id).start_timestamp.S      = datestr(radar_timestamp,'yyyy-mm-ddTHH:MM:SS');
-ddb_struct.(item_id).data_size.N            = num2str(h5_size);
-ddb_struct.(item_id).data_ffn.S             = h5_ffn;
-
-tmp_sz =  length(fieldnames(ddb_struct));
-
 
 function wait_aws_finish(limit)
 

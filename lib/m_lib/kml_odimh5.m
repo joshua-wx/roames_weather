@@ -16,7 +16,7 @@ transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.
 %% ppi ground overlays ########### CHANGE LOOP TO RUN odimh5_fn_list
     
 %load transform
-load(transform_fn,'img_azi','img_rng','img_latlonbox','geo_coords')
+load(transform_fn,'img_azi','img_rng','img_latlonbox','geo_coords','h_grid_deg')
 %struct up atts
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
 %process odimh5
@@ -47,7 +47,7 @@ end
 if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
     ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords);
+    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,ppi_sweep,geo_coords,h_grid_deg);
     if isempty(error)
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
     else

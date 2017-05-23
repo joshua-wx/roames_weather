@@ -117,13 +117,13 @@ composite_lat_vec = [];
 %read lat/lon for each radar
 for i = 1:length(radar_id_list)
     transform_fn = [transform_path,'regrid_transform_',num2str(radar_id_list(i),'%02.0f'),'.mat'];
-    load(transform_fn,'geo_coords');
+    load(transform_fn,'geo_coords','h_grid_km');
     composite_lon_vec = [composite_lon_vec,geo_coords.radar_lon_vec];
     composite_lat_vec = [composite_lat_vec,geo_coords.radar_lat_vec];
 end
 composite_lon_vec = unique(composite_lon_vec);
 composite_lat_vec = unique(composite_lat_vec);
-comp_R            = makerefmat(composite_lon_vec(1), composite_lat_vec(1), h_grid, h_grid);
+comp_R            = makerefmat(composite_lon_vec(1), composite_lat_vec(1), h_grid_km, h_grid_km);
 
 %generate bounding boxes for each radar grid in the composite grid
 %preallocate

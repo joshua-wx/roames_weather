@@ -63,14 +63,15 @@ end
 %extract geometry of end cell
 z_centlat      = str2num(storm_jstruct(end_cell_idx).storm_z_centlat.N);
 z_centlon      = str2num(storm_jstruct(end_cell_idx).storm_z_centlon.N);
+h_grid_deg     = str2num(storm_jstruct(end_cell_idx).h_grid.N);
 end_orient     = str2num(storm_jstruct(end_cell_idx).orient.N);
 end_orient_x   = cosd(end_orient);
 end_orient_y   = -sind(end_orient);
 end_orient_n   = rad2deg(atan2(end_orient_x,end_orient_y));
 end_maj_axis   = str2num(storm_jstruct(end_cell_idx).maj_axis.N)/2;
-end_maj_axis   = end_maj_axis*h_grid/2;
+end_maj_axis   = end_maj_axis*h_grid_deg/2;
 end_min_axis   = str2num(storm_jstruct(end_cell_idx).min_axis.N)/2;
-end_min_axis   = end_min_axis*h_grid/2;
+end_min_axis   = end_min_axis*h_grid_deg/2;
 
 %check elipse exists
 if isnan(end_maj_axis) || isnan(end_min_axis)

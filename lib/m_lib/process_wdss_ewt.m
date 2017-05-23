@@ -1,4 +1,4 @@
-function [ewtBasin,ewtBasinExtend,filt_refl_image] = process_wdss_ewt(dbzh_grid)
+function [ewtBasin,ewtBasinExtend,filt_refl_image] = process_wdss_ewt(grid_obj)
 %WHAT: Implementation of the extended watershed transform (ewt) described in
 %Lakshamanan et al 2009. Using a local dual threshold method to find
 %regions which meet the saliency criteria
@@ -22,6 +22,7 @@ ewt_max_level = (ewt_b-ewt_a)/ewt_del;
 %% transform grid to image
 
 %extract ewt image for processing using radar transform
+dbzh_grid       = grid_obj.dbzh_grid;
 filt_refl_image = max(dbzh_grid,[],3); %allows the assumption only shrinking is needed.
 filt_refl_image = medfilt2(filt_refl_image, [ewt_kernel_size,ewt_kernel_size]); %smooth using median filter
 
@@ -126,7 +127,7 @@ for depth=0:ewt_max_depth
             %if centre is not part of a basin
             if ewtBasin(centre)<0 
                 %run basin capture
-                [ewtBasin,local_foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,basin_no,ewtBasin,h_grid);
+                [ewtBasin,local_foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,basin_no,ewtBasin,grid_obj.h_grid_deg);
                 %if basin capture was a success
                 if ewtBasin(centre)>0
                     %check for multiple centres inside basin
@@ -192,7 +193,7 @@ for i=1:max(max(ewtBasin))
     etw_dist(replace_ind)       = geoD(replace_ind);
 end
 
-function [ewtBasin,foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,basin_no,ewtBasin,h_grid)
+function [ewtBasin,foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,basin_no,ewtBasin,h_grid_deg)
 %WHAT: starts with ewt_a local maximum pixel and adds this to the basin. All
 %contigous pixels to this pixel are identified. If the Q intensity of these
 %pixels is above the hlevel, they are added as neighbours. If they are
@@ -205,8 +206,8 @@ function [ewtBasin,foothills,basin]=capture_basin(hlevel,ewt_saliency,centre,Q,b
 %centre:        linear index of centre coordinate
 %Q:             Quantisied matrix
 %basin_no:      Current basin index
-%ewtBasin:         Basin label image
-%h_grid:        image pixel size in m
+%ewtBasin:      Basin label image
+%h_grid_deg:    image pixel size in deg
 
 %OUTPUT:
 %ewtBasin:         Updated labeled basin matrix
@@ -250,7 +251,7 @@ while ~isempty(neighbours)
     
 end
 %check if basin size in km is smaller than ewt_saliency threshold
-if size(basin,1)*(deg2km(h_grid)*1000)^2/10^6 < ewt_saliency
+if size(basin,1)*(deg2km(h_grid_deg)*1000)^2/10^6 < ewt_saliency
     %Basin has not been caputred
     basin     = []; %empty stack
     foothills = [];

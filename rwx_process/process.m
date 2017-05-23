@@ -102,8 +102,8 @@ if realtime_flag==0 && length(radar_id_list)>1
 end
 
 %% Preallocate regridding coordinates
-if radar_id_list==99
-    preallocate_mobile_grid(transform_path,force_transform_update)
+if radar_id_list == mobile_id
+    preallocate_mobile_grid(radar_id_list,transform_path,force_transform_update)
 else
     preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
 end
@@ -196,7 +196,7 @@ while exist('tmp/kill_process','file')==2
             %run cell identify if sig_refl has been detected
             if grid_obj.sig_refl==1
                 %run EWT
-                [ewtBasin,ewtBasinExtend,ewt_refl_image] = process_wdss_ewt(grid_obj.dbzh_grid);
+                [ewtBasin,ewtBasinExtend,ewt_refl_image] = process_wdss_ewt(grid_obj);
                 %extract sounding level data
                 if realtime_flag == 1
                     %extract radar lat lon
@@ -217,7 +217,7 @@ while exist('tmp/kill_process','file')==2
                     return
                 end
                 %run ident
-                proc_obj = process_storm_stats(grid_obj,ewt_refl_image,ewtBasin,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
+                proc_obj = process_storm_analysis(grid_obj,ewt_refl_image,ewtBasin,ewtBasinExtend,nn_snd_fz_h,nn_snd_minus20_h);
             else
                 proc_obj = {};
             end
@@ -392,14 +392,14 @@ if ~isempty(storm_obj)
         tmp_jstruct.storm_latlonbox.S   = num2str(storm_llb,'%03.4f ');
         tmp_jstruct.storm_z_centlat.N   = num2str(storm_dcent(1),'%03.4f ');
         tmp_jstruct.storm_z_centlon.N   = num2str(storm_dcent(2),'%03.4f ');
-        tmp_jstruct.h_grid.N            = num2str(h_grid);
-        tmp_jstruct.v_grid.N            = num2str(v_grid);
+        tmp_jstruct.h_grid.N            = num2str(grid_obj.h_grid_deg);
+        tmp_jstruct.v_grid.N            = num2str(grid_obj.v_grid);
         %append stats
         for j=1:length(storm_stats)
             tmp_jstruct.(storm_obj(i).stats_labels{j}).N = num2str(storm_stats(j));
         end
         %append to put struct
-        [ddb_put_struct,tmp_sz] = addtostruct(ddb_put_struct,tmp_jstruct,['item',num2str(i)]);
+        [ddb_put_struct,tmp_sz] = addtostruct(ddb_put_struct,tmp_jstruct);
         %write if needed
         if tmp_sz==25 || i == length(storm_obj)
             %batch write
@@ -427,19 +427,3 @@ end
 if realtime_flag == 1
     sns_publish(sns_odimh5_process,odimh5_ffn)
 end
-
-function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct,item_id)
-
-%init
-data_name_list  = fieldnames(data_struct);
-
-for i = 1:length(data_name_list)
-    %read from data_struct
-    data_name  = data_name_list{i};
-    data_type  = fieldnames(data_struct.(data_name)); data_type = data_type{1};
-    data_value = data_struct.(data_name).(data_type);
-    %add to ddb master struct
-    ddb_struct.(item_id).(data_name).(data_type) = data_value;
-end
-%check size
-tmp_sz =  length(fieldnames(ddb_struct));

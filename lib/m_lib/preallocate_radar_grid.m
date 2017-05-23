@@ -15,6 +15,8 @@ if exist(out_path,'file')~=7
     mkdir(out_path)
 end
 %% setup national latlon grid
+v_grid  = bom_v_grid;
+h_grid  = bom_h_rng;
 lat_vec = max_lat:-h_grid:min_lat; %matrix coords
 lon_vec = min_lon:h_grid:max_lon;
 alt_vec = v_grid:v_grid:v_tops;
@@ -56,8 +58,9 @@ for i=1:length(radar_id_list)
     img_rng          = radar_rng_grid(:,:,1);
     img_latlonbox    = [max(radar_lat_vec)+h_grid/2;min(radar_lat_vec)-h_grid/2;max(radar_lon_vec)+h_grid/2;min(radar_lon_vec)-h_grid/2]; %including offets to corners
     %save
-    tmp_fn       = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-    save(out_fn,'radar_coords','geo_coords','grid_size','img_azi','img_rng','img_latlonbox')
+    tmp_fn     = [out_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
+    h_grid_deg = h_grid;
+    save(out_fn,'radar_coords','geo_coords','grid_size','img_azi','img_rng','img_latlonbox','v_grid','h_grid_deg')
     
 end
 

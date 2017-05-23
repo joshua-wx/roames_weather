@@ -1,4 +1,4 @@
-function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,options,refl_vol,storm_latlonbox)
+function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,options,refl_vol,storm_latlonbox,h_grid_deg,v_grid)
 
 %WHAT
     %takes a subset of volume data the ideally contains one cell and
@@ -39,7 +39,7 @@ if options(5)==1 %inneriso
         cmap_threshold = (threshold-min_dbzh)*2+1;
         cmap           = [interp_refl_cmap(cmap_threshold,:),inner_alpha]; %add alpha
         %generate collada
-        [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso');
+        [inner_iso_kml,inner_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'inner_iso',h_grid_deg,v_grid);
     else %abort processing, not enough voxels
         inner_iso_kml     = '';
         inner_collada_ffn = '';
@@ -58,7 +58,7 @@ if options(6)==1 %outeriso
     cmap_threshold = (ewt_a-min_dbzh)*2+1;
     cmap           = [interp_refl_cmap(cmap_threshold,:),outer_alpha]; %add alpha
     
-    [outer_iso_kml,outer_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'outer_iso');
+    [outer_iso_kml,outer_collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,'outer_iso',h_grid_deg,v_grid);
 else
     outer_iso_kml     = '';
     outer_collada_ffn = '';
@@ -84,11 +84,11 @@ ffn  = [dest_root,dest_path,kmz_fn];
     
 
 
-function [kml_str,collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,type)
+function [kml_str,collada_ffn] = generate_collada(refl_vol,storm_latlonbox,n_faces,cmap,threshold,cell_tag,type,h_grid_deg,v_grid)
 load('tmp/global.config.mat')
 
 %generate triangles
-[triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,storm_latlonbox);
+[triangles,clat,clon] = dBZ_isosurface(refl_vol,threshold,n_faces,storm_latlonbox,h_grid_deg,v_grid);
 if isempty(triangles)
     kml_str     = '';
     collada_ffn = '';
@@ -112,11 +112,11 @@ collada_fn     = [iso_tag,'.dae'];
 collada_ffn    = [tempdir,collada_fn];
 index_and_write(collada_ffn,triangles(:,2:10),textures,texcoords,colors,high_normals)
 %wrap and centre in kml
-kml_str        = ge_model('',1,collada_fn,iso_tag,clat-h_grid,clon-h_grid,'',''); %%%%%%%OFFSET
+kml_str        = ge_model('',1,collada_fn,iso_tag,clat-h_grid_deg,clon-h_grid_deg,'',''); %%%%%%%OFFSET
     
  
 
-function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,storm_latlonbox)
+function [triangles,clat,clon] = dBZ_isosurface(v,dBZ_level,n_faces,storm_latlonbox,h_grid_deg,v_grid)
 %HELP: create isosurface polygons in anticlockwise ge format for a set dBZ_level
 
 %INPUT: 3D coord meshes (lon,lat,z) dBZ cartesian volume (v), isosurface
@@ -151,11 +151,10 @@ if length(fv.faces)>smallest_no_faces
     faces       = fliplr([fv.faces,fv.faces(:,1)]);
     fv_vertices = fv.vertices;
     %rescale vertices
-    [vertex1,~] = distance(clat,clon,repmat(clat,size(fv_vertices,1),1),clon+(fv_vertices(:,1).*h_grid)); vertex1 = deg2km(vertex1).*1000;
-    [vertex2,~] = distance(clat,clon,clat+(fv_vertices(:,2).*h_grid),repmat(clon,size(fv_vertices,1),1)); vertex2 = deg2km(vertex2).*1000;
+    [vertex1,~] = distance(clat,clon,repmat(clat,size(fv_vertices,1),1),clon+(fv_vertices(:,1).*h_grid_deg)); vertex1 = deg2km(vertex1).*1000;
+    [vertex2,~] = distance(clat,clon,clat+(fv_vertices(:,2).*h_grid_deg),repmat(clon,size(fv_vertices,1),1)); vertex2 = deg2km(vertex2).*1000;
     vertex3     = fv_vertices(:,3).*v_grid.*1000;
     vertices    = [vertex1,vertex2,vertex3];
-    %vertices  = [(vertices(:,1).*deg2km(h_grid).*1000),(vertices(:,2).*deg2km(h_grid).*1000),(vertices(:,3).*v_grid.*1000)];
     %expand into full triangles
     triangles = [vertices(faces(:,1),:),vertices(faces(:,2),:),vertices(faces(:,3),:)];
 end

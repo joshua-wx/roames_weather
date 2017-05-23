@@ -124,8 +124,8 @@ end
 asset_data(asset_data_fn)
 
 % Preallocate regridding coordinates
-if radar_id_list==99
-    preallocate_mobile_grid(transform_path,force_transform_update)
+if radar_id_list == mobile_id
+    preallocate_mobile_grid(radar_id_list,transform_path,force_transform_update)
 else
     preallocate_radar_grid(radar_id_list,transform_path,force_transform_update)
 end
@@ -397,6 +397,8 @@ if ~isempty(storm_jstruct)
     end
 end
 
+temp_ffn_list     = {};
+ddb_read_struct   = struct;
 for i=1:length(download_stormh5_list)
     [~,stormh5_name,ext] = fileparts(download_stormh5_list{i});
     local_stormh5_ffn    = [download_path,stormh5_name,ext];
@@ -409,28 +411,78 @@ for i=1:length(download_stormh5_list)
         %loop through groups
         for j=1:stormh5_groups
             %query storm ddb
-            group_id            = j;
-            date_id             = datestr(stormh5_start_td,ddb_dateid_tfmt);
-            sort_id             = [datestr(stormh5_start_td,ddb_tfmt),'_',num2str(stormh5_rid,'%02.0f'),'_',num2str(group_id,'%03.0f')];
-            storm_atts          = 'date_id,sort_id,domain_mask,radar_id,start_timestamp,subset_id,storm_latlonbox,storm_z_centlat,storm_z_centlon,area,cell_vil,max_tops,max_mesh,orient,maj_axis,min_axis';
-            temp_jstruct        = ddb_query('date_id',date_id,'sort_id',sort_id,sort_id,storm_atts,storm_ddb_table);
-            if isempty(temp_jstruct)
-                log_cmd_write('tmp/log.ddb','failed to extract storm','ddb_query stormh5',sort_id)
-                continue
-            end
-            %append h5 ffn
-            temp_jstruct.local_stormh5_ffn = local_stormh5_ffn;
-            %append mesh grid
-            storm_data_struct      = h5_data_read(local_stormh5_ffn,'',group_id);
-            mesh_grid              = double(storm_data_struct.MESH_grid)./r_scale;
-            temp_jstruct.mesh_grid = mesh_grid;
-            %add proced flag
-            temp_jstruct.proced = false;
-            %append to storm_jstruct
-            storm_jstruct       = [storm_jstruct,temp_jstruct];
+            tmp_jstruct            = struct;
+            tmp_jstruct.date_id.N  = datestr(stormh5_start_td,ddb_dateid_tfmt);
+            tmp_jstruct.sort_id.S  = [datestr(stormh5_start_td,ddb_tfmt),'_',num2str(stormh5_rid,'%02.0f'),'_',num2str(j,'%03.0f')];
+            %create entry for batch read for current storm
+            [ddb_read_struct,tmp_sz] = addtostruct(ddb_read_struct,tmp_jstruct);
+            %parse batch read if size is 25 or last cell of last file for
+            %current day
+			if tmp_sz==25 || (i == length(download_stormh5_list) && j == stormh5_groups)
+		        %temp path
+		        temp_path = [tempdir,'vis_jstorm_read/',datestr(stormh5_start_td,'yyyymmdd'),'/'];
+		        if exist(temp_path,'file')~=7
+		        	mkdir(temp_path)
+		        end
+				%batch background fetch
+				temp_ffn = ddb_batch_read(ddb_read_struct,storm_ddb_table,temp_path,'');
+				pause(0.1)
+				%add read filename to list
+		        temp_ffn_list     = [temp_ffn_list;temp_ffn];
+		        %clear ddb_put_struct
+		        ddb_read_struct  = struct;
+			end
         end
     end
 end
+%wait for aws batch read to finish
+wait_aws_finish
+%read back in ddb local files
+for i=1:length(temp_ffn_list)
+	%read out ddb data	
+	jstruct_out = json_read(temp_ffn_list{i});
+	delete(temp_ffn_list{i})
+	%abort file if it contains unprocessed keys
+    if ~isempty(fieldnames(jstruct_out.UnprocessedKeys))
+    	disp('UnprocessedKeys present')
+    	keyboard
+    end
+	%loop through entries
+	for j=1:length(jstruct_out.Responses.(storm_ddb_table))
+		%extract names for entry j
+        jnames      = fieldnames(jstruct_out.Responses.(storm_ddb_table)(j));
+		%abort if field names are not equal to ddb_fields
+        if length(jnames) ~= stormddb_fields
+        	disp(['jnames not correct length for ',temp_ffn_list{i}])
+            continue
+        end
+        %remove field types from struct and append to storm_struct
+        clean_struct = struct;
+        %loop though fields and add to clean_struct
+        for m=1:length(jnames)
+        	field_name                = jnames{m};
+            field_struct              = jstruct_out.Responses.(storm_ddb_table)(j).(field_name);
+            field_type                = fieldnames(field_struct); field_type = field_type{1};
+            clean_struct.(field_name) = field_struct;
+        end
+		%add proced flag
+        clean_struct.proced = false;
+		%append h5 ffn
+		[~,fn,ext] = fileparts(clean_struct.data_ffn.S);
+		local_stormh5_ffn = [download_path,fn,ext];
+		group_id          = str2num(clean_struct.subset_id.N);
+        clean_struct.local_stormh5_ffn = local_stormh5_ffn;
+        %append mesh grid
+        storm_data_struct      = h5_data_read(local_stormh5_ffn,'',group_id);
+        mesh_grid              = double(storm_data_struct.MESH_grid)./r_scale;
+        clean_struct.mesh_grid = mesh_grid;
+
+        %append clean_struct to storm_jstruct
+        storm_jstruct = [storm_jstruct,clean_struct];
+	end
+end
+
+disp('stormh5 ddb extract complete')
 
 function vol_struct = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time)
 %builds vol_struct using hdf5 atts for entries in odimh5 list, filters out

@@ -10,36 +10,31 @@ load([site_info_fn,'.mat']);
 load('vis.config.mat')
 
 %extract storm ids
-if ~isempty(storm_jstruct)
-    %storm_subset_id = jstruct_to_mat([storm_jstruct.subset_id],'N');
-else
+if isempty(storm_jstruct)
     return
-end
-
-%init index of xsec alts from vol_alt
-xsec_idx = [];
-vol_alt  = [v_grid:v_grid:v_tops];
-for i=1:length(xsec_alt)
-    [~,tmp_idx] = min(abs(xsec_alt(i)-vol_alt));
-    xsec_idx    = [xsec_idx;tmp_idx];
 end
 
 proced_idx            = find([storm_jstruct.proced]==false);
 %% generate cell objects
 for i=1:length(proced_idx)
-    %init
+    %init labels
     radar_id       = str2num(storm_jstruct(proced_idx(i)).radar_id.N);
     cell_path      = [cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
+    %init time
     data_start_ts  = datenum(storm_jstruct(proced_idx(i)).start_timestamp.S,ddb_tfmt);
     radar_step     = calc_radar_step(vol_struct,radar_id);
     data_stop_ts   = addtodate(data_start_ts,radar_step,'minute');
+    %init tags
     data_tag       = [num2str(radar_id,'%02.0f'),'_',datestr(data_start_ts,r_tfmt)];
     sort_id        = storm_jstruct(proced_idx(i)).sort_id.S;
+    %init subset
     subset_id      = str2num(storm_jstruct(proced_idx(i)).subset_id.N);
     kml_fn         = [data_tag,'_',num2str(subset_id,'%03.0f')];
+    %init h_grid
+    h_grid_deg     = str2num(storm_jstruct(proced_idx(i)).h_grid.N);
+    v_grid         = str2num(storm_jstruct(proced_idx(i)).v_grid.N);
     %extract storm latlonbox
     storm_latlonbox   = str2num(storm_jstruct(proced_idx(i)).storm_latlonbox.S);
-    %storm_latlonbox   = [storm_latlonbox(1)+h_grid/2,storm_latlonbox(2)-h_grid/2,storm_latlonbox(3)+h_grid/2,storm_latlonbox(4)-h_grid/2]; %stretch for GE coords
     %extract data from struct
     stormh5_ffn       = storm_jstruct(proced_idx(i)).local_stormh5_ffn;
     storm_data_struct = h5_data_read(stormh5_ffn,'',subset_id);
@@ -48,6 +43,7 @@ for i=1:length(proced_idx)
     
     %Refl xsections
     if options(3)==1
+        xsec_idx = xsec_idx(v_grid,xsec_alt);
         for k=1:length(xsec_idx)
             [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'dbzh');
             kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_dbzh',link,ffn);
@@ -56,6 +52,7 @@ for i=1:length(proced_idx)
     
     %Dopl xsections
     if options(4)==1 && vol_vel_ni~=0
+        xsec_idx        = xsec_idx(v_grid,xsec_alt);
         vel_vol         = double(storm_data_struct.vel_vol)./r_scale;
         for k=1:length(xsec_idx)
             [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vradh');
@@ -65,7 +62,7 @@ for i=1:length(proced_idx)
     
     %iso
     if options(5)==1 || options(6)==1
-        [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox);
+        [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox,h_grid_deg,v_grid);
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'iso',link,ffn);
     end
 end
@@ -166,3 +163,13 @@ tmp_struct = struct('radar_id',radar_id,'sort_id',sort_id,...
     'latlonbox',storm_latlonbox,'type',type,'nl',link,'ffn',ffn);
 
 kmlobj_struct = [kmlobj_struct,tmp_struct];
+
+
+function xsec_idx = xsec_idx(v_grid,xsec_alt)
+%init index of xsec alts from vol_alt
+xsec_idx = [];
+vol_alt  = [v_grid:v_grid:v_grid*100];
+for i=1:length(xsec_alt)
+    [~,tmp_idx] = min(abs(xsec_alt(i)-vol_alt));
+    xsec_idx    = [xsec_idx;tmp_idx];
+end

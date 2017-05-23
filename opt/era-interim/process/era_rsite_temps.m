@@ -79,7 +79,7 @@ for i=1:length(year_list)
             fz_level      = sounding_interp(t_profile,z_profile,0);
             minus20_level = sounding_interp(t_profile,z_profile,-20);
             %add to ddb struct
-            [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,fz_level,minus20_level,era_dt(k),site_id);
+            [ddb_tmp_struct,tmp_sz] = addtostruct_era(ddb_tmp_struct,fz_level,minus20_level,era_dt(k),site_id);
             %write to ddb
             if tmp_sz==25 || k == length(era_dt)
                 ddb_batch_write(ddb_tmp_struct,ddb_table,1);
@@ -113,7 +113,7 @@ end
 intp_h   = interp1(snd_temp(below_ind:above_ind),snd_height(below_ind:above_ind),target_temp);
 intp_h   = floor(intp_h);
 
-function [ddb_tmp_struct,tmp_sz] = addtostruct(ddb_tmp_struct,fz_level,minus20_level,era_dt,radar_id)
+function [ddb_tmp_struct,tmp_sz] = addtostruct_era(ddb_tmp_struct,fz_level,minus20_level,era_dt,radar_id)
 
 timestamp          = datestr(floor(era_dt),'yyyy-mm-ddTHH:MM:SS'); %floor to day
 hour_str           = num2str(hour(era_dt),'%02.0f');

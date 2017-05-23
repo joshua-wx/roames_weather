@@ -1,4 +1,4 @@
-function ident_obj = process_storm_stats(grid_obj,refl_img,ewtBasin,ewtBasinExtend,snd_fz_h,snd_minus20_h)
+function ident_obj = process_storm_analysis(grid_obj,refl_img,ewtBasin,ewtBasinExtend,snd_fz_h,snd_minus20_h)
 
 %Load config file
 load('tmp/global.config.mat');
@@ -13,8 +13,10 @@ ident_obj = struct ('subset_refl',[],'subset_vel',[],'subset_id',[],...
     'stats',[],'sts_h_grid',[],'tops_h_grid',[],...
     'MESH_grid',[],'POSH_grid',[],'max_dbz_grid',[],'vil_grid',[],'stats_labels',{});
 
-%extract z vec
+%extract grid vars
 radar_alt_vec        = grid_obj.alt_vec;
+h_grid_deg           = grid_obj.h_grid_deg;
+v_grid               = grid_obj.v_grid;
 
 %2D regionation
 refl_img_z           = 10.^(refl_img./10); %use Z to weight centroids, not dbz
@@ -67,15 +69,15 @@ for i=1:length(extended_basin_stats)
     %creat h_ind_vol for region (height index volume)
     len_z_vec             = length(radar_alt_vec);
     size_vol              = size(subset_refl);
-    rot_h_vec             = reshape(radar_alt_vec,1,1,len_z_vec);
-    h_vol                 = repmat(rot_h_vec,[size_vol(1:2),1]);
-    tops_h_grid           = lakshamanan_tops3(subset_refl,h_vol,tops_thresh);
+    rot_alt_vec           = reshape(radar_alt_vec,1,1,len_z_vec);
+    alt_vol               = repmat(rot_alt_vec,[size_vol(1:2),1]);
+    tops_h_grid           = lakshamanan_tops3(subset_refl,alt_vol,tops_thresh);
     
     %calc 50dbz surface
-    sts_h_grid            = lakshamanan_tops3(subset_refl,h_vol,severe_dbz_thresh);
+    sts_h_grid            = lakshamanan_tops3(subset_refl,alt_vol,severe_dbz_thresh);
     
     %calc wdss-ii hail grids
-    [MESH_grid,POSH_grid] = mesh_algorthim(subset_refl,h_vol,snd_fz_h,snd_minus20_h,v_grid);
+    [MESH_grid,POSH_grid] = mesh_algorthim(subset_refl,alt_vol,snd_fz_h,snd_minus20_h,v_grid);
     
     %calc grid vil
     z_v             = 10.^(subset_refl./10); 
@@ -90,9 +92,9 @@ for i=1:length(extended_basin_stats)
     
     %compile stats
     %note all stats are from extended basin except for area_wdss
-    volume          =   sum(shink_mask(:))*deg2km(h_grid)^2*v_grid;
-    area_ext        =   extended_basin_stats(i).Area*deg2km(h_grid)^2; %ewt extended area
-    area            =   basin_stats(i).Area*deg2km(h_grid)^2; %ewt area
+    volume          =   sum(shink_mask(:))*deg2km(h_grid_deg)^2*v_grid;
+    area_ext        =   extended_basin_stats(i).Area*deg2km(h_grid_deg)^2; %ewt extended area
+    area            =   basin_stats(i).Area*deg2km(h_grid_deg)^2; %ewt area
     maj_axis        =   extended_basin_stats(i).MajorAxisLength;
     min_axis        =   extended_basin_stats(i).MinorAxisLength;
     orient          =   extended_basin_stats(i).Orientation;
@@ -144,7 +146,7 @@ for i=1:length(extended_basin_stats)
     ident_obj(i).vil_grid         = subset_vil;
 end
 
-function [intp_h]=lakshamanan_tops3(z_vol,h_vol,z_thresh)
+function [intp_h]=lakshamanan_tops3(z_vol,alt_vol,z_thresh)
 %WHAT: Lakshmanan tops function recoded for speed. Replaces for loops with
 %array manipulation. Lakshmanan, Valliappa, Kurt Hondl, Corey K. Potvin, 
 %David Preignitz, 2013: An Improved Method for Estimating Radar Echo-Top Height. Wea. Forecasting, 28, 481–488.
@@ -152,7 +154,7 @@ function [intp_h]=lakshamanan_tops3(z_vol,h_vol,z_thresh)
 
 %INPUTS:
 %z_vol: subset reflectivity volume (dbz)
-%h_vol: voxel height volume (m)
+%alt_vol: voxel height volume (m)
 %z_thresh: dbz threshold for analysis (dbz)
 
 %OUTPUTS:
@@ -165,7 +167,7 @@ size_z_vol = size(z_vol);
 [i_grid,j_grid] = ndgrid(1:size_z_vol(1),1:size_z_vol(2));
 
 %remove regions below threshold
-h_vol_mask = h_vol;
+h_vol_mask = alt_vol;
 h_vol_mask(z_vol<z_thresh) = -999;
 %find maximum h_ind for every x,y grid point
 [~,b_k_ind]   = max(h_vol_mask,[],3);
@@ -180,8 +182,8 @@ b_ind = sub2ind(size_z_vol,i_grid(:),j_grid(:),b_k_ind(:));
 %extract height and z surfaces
 z_a   = z_vol(a_ind);
 z_b   = z_vol(b_ind);
-h_a   = h_vol(a_ind);
-h_b   = h_vol(b_ind); 
+h_a   = alt_vol(a_ind);
+h_b   = alt_vol(b_ind); 
 %interp_h
 intp_h   = (z_thresh - z_a).*(h_b-h_a)./(z_b-z_a)+h_b;
 %restructure into image
@@ -191,13 +193,13 @@ intp_h(isinf(intp_h)) = -999;
 intp_h(remove_data_mask) = -999;
 
 
-function [MESH,POSH] = mesh_algorthim(dbzh_grid,h_grid,snd_fzh_height,snd_minus_20_h,v_grid)
+function [MESH,POSH] = mesh_algorthim(dbzh_grid,alt_vol,snd_fzh_height,snd_minus_20_h,v_grid)
 %WHAT: Hail grids adapted fromWitt et al. 1998 and Cintineo et al. 2012.
 %Exapnded to grids (adapted from wdss-ii)
 
 %INPUT:
 %z_vol: subset reflectivity volume (dbz)
-%h_vol: voxel height volume (km)
+%alt_vol: voxel height volume (km)
 %snd_fzh_height: height of freezing level in closest sounding in time and
 %space (m)
 %snd_minus_20_h: height of -20C level in closest sounding in time and
@@ -233,9 +235,9 @@ w_z(dbzh_grid>=z_u) = 1;
 E = (5*10^-6).*10.^(0.084.*dbzh_grid).*w_z;
 
 %calc temperature based weighting function
-w_h = (h_grid - snd_fzh_height) ./ (snd_minus_20_h - snd_fzh_height);
-w_h(h_grid<=snd_fzh_height) = 0;
-w_h(h_grid>=snd_minus_20_h) = 1;
+w_h = (alt_vol - snd_fzh_height) ./ (snd_minus_20_h - snd_fzh_height);
+w_h(alt_vol<=snd_fzh_height) = 0;
+w_h(alt_vol>=snd_minus_20_h) = 1;
 
 %calc severe hail index
 SHI = 0.1.*sum(w_h.*E,3).*(v_grid.*1000);

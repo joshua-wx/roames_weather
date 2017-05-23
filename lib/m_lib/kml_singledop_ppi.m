@@ -1,4 +1,4 @@
-function [link,ffn,error] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords)
+function [link,ffn,error] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,ppi_sweep,geo_coords,h_grid_deg)
 
 load('tmp/interp_cmaps.mat')
 load('tmp/vis.config.mat')
@@ -26,7 +26,7 @@ end
 [img_lat_S,~] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),180);
 [~,img_lon_E] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),90);
 [~,img_lon_W] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),270);
-img_latlonbox = [img_lat_N+h_grid/2;img_lat_S-h_grid/2;img_lon_E+h_grid/2;img_lon_W-h_grid/2];
+img_latlonbox = [img_lat_N+h_grid_deg/2;img_lat_S-h_grid_deg/2;img_lon_E+h_grid_deg/2;img_lon_W-h_grid_deg/2];
 
 %wrap in kmz and generate link
 %generate groundoverlay_kml

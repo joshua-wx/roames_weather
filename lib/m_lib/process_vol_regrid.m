@@ -21,7 +21,7 @@ radar_id     = str2num(source_att(7:8));
 
 %init transform
 transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-load(transform_fn,'img_azi','img_rng','grid_size','geo_coords');
+load(transform_fn,'img_azi','img_rng','grid_size','geo_coords','h_grid_deg','v_grid');
 empty_grid    = nan(grid_size);
 dbzh_grid     = empty_grid;
 vradh_grid    = empty_grid;
@@ -75,7 +75,7 @@ for i=1:dataset_count
     vradh_vol(:,:,i) = ppi_vradh;
     %check for signficant reflectivity in second ppi tilt
     if i == sig_refl_ppi_no
-        sig_flag      = check_sig_refl(ppi_dbzh,vol_azi_grid,vol_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid);
+        sig_flag      = check_sig_refl(ppi_dbzh,vol_azi_grid,vol_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid_deg);
         if ~sig_flag
             elv_vec   = elv_vec(1:2);
             dbzh_vol  = dbzh_vol(:,:,1:2);
@@ -137,9 +137,9 @@ grid_obj = struct('dbzh_grid',dbzh_grid,'vradh_grid',vradh_grid,...
     'lon_vec',geo_coords.radar_lon_vec,'lat_vec',geo_coords.radar_lat_vec,'alt_vec',geo_coords.radar_alt_vec,...
     'radar_id',radar_id,'vol_dt',vol_dt,...
     'radar_lat',geo_coords.radar_lat,'radar_lon',geo_coords.radar_lon,'radar_alt',geo_coords.radar_alt,...
-    'sig_refl',sig_flag);
+    'sig_refl',sig_flag,'h_grid_deg',h_grid_deg,'v_grid',v_grid);
 
-function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid)
+function out_flag = check_sig_refl(ppi_dbzh,ppi_azi_grid,ppi_rng_grid,img_azi,img_rng,ewt_a,ewt_saliency,h_grid_deg)
 %WHAT: takes a ppi volume and checks for significant reflectivity using
 %ewt_a (lower refl) and ewt_salency thresholds (area)
 
@@ -148,8 +148,8 @@ dbzh_img        = interp2(ppi_azi_grid,ppi_rng_grid,ppi_dbzh,img_azi,img_rng,'ne
 %apply ewt lower threshold
 sigrefl_mask    = dbzh_img>=ewt_a;
 %calc number of pixels required for saliency
-h_grid          = deg2km(h_grid);
-saliency_pixels = floor(ewt_saliency/(h_grid^2));
+h_grid_km       = deg2km(h_grid_deg);
+saliency_pixels = floor(ewt_saliency/(h_grid_km^2));
 %remove regions smaller than saliency_pixels
 sigrefl_mask    = bwareaopen(sigrefl_mask, saliency_pixels-1);
 %set sig refl flag if any regions remain
