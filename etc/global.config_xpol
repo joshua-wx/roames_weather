@@ -39,11 +39,11 @@ max_vradh               70         %max of vel values
 min_n_groups            4          %minimum number of groups in a h5 file to contiune pass QA
 %
 %IDENTIFCATION OPTIONS
-ewt_min_hlevel         3           %Min level search criteria DEFAULT 5
+ewt_min_hlevel         5           %Min level search criteria DEFAULT 5
 ewt_a                  35          %Quantisation refl lower bound (dbz)
 ewt_b                  60          %Quantisation refl upper bound (dbz)
 ewt_del                1           %Quantisation refl scaling 
-ewt_saliency           100         %min areal extent threshold (km) DEFAULT 20
+ewt_saliency           5           %min areal extent threshold (km) DEFAULT 20
 ewt_kernel_size        3           %smoothing kernel (pixels)
 ewt_max_depth          10          %maximum hlevel depth search (units of Q) DEFAULT 10
 ewt_refl_h             4           %level to extract refl data from vol (h index)
@@ -75,7 +75,6 @@ ddb_dateid_tfmt       ddmmyyyy                   %ddb date_id format for storm o
 %
 %GLOBAL SCALING FACTOR
 r_scale               10                        %number to divide radar data objects (dbz,mesh,vel,etc)by before rounding
-%
 %dynamodb table name
 storm_ddb_table       wxradar_stormh5_index
 eraint_ddb_table      wxradar_eraint_fzlvl
@@ -85,10 +84,8 @@ odimh5_s3_bucket      s3://roames-weather-odimh5/odimh5_archive/
 stormh5_s3_bucket     s3://roames-weather-stormh5/stormh5_archive/
 %
 clean_stormobj_index  0                         %checks stormobj_index for sort_ids and removed these entries
-%
 %pushover
 pushover_flag         1
-%
 %SNS arn
 sns_odimh5_prep       arn:aws:sns:ap-southeast-2:979317741916:weather_realtime_odimh5_prep
 sns_odimh5_process    arn:aws:sns:ap-southeast-2:979317741916:weather_realtime_odimh5_process

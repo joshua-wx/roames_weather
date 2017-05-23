@@ -41,12 +41,12 @@ dbzh_vol   = empty_vol;
 vradh_vol  = empty_vol;
 elv_vec    = empty_vec;
 vol_dt     = process_read_vol_time(h5_ffn);
-
+sig_flag   = false;
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
     %load ppi attributes
-    [ppi_elv,scan_time] = process_read_ppi_atts(h5_ffn,i);
+    [ppi_elv,~] = process_read_ppi_atts(h5_ffn,i);
     %skip ppi when error exists (indicated by zero elv angle)
     if isempty(ppi_elv)
         sig_flag = false;
