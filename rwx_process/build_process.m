@@ -16,7 +16,7 @@ display('create etc')
 etc_path = 'etc';
 copyfile('/home/meso/dev/roames_weather/etc/global.config',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/site_info.txt',etc_path)
-copyfile('/home/meso/dev/roames_weather/etc/site_info_old.txt',etc_path)
+copyfile('/home/meso/dev/roames_weather/etc/site_info_moved.txt',etc_path)
 copyfile('/home/meso/dev/roames_weather/etc/pushover.token',etc_path)
 
 display('tar')
@@ -31,5 +31,5 @@ ec2_ip      = '52.62.240.73';
 
 delete('/home/meso/dev/roames_weather/rwx_process/etc/global.config')
 delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info.txt')
-delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info_old.txt')
+delete('/home/meso/dev/roames_weather/rwx_process/etc/site_info_moved.txt')
 delete('/home/meso/dev/roames_weather/rwx_process/etc/pushover.token')

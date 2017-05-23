@@ -16,7 +16,7 @@ if exist(out_path,'file')~=7
 end
 %% setup national latlon grid
 v_grid  = bom_v_grid;
-h_grid  = bom_h_rng;
+h_grid  = bom_h_grid;
 lat_vec = max_lat:-h_grid:min_lat; %matrix coords
 lon_vec = min_lon:h_grid:max_lon;
 alt_vec = v_grid:v_grid:v_tops;
