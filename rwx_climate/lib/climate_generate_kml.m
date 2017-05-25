@@ -89,6 +89,7 @@ html_str   = ['<header><h1>',kml_tag,' - ',site_name,'</h1></header>',10,...
             
 %generate colorbar image
 colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label,rain_year_count);
+pause(1); %figure takes some time to create on disk
 %copy to s3 folder
 s3_radar_path = [s3_path,num2str(radar_id,'%02.0f'),'/colorbar.png'];
 file_cp(colorbar_ffn,s3_radar_path,0,1);
