@@ -12,9 +12,9 @@ realtime_offset  -2
 %
 %CLIMATOLOGY ANALYSIS DATES
 %
-date_start      2008_11_16
+date_start      2015_10_27
 %yyyy_mm_dd : oldest time to process
-date_stop       2008_11_16
+date_stop       2015_10_27
 %yyyy_mm_dd : newest time to process
 %
 %SITE

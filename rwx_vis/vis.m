@@ -313,11 +313,6 @@ end
 %profile off
 %profile viewer
 
-if save_object_struct == 1
-    %update restart_vars_fn on kml update for realtime processing
-    save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
-end
-
 %soft exit display
 disp([10,'@@@@@@@@@ Soft Exit at ',datestr(now),' runtime: ',num2str(toc(kill_timer)),' @@@@@@@@@'])
 

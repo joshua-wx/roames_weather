@@ -3,9 +3,9 @@
 %
 % DESTINATION OPTIONS
 local_dest_flag          1
-local_dest_root          /home/meso/roames_weather_kml/kml_demo_Brisbane2008/
-s3_dest_root             s3://roames-weather-vis/kml_demo_Brisbane2008/
-s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_demo_Brisbane2008/
+local_dest_root          /home/meso/roames_weather_kml/kml_demo_Brisbane2015-l3/
+s3_dest_root             s3://roames-weather-vis/kml_demo_Brisbane2015-l3/
+s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_demo_Brisbane2015-l3/
 %
 % REALTIME OPTIONS
 realtime_flag            0
@@ -24,9 +24,9 @@ download_path            /tmp/vis_h5_download/
 asset_data_fn            tmp/asset_data.mat
 %
 % HISTORICAL OPTIOS
-date_start              2008-11-16T06:00:00
+date_start              2015-10-27T05:30:00
 %yyyy_mm_ddTHH:MM : oldest time to process
-date_stop               2008-11-16T07:00:00
+date_stop               2015-10-27T07:30:00
 %yyyy_mm_ddTHH:MM : newest time to process
 %
 %SITE OPTIONS
@@ -83,7 +83,7 @@ options               [1,0,0,0,1,1,0,0,0,0,1]
 %
 % SingleDop Products
 sd_sweep          0
-sd_l              5                     %sd decorrelation length (km)
+sd_l              3                     %sd decorrelation length (km)
 sd_min_rng        7                     %sd min range (km)
 sd_max_rng        80                   %sd max range (km)
 sd_thin_azi       2                     %sd thin in azi dim
