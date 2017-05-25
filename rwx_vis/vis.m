@@ -260,6 +260,7 @@ while exist('tmp/kill_vis','file')==2
     unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
     unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
     unix(['tail -c 200kB  tmp/log.sqs > tmp/log.sqs']);
+	unix(['tail -c 200kB  tmp/log.singledop > tmp/log.singledop']);
     %Kill function
     if toc(kill_timer)>kill_wait
         %update user

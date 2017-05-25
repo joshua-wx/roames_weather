@@ -24,6 +24,7 @@
 45 Eucla
 47 R/hmptn
 51 MelbnAP
+54 Kurnell
 57 E_Sale
 59 Gunn_Pt
 60 Nadi
