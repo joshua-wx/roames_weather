@@ -85,10 +85,10 @@ options               [1,0,0,0,1,1,0,0,0,0,1]
 sd_sweep          0
 sd_l              5                     %sd decorrelation length (km)
 sd_min_rng        7                     %sd min range (km)
-sd_max_rng        100                   %sd max range (km)
+sd_max_rng        80                   %sd max range (km)
 sd_thin_azi       2                     %sd thin in azi dim
 sd_thin_rng       8                     %sd thin in rng dim
-sd_plt_thin       10                    %thin integer for vectors 
+sd_plt_thin       8                    %thin integer for vectors 
 %
 % ERROR NOTIFICATION
 %

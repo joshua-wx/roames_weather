@@ -81,6 +81,7 @@ options               [1,0,0,0,1,1,1,0,0,0,0]
 %Entry (11) single doppler wind speed
 %
 % SingleDop Products (sweep is determined by ppi_sweep)
+sd_sweep          0
 sd_l              10                    %sd decorrelation length (km)
 sd_min_rng        0                     %sd min range (km)
 sd_max_rng        50                    %sd max range (km)

@@ -63,7 +63,7 @@ py_radar.fields['VRADH_corr']['data'][start:end] = flt_data
 #generate sdop fields
 sd_obj = singledop.SingleDoppler2D(L=sd_l, radar=py_radar, range_limits=[min_rng,max_rng],
 	                                sweep_number=sweep,name_vr='VRADH_corr',thin_factor=[thin_azi,thin_rng],max_range=max_rng,grid_edge=max_rng,
-                                    filter_data=True,filter_distance=5)
+                                    filter_data=True,filter_distance=2)
 
 #setup figure
 fig = plt.figure(figsize=(12, 12),frameon=False)
