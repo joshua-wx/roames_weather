@@ -1,0 +1,99 @@
+%KML CONFIG FILE
+%WHAT: controls the input parameters of the KML config module
+%
+% DESTINATION OPTIONS
+local_dest_flag          0
+local_dest_root          /home/meso/roames_weather_kml/kml_realtime_testing/
+s3_dest_root             s3://roames-weather-vis/kml_realtime/
+s3_public_root           https://s3-ap-southeast-2.amazonaws.com/roames-weather-vis/kml_realtime/
+%
+% REALTIME OPTIONS
+realtime_flag            1
+realtime_length          -2          %hours
+%
+% RESTART OPTIONS
+save_object_struct       1     %save all objects on soft exit
+%
+%FILE STRUCTURE OPTIONS
+icons_path               icons/
+overlays_path            overlays/
+ppi_obj_path             ppi_obj/
+track_obj_path           track_obj/
+cell_obj_path            cell_obj/
+download_path            /tmp/vis_h5_download/
+asset_data_fn            tmp/asset_data.mat
+%
+% HISTORICAL OPTIOS
+date_start               2017-02-18T05:00:00
+%yyyy_mm_ddTHH:MM : oldest time to process
+date_stop                2017-02-18T06:00:00
+%yyyy_mm_ddTHH:MM : newest time to process
+%
+%SITE OPTIONS
+radar_id_list           all       %'all' for all sites in site_info for realtime processing
+force_transform_update  0         %flag to force transform regeneration
+%site description
+%overrides the zone setting
+%Option (1)    all
+%Option (2)    single number
+%Option (3)    vector
+%
+%REGIONATION OPTIONS
+ppi_minLodPixels      50          %lower limit on number of pixels an object scales to for ppi region
+ppi_maxLodPixels      -1          %upper limit on number of pixels an object scales to for ppi region
+track_minLodPixels    150         %lower limit on number of pixels an object scales to for track region
+track_maxLodPixels    -1          %upper limit on number of pixels an object scales to for track region
+iso_minLodPixels      50          %lower limit on number of pixels an object scales to for isosurface
+iso_maxLodPixels      -1          %upper limit on number of pixels an object scales to for isosurface
+max_ge_alt            20000       %upper limit for ge alt in networklinks    
+%
+%KML OPTIONS
+coverage_range        200               %coverage rings distance in km
+max_vis_trck_length   20                %length of storm track colormap
+xsec_alt              [3000,6000]       %xsection altitude in m
+ppi_sweep             3                 %starting from 1st sweep = 1
+ppi_dbzh_mask         10                %gatemask which is applied to reflectivity and velocity PPI images in dBZ
+ppi_resize_scale      3                 %resize factor for ppi images
+swath_mesh_threshold  [15,30,45]        %mesh thresholds for swath generation
+smallest_no_faces     6                 %lowest number of faces for an isosurface
+min_voxels            3                 %minimum number of grid voxels for isosurface
+outer_iso_faces       2000              %maximum total number of face for the outer_iso
+inner_iso_faces       2000              %maximum number of total faces for an inner iso object
+inner_iso_percentile  95                %percentile pf dBZ for inner isosurface
+low_res_iso_factor    0.25              %low res face reduction factor
+inner_alpha           0                 %alpha for inner collada isosurface
+outer_alpha           0.5               %alpha for outer collada isosurface
+min_track_cells       3                 %minimum of unique cells for kml track generation (min 2)
+%
+% KML LAYER OPTIONS
+%                      1 2 3 4 5 6 7 8 9 10 11
+options               [1,0,0,0,1,1,1,0,1,1,1]
+%description (T/F):
+%Entry (1)  PPI refl kml layer
+%Entry (2)  PPI vel kml layer
+%Entry (3)  Refl xsec kml object
+%Entry (4)  Vel xsec kml object
+%Entry (5)  inner isosurface kml object
+%Entry (6)  outer isosurface kml object
+%Entry (7)  storm stats balloon object
+%Entry (8)  track
+%Entry (9)  swath
+%Entry (10) nowcast
+%Entry (11) single doppler wind speed
+%
+% SingleDop Products (sweep is determined by ppi_sweep)
+sd_sweep          0
+sd_l              5                     %sd decorrelation length (km)
+sd_min_rng        7                     %sd min range (km)
+sd_max_rng        80                   %sd max range (km)
+sd_thin_azi       2                     %sd thin in azi dim
+sd_thin_rng       8                    %sd thin in rng dim
+sd_plt_thin       8                    %thin integer for vectors 
+%
+% ERROR NOTIFICATION
+%
+pushover_flag     1
+max_restart_tries 3
+%Entry (8) tracks path kml object
+%Entry (9) swaths kml object
+%Entry (10) nowcast swaths kml objects
