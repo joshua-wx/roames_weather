@@ -30,11 +30,11 @@ Roames Weather provides an end-to-end system form ingesting unprocessed radar da
 
 ### Publications applied in Roames Weather
 
-1. Maximum Expected Size of Hail - Wilson, C., Ortega, K., & Lakshmanan, V. (2009). Evaluating multi-radar, multi-sensor hail diagnosis with high resolution hail reports. In Preprints, 25th Conference on IIPS (p. P2.9). Seattle, WA: American Meteorological Society. Retrieved from http://www.caps.ou.edu/reu/reu08/Final Papers/Wilson_final_paper.pdf
-1. Single Doppler retrieval - Xu et al., 2006: Background error covariance functions for vector wind analyses using Doppler-radar radial-velocity observations. Q. J. R. Meteorol. Soc., 132, 2887-2904
-1. Extended Watershed transform (identification) - Lakshmanan, V., Hondl, K., & Rabin, R. (2009). An Efficient, General-Purpose Technique for Identifying Storm Cells in Geospatial Images. Journal of Atmospheric and Oceanic Technology, 26(3), 523–537. http://doi.org/10.1175/2008JTECHA1153.1
-1. Improved Echo Top Method (analysis) - Lakshmanan, V., Hondl, K., Potvin, C. K., & Preignitz, D. (2013). An Improved Method for Estimating Radar Echo-Top Height. Weather and Forecasting, 28(2), 481–488. http://doi.org/10.1175/WAF-D-12-00084.1
-1. Hybrid Storm Tracking - Lakshmanan, V., & Smith, T. (2010). An Objective Method of Evaluating and Devising Storm-Tracking Algorithms. Weather and Forecasting, 25(2), 701–709. http://doi.org/10.1175/2009WAF2222330.1
+1. Maximum Expected Size of Hail - Wilson, C., Ortega, K., & Lakshmanan, V. (2009). Evaluating multi-radar, multi-sensor hail diagnosis with high resolution hail reports. In Preprints, 25th Conference on IIPS (p. P2.9). Seattle, WA: American Meteorological Society. Retrieved from [link](http://www.caps.ou.edu/reu/reu08/Final Papers/Wilson_final_paper.pdf)
+1. Single Doppler retrieval - Xu et al., 2006: Background error covariance functions for vector wind analyses using Doppler-radar radial-velocity observations. Q. J. R. Meteorol. Soc., 132, 2887-2904 [doi](http://doi.org/10.1256/qj.05.202)
+1. Extended Watershed transform (identification) - Lakshmanan, V., Hondl, K., & Rabin, R. (2009). An Efficient, General-Purpose Technique for Identifying Storm Cells in Geospatial Images. Journal of Atmospheric and Oceanic Technology, 26(3), 523–537. [doi](http://doi.org/10.1175/2008JTECHA1153.1)
+1. Improved Echo Top Method (analysis) - Lakshmanan, V., Hondl, K., Potvin, C. K., & Preignitz, D. (2013). An Improved Method for Estimating Radar Echo-Top Height. Weather and Forecasting, 28(2), 481–488. [doi](http://doi.org/10.1175/WAF-D-12-00084.1)
+1. Hybrid Storm Tracking - Lakshmanan, V., & Smith, T. (2010). An Objective Method of Evaluating and Devising Storm-Tracking Algorithms. Weather and Forecasting, 25(2), 701–709. [doi](http://doi.org/10.1175/2009WAF2222330.1)
 
 ### Datasets applied in Roames Weather
 
