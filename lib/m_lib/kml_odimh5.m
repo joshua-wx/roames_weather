@@ -46,8 +46,10 @@ end
 %Single Doppler Velocity
 if options(11)==1 && ~isempty(ppi_struct.atts.NI)
     %create kml for vel ppi
-    ppi_tag                   = [data_tag,'.ppi_singledop.sweep_',num2str(ppi_elv,'%02.1f')];
-    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,ppi_path,ppi_tag,ppi_struct,geo_coords,h_grid_deg);
+	sdppi_struct              = process_read_ppi_data(odimh5_ffn,sd_sweep+1); %python to matlab index
+	[sdppi_elv,~]             = process_read_ppi_atts(odimh5_ffn,sd_sweep+1); %python to matlab index
+    sdppi_tag                 = [data_tag,'.ppi_singledop.sweep_',num2str(sdppi_elv,'%02.1f')];
+    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,sdppi_struct,ppi_path,sdppi_tag,geo_coords,h_grid_deg);
     if isempty(error)
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
     else

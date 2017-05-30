@@ -108,20 +108,23 @@ for m = 1:length(radar_id_list)
         %read database
         fid = fopen(archive_ffn);
         C   = textscan(fid,['%*d %f %f %f %f %f %f',repmat(' %*f',1,27)],'HeaderLines',1,'Delimiter',',');
-        fclose(fid);
-        %convert to dates
-        database_dt = datenum(C{1},C{2},C{3},C{4},C{5},C{6});
-        uniq_date   = unique(floor(database_dt));
-        %crop database.csv to remove the end date (this will be replaced
-        %with refreshed ddb entries)
-        crop_date   = uniq_date(end-1);
-        crop_idx    = find(floor(database_dt)==crop_date,1,'last');
-        cmd = ['sed -n ''1,',num2str(crop_idx),' p'' ',archive_ffn];
-        [sout,eout] = unix(cmd);
-        %keep stormh5_dt_list >= end date
-        filt_mask        = floor(stormh5_dt_list)>=uniq_date(end);
-        stormh5_ffn_list = stormh5_ffn_list(filt_mask);
-        stormh5_dt_list  = stormh5_dt_list(filt_mask);
+        %skip if file only contains header
+        if ~isempty(C{1})
+            fclose(fid);
+            %convert to dates
+            database_dt = datenum(C{1},C{2},C{3},C{4},C{5},C{6});
+            uniq_date   = unique(floor(database_dt));
+            %crop database.csv to remove the end date (this will be replaced
+            %with refreshed ddb entries)
+            crop_date   = uniq_date(end-1);
+            crop_idx    = find(floor(database_dt)==crop_date,1,'last');
+            cmd = ['sed -n ''1,',num2str(crop_idx),' p'' ',archive_ffn];
+            [sout,eout] = unix(cmd);
+            %keep stormh5_dt_list >= end date
+            filt_mask        = floor(stormh5_dt_list)>=uniq_date(end);
+            stormh5_ffn_list = stormh5_ffn_list(filt_mask);
+            stormh5_dt_list  = stormh5_dt_list(filt_mask);
+        end
     else
         %init database
         table_header = {'radar_id,','year,','month,','day,','hour,','minute,','second,','track_id,',... %1-8

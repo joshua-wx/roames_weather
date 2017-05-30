@@ -1,13 +1,13 @@
-function [link,ffn,error] = kml_singledop_ppi(odimh5_ffn,dest_path,data_tag,ppi_struct,geo_coords,h_grid_deg)
+function [link,ffn,error] = kml_singledop_ppi(odimh5_ffn,sdppi_struct,dest_path,data_tag,geo_coords,h_grid_deg)
 
 load('tmp/interp_cmaps.mat')
 load('tmp/vis.config.mat')
 load('tmp/global.config.mat')
 
 %build command to run python single doppler script
-png_ffn = [tempdir,data_tag,'.png'];
-cmd     = ['python py_lib/sd_winds_pltout.py',' ',odimh5_ffn,' ',png_ffn,' ',...
- 		num2str(ppi_struct.atts.NI),' ',num2str(sd_l),' ',num2str(sd_min_rng),' ',...
+png_ffn      = [tempdir,data_tag,'.png'];
+cmd          = ['python py_lib/sd_winds_pltout.py',' ',odimh5_ffn,' ',png_ffn,' ',...
+ 		num2str(sdppi_struct.atts.NI),' ',num2str(sd_l),' ',num2str(sd_min_rng),' ',...
 		num2str(sd_max_rng),' ',num2str(sd_sweep),' ',num2str(sd_thin_azi),' '...
 		num2str(sd_thin_rng),' ',num2str(sd_plt_thin)];
 [sout,eout] = unix(cmd);
