@@ -26,7 +26,7 @@ out_fn = ['sdvalidate_',num2str(radar_id,'%02.0f'),'_',datestr(now,'yyyymmdd_HHM
 sd_sweep          = 0;   %sd sweep (python index)
 sd_l              = 5;   %sd decorrelation length (km)
 sd_min_rng        = 7;   %sd min range (km)
-sd_max_rng        = 80;  %sd max range (km)
+sd_max_rng        = 70;  %sd max range (km)
 sd_thin_azi       = 2;   %sd thin in azi dim
 sd_thin_rng       = 8;   %sd thin in rng dim
 sd_stat_rng       = 3;   %rng from target aws to search for sd point (km)
@@ -120,7 +120,7 @@ for i=1:length(fetch_date_list)
         aws_latlon      = [aws_lat_list(j),aws_lon_list(j)];
         dist_mat        = sqrt(sum(bsxfun(@minus, [sd_lat,sd_lon], aws_latlon).^2,2));
         sd_spd_vec      = sd_wspd(deg2km(dist_mat)<=sd_stat_rng);
-        sd_spd_mat(i,j) = nanmean(sd_spd_vec);
+        sd_spd_mat(i,j) = nanmean(sd_spd_vec); %IMPORTANT USING MEAN and RADIUS
     end
     %clean
     delete(local_h5ffn)
