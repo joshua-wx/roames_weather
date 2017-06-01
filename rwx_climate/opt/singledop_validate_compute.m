@@ -1,4 +1,4 @@
-function validate_singledop
+function singledop_validate_compute
 %WHAT:
 %reads in a climate database and filters by weather station locations to
 %produce a list of date/times to extract odimh5 volumes. odimh5 volumes are
@@ -6,9 +6,10 @@ function validate_singledop
 %weather stations
 
 %aws
-aws_lat_list      = [-27.57,-27.39,-27.97,-27.94];
-aws_lon_list      = [153.01,153.13,152.99,153.43];
-aws_name_list     = {'Archerfield','YBBN','Beaudesert','Southport'};
+aws_lat_list      = [-27.57,-27.39,-27.97,-27.94,-27.48,-27.63];
+aws_lon_list      = [153.01,153.13,152.99,153.43,153.04,152.71];
+aws_name_list     = {'Archerfield','YBBN','Beaudesert','Southport','Brisbane','Amberley'};
+aws_id_list       = [040211,040842,040983,040764,040913,040004];
 
 %odimh5
 radar_id          = 66;
@@ -59,8 +60,8 @@ for i=1:length(aws_lat_list)
     filter_idx   = [filter_idx;tmp_idx];
 end
 %create unique fetch datetime list
-fetch_date_list  = unique(storm_date_list(filter_idx));
-sd_spd_mat       = nan(length(fetch_date_list),length(aws_lat_list));
+fetch_date_list   = unique(storm_date_list(filter_idx));
+sd_wspd_mat       = nan(length(fetch_date_list),length(aws_lat_list));
 
 %extract singledop wind speeds
 for i=1:length(fetch_date_list)
@@ -117,16 +118,16 @@ for i=1:length(fetch_date_list)
     end
     %find nn in sd grid to aws locations
     for j=1:length(aws_lat_list)
-        aws_latlon      = [aws_lat_list(j),aws_lon_list(j)];
-        dist_mat        = sqrt(sum(bsxfun(@minus, [sd_lat,sd_lon], aws_latlon).^2,2));
-        sd_spd_vec      = sd_wspd(deg2km(dist_mat)<=sd_stat_rng);
-        sd_spd_mat(i,j) = nanmean(sd_spd_vec); %IMPORTANT USING MEAN and RADIUS
+        aws_latlon       = [aws_lat_list(j),aws_lon_list(j)];
+        dist_mat         = sqrt(sum(bsxfun(@minus, [sd_lat,sd_lon], aws_latlon).^2,2));
+        sd_spd_vec       = sd_wspd(deg2km(dist_mat)<=sd_stat_rng);
+        sd_wspd_mat(i,j) = nanmean(sd_spd_vec); %IMPORTANT USING MEAN and RADIUS
     end
     %clean
     delete(local_h5ffn)
     delete(local_ncffn)
     %update/save to file
-    save(out_fn,'fetch_date_list','sd_spd_mat','aws_name_list','sd_stat_rng')
+    save(out_fn,'fetch_date_list','sd_wspd_mat','aws_name_list','sd_stat_rng','aws_id_list')
 end
 
 %move to s3
