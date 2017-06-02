@@ -61,7 +61,13 @@ for i=1:length(aws_lat_list)
 end
 %create unique fetch datetime list
 fetch_date_list   = unique(storm_date_list(filter_idx));
+date_mask         = floor(fetch_date_list) == datenum('27-11-2014','dd-mm-yyyy');
+fetch_date_list   = fetch_date_list(date_mask);
+
+
 sd_wspd_mat       = nan(length(fetch_date_list),length(aws_lat_list));
+
+
 
 %extract singledop wind speeds
 for i=1:length(fetch_date_list)
@@ -108,20 +114,20 @@ for i=1:length(fetch_date_list)
         mstruct.geoid   = almanac('earth','wgs84','kilometers');
         mstruct         = defaultm(mstruct);
         [sd_lat,sd_lon] = minvtran(mstruct,sd_x,sd_y);
-        sd_lat = sd_lat(:);
-        sd_lon = sd_lon(:);
+        sd_lat_list = sd_lat(:);
+        sd_lon_list = sd_lon(:);
         %read nc wind
         sd_u    = ncread(local_ncffn,'analysis_u');
         sd_v    = ncread(local_ncffn,'analysis_v');
-        sd_wspd = sqrt(sd_v.^2 + sd_u.^2);
-        sd_wspd = sd_wspd(:);
+        sd_wspd = rot90(sqrt(sd_v.^2 + sd_u.^2)); %convert to km/h
+        sd_wspd_list = sd_wspd(:);
     end
     %find nn in sd grid to aws locations
     for j=1:length(aws_lat_list)
         aws_latlon       = [aws_lat_list(j),aws_lon_list(j)];
-        dist_mat         = sqrt(sum(bsxfun(@minus, [sd_lat,sd_lon], aws_latlon).^2,2));
-        sd_spd_vec       = sd_wspd(deg2km(dist_mat)<=sd_stat_rng);
-        sd_wspd_mat(i,j) = nanmean(sd_spd_vec); %IMPORTANT USING MEAN and RADIUS
+        dist_mat         = sqrt(sum(bsxfun(@minus, [sd_lat_list,sd_lon_list], aws_latlon).^2,2));
+        sd_spd_vec       = sd_wspd_list(deg2km(dist_mat)<=sd_stat_rng);
+        sd_wspd_mat(i,j) = max(sd_spd_vec); %IMPORTANT USING MAX and RADIUS
     end
     %clean
     delete(local_h5ffn)

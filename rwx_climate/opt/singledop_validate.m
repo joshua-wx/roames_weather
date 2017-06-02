@@ -12,28 +12,29 @@ aws_path = '/run/media/meso/DATA/project_data/singledop_aws_obs_2006-2016/';
 
 
 %load singledop data
-singledop_fn = 'sdvalidate_66_20170530_122903.mat';
+singledop_fn = 'sdvalidate_66_20170602_115000.mat';
 load(singledop_fn);
 
-aws_wspd_mat = nan(size(sd_spd_mat));
+aws_wspd_mat = nan(size(sd_wspd_mat));
 for m = 1:length(aws_id_list)
     aws_id   = aws_id_list(m);
     aws      = load([aws_path,'0',num2str(aws_id)]);
     aws_dt   = aws.dataset.dt;
-    aws_wspd = aws.dataset.gspd;
+    aws_dt   = aws_dt-(1/24*10); %convert to UTC to match radar
+    aws_wspd = aws.dataset.wspd;
     for n = 1:length(fetch_date_list)
-        aws_idx = find(abs(fetch_date_list(n)-aws_dt)<addtodate(0,30,'minute'));
+        aws_idx = find(abs(fetch_date_list(n)-aws_dt)<addtodate(0,3,'minute'));
         if isempty(aws_idx)
             disp(['skipped ',num2str(aws_id),' ',datestr(fetch_date_list(n))]);
             continue
         end
-        aws_wspd_mat(n,m)   = max(aws_wspd(aws_idx));
+        aws_wspd_mat(n,m)   = mean(aws_wspd(aws_idx));
     end
 end
 keyboard
 
 plot_aws_wspd           = aws_wspd_mat(:);
-plot_sd_wspd            = sd_spd_mat(:);
+plot_sd_wspd            = sd_wspd_mat(:);
 nan_mask                = isnan(plot_aws_wspd) | isnan(plot_sd_wspd);
 plot_aws_wspd(nan_mask) = [];
 plot_sd_wspd(nan_mask)  = [];
@@ -41,7 +42,7 @@ plot_sd_wspd(nan_mask)  = [];
 plot(plot_aws_wspd,plot_sd_wspd.*3.6,'b.')
 xlabel('aws (km/h)')
 ylabel('sd (km/h)')
-axis([0 100 0 100])
+axis([0 130 0 130])
 
 function build_bom_aws(aws_path,aws_id)
 %merges two 5 year AWS datasets containing wind data into single struct and
