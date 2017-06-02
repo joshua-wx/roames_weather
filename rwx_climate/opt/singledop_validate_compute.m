@@ -30,7 +30,7 @@ sd_min_rng        = 7;   %sd min range (km)
 sd_max_rng        = 70;  %sd max range (km)
 sd_thin_azi       = 2;   %sd thin in azi dim
 sd_thin_rng       = 8;   %sd thin in rng dim
-sd_stat_rng       = 3;   %rng from target aws to search for sd point (km)
+sd_stat_rng       = 1.5;   %rng from target aws to search for sd point (km)
 %add paths
 addpath('../../lib/m_lib')
 addpath('../../etc')
@@ -61,8 +61,8 @@ for i=1:length(aws_lat_list)
 end
 %create unique fetch datetime list
 fetch_date_list   = unique(storm_date_list(filter_idx));
-date_mask         = floor(fetch_date_list) == datenum('27-11-2014','dd-mm-yyyy');
-fetch_date_list   = fetch_date_list(date_mask);
+%date_mask         = floor(fetch_date_list) == datenum('27-11-2014','dd-mm-yyyy');
+%fetch_date_list   = fetch_date_list(date_mask);
 
 
 sd_wspd_mat       = nan(length(fetch_date_list),length(aws_lat_list));
@@ -127,7 +127,7 @@ for i=1:length(fetch_date_list)
         aws_latlon       = [aws_lat_list(j),aws_lon_list(j)];
         dist_mat         = sqrt(sum(bsxfun(@minus, [sd_lat_list,sd_lon_list], aws_latlon).^2,2));
         sd_spd_vec       = sd_wspd_list(deg2km(dist_mat)<=sd_stat_rng);
-        sd_wspd_mat(i,j) = max(sd_spd_vec); %IMPORTANT USING MAX and RADIUS
+        sd_wspd_mat(i,j) = mean(sd_spd_vec); %IMPORTANT USING MAX and RADIUS
     end
     %clean
     delete(local_h5ffn)

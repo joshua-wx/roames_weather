@@ -21,14 +21,14 @@ for m = 1:length(aws_id_list)
     aws      = load([aws_path,'0',num2str(aws_id)]);
     aws_dt   = aws.dataset.dt;
     aws_dt   = aws_dt-(1/24*10); %convert to UTC to match radar
-    aws_wspd = aws.dataset.wspd;
+    aws_wspd = aws.dataset.gspd;
     for n = 1:length(fetch_date_list)
-        aws_idx = find(abs(fetch_date_list(n)-aws_dt)<addtodate(0,3,'minute'));
+        aws_idx = find(abs(fetch_date_list(n)-aws_dt)<addtodate(0,2,'minute'));
         if isempty(aws_idx)
             disp(['skipped ',num2str(aws_id),' ',datestr(fetch_date_list(n))]);
             continue
         end
-        aws_wspd_mat(n,m)   = mean(aws_wspd(aws_idx));
+        aws_wspd_mat(n,m)   = median(aws_wspd(aws_idx));
     end
 end
 keyboard
@@ -43,6 +43,8 @@ plot(plot_aws_wspd,plot_sd_wspd.*3.6,'b.')
 xlabel('aws (km/h)')
 ylabel('sd (km/h)')
 axis([0 130 0 130])
+hold on
+plot([0,130],[0,130])
 
 function build_bom_aws(aws_path,aws_id)
 %merges two 5 year AWS datasets containing wind data into single struct and
