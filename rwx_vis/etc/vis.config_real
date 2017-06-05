@@ -51,7 +51,7 @@ max_ge_alt            20000       %upper limit for ge alt in networklinks
 coverage_range        200               %coverage rings distance in km
 max_vis_trck_length   20                %length of storm track colormap
 xsec_alt              [3000,6000]       %xsection altitude in m
-ppi_sweep             3                 %starting from 1st sweep = 1
+ppi_sweep             2                 %starting from 1st sweep = 1
 ppi_dbzh_mask         10                %gatemask which is applied to reflectivity and velocity PPI images in dBZ
 ppi_resize_scale      3                 %resize factor for ppi images
 swath_mesh_threshold  [15,30,45]        %mesh thresholds for swath generation
