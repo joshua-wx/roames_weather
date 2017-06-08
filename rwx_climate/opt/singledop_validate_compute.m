@@ -11,6 +11,12 @@ aws_lon_list      = [153.01,153.13,152.99,153.43,153.04,152.71];
 aws_name_list     = {'Archerfield','YBBN','Beaudesert','Southport','Brisbane','Amberley'};
 aws_id_list       = [040211,040842,040983,040764,040913,040004];
 
+%aws-radar
+radar_angle   = 0.5;
+ar_rng_list   = [27,37,37,31,33,52];
+ar_slrng_list = ar_rng_list./cosd(radar_angle);
+ar_alt_list   = ar_slrng_list.*sind(0.5)+((ar_slrng_list.^2)./(2*6370));
+
 %odimh5
 radar_id          = 66;
 odimh5_s3_bucket  = 's3://roames-weather-odimh5/odimh5_archive/';
@@ -68,6 +74,7 @@ mkdir('tmp')
 load('reprocess_date_list.mat')
 fetch_date_list = repro_date_list;
 sd_wspd_mat     = nan(length(fetch_date_list),length(aws_lat_list));
+sd_wdir_mat     = nan(length(fetch_date_list),length(aws_lat_list));
 
 %extract singledop wind speeds
 for i=1:length(fetch_date_list)
@@ -117,23 +124,30 @@ for i=1:length(fetch_date_list)
         sd_lat_list = sd_lat(:);
         sd_lon_list = sd_lon(:);
         %read nc wind
-        sd_u    = ncread(local_ncffn,'analysis_u');
-        sd_v    = ncread(local_ncffn,'analysis_v');
-        sd_wspd = rot90(sqrt(sd_v.^2 + sd_u.^2)); %convert to km/h
-        sd_wspd_list = sd_wspd(:);
+        sd_u      = rot90(ncread(local_ncffn,'analysis_u'));
+        sd_v      = rot90(ncread(local_ncffn,'analysis_v'));
+        sd_u_list = sd_u(:);
+        sd_v_list = sd_v(:);
     end
     %find nn in sd grid to aws locations
     for j=1:length(aws_lat_list)
         aws_latlon        = [aws_lat_list(j),aws_lon_list(j)];
         dist_mat          = sqrt(sum(bsxfun(@minus, [sd_lat_list,sd_lon_list], aws_latlon).^2,2));
-        sd_spd_vec        = sd_wspd_list(deg2km(dist_mat)<=sd_stat_rng);
-        sd_wspd_mat(i,j)  = nanmean(sd_spd_vec);
+        disk_mask         = deg2km(dist_mat)<=sd_stat_rng;
+        sd_u_vec          = sd_u_list(disk_mask);
+        sd_v_vec          = sd_v_list(disk_mask);
+        sd_u_mean         = nanmean(sd_u_vec);
+        sd_v_mean         = nanmean(sd_v_vec);
+        sd_wspd_mean      = sqrt(sd_u_mean.^2 + sd_v_mean.^2);
+        sd_wspd_mat(i,j)  = sd_wspd_mean;
+        sd_wdir_mean      = 90 - (atan2(sd_u_mean/sd_wspd_mean, sd_v_mean/sd_wspd_mean) * 180/pi);
+        sd_wdir_mat(i,j)  = sd_wdir_mean;
     end
     %clean
     delete(local_h5ffn)
     delete(local_ncffn)
     %update/save to file
-    save(out_fn,'fetch_date_list','sd_wspd_mat','aws_name_list','sd_stat_rng','aws_id_list')
+    save(out_fn,'fetch_date_list','sd_wspd_mat','sd_wdir_mat','aws_name_list','sd_stat_rng','aws_id_list','ar_alt_list')
 end
 
 %move to s3

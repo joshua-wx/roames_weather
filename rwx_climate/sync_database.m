@@ -131,7 +131,7 @@ for m = 1:length(radar_id_list)
             'subset_id,','v_grid(km),','h_grid(km),',... %9-11
             'storm_z_centlat,','storm_z_centlon,',... %12-13
             'storm_min_i,','storm_max_i,','storm_min_j,','storm_max_j,',... %14-17
-            'storm_min_lat,','storm_max_lat,','storm_min_lon,','storm_max_lon,',... %18-21
+            'storm_max_lat,','storm_min_lat,','storm_max_lon,','storm_min_lon,',... %18-21
             'area(km2),','area_ewt(km2),','max_cell_vil(kg/m2),','max_dbz(dbz),',... %22-25
             'max_dbz_h(km),','max_g_vil(kg/m2),','max_mesh(mm),',... %26-28
             'max_posh(%),','max_sts_dbz_h(km),','max_tops(km),',... %29-31

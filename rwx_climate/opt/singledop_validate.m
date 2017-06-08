@@ -12,16 +12,19 @@ aws_path = '/run/media/meso/DATA/project_data/singledop_aws_obs_2006-2016/';
 
 
 %load singledop data
-singledop_fn = 'sdvalidate_66_20170605_141453.mat';
+singledop_fn = 'sdvalidate_66_20170608_123731.mat';
 load(singledop_fn);
 
 aws_wspd_mat = nan(size(sd_wspd_mat));
+aws_wdir_mat = nan(size(sd_wspd_mat));
+
 for m = 1:length(aws_id_list)
     aws_id   = aws_id_list(m);
     aws      = load([aws_path,'0',num2str(aws_id)]);
     aws_dt   = aws.dataset.dt;
     aws_dt   = aws_dt-(1/24*10); %convert to UTC to match radar
     aws_wspd = aws.dataset.wspd;
+    aws_wdir = aws.dataset.wdir;
     for n = 1:length(fetch_date_list)
         [~,aws_idx] = min(abs(fetch_date_list(n)-aws_dt));
         if isempty(aws_idx)
@@ -29,15 +32,21 @@ for m = 1:length(aws_id_list)
             continue
         end
         aws_wspd_mat(n,m)   = mean(aws_wspd(aws_idx));
+        aws_wdir_mat(n,m)   = mean(aws_wdir(aws_idx));
     end
 end
+aws_alt_mat = repmat(ar_alt_list,1,length(fetch_date_list))+0.174;
 keyboard
 
 %histogram plot
 figure
 plot_aws_wspd           = aws_wspd_mat(:);
+plot_aws_wdir           = aws_wdir_mat(:);
+plot_aws_alt            = aws_alt_mat(:);
 plot_sd_wspd            = sd_wspd_mat(:).*3.6;
+plot_sd_wdir            = sd_wdir_mat(:);
 high_mask               = plot_aws_wspd>=35;
+high_mask               = true(length(plot_aws_wspd),1);
 diff_wspd               = plot_aws_wspd-plot_sd_wspd;
 histogram(diff_wspd(high_mask),[-55:10:55],'Normalization','probability')
 xlabel('AWS-Doppler difference (km/h)')
@@ -45,14 +54,24 @@ ylabel('Probability (%)')
 %stats
 nanmean(diff_wspd(high_mask))
 sum(high_mask)
-%line plot
+%diff vs aws speed line plot
 figure
-plot(plot_aws_wspd,plot_sd_wspd,'b.')
-xlabel('aws (km/h)')
-ylabel('sd (km/h)')
-axis([0 90 0 90])
-hold on
-plot([0,90],[0,90])
+plot(plot_aws_wspd(high_mask),diff_wspd(high_mask),'b.')
+xlabel('AWS (km/h)')
+ylabel('AWS-Doppler difference (km/h)')
+grid on
+%diff vs direction plot
+figure
+plot(plot_aws_wdir(high_mask),diff_wspd(high_mask),'b.')
+xlabel('Direction (degTN)')
+ylabel('AWS-Doppler difference (km/h)')
+grid on
+%diff vs elevation plot
+figure
+plot(plot_aws_alt(high_mask).*1000,diff_wspd(high_mask),'b.')
+xlabel('Radar beam altitude above AWS (km/h)')
+ylabel('AWS-Doppler difference (m)')
+grid on
 
 function build_bom_aws(aws_path,aws_id)
 %merges two 5 year AWS datasets containing wind data into single struct and
