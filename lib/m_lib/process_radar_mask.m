@@ -2,7 +2,6 @@ function [mask_grid,geo_coords] = process_radar_mask(radar_id,start_timestep,vol
 
 %% init
 %paths
-priority_fn = 'priority_list.txt';
 load('global.config.mat')
 load([site_info_fn,'.mat']);
 
