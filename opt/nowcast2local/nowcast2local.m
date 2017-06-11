@@ -41,7 +41,10 @@ for i = 3:length(siteinfo_name_list)
 
         %run fetch --limit-rate=1024k
         disp(['Downloading: ',remote_path]);
-        cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; wget -r -np -nH -nd -A "*.rapic" -P ',local_path,' ',remote_path];
+
+        %cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; wget -r -np -nH -nd -A "*.rapic" -P ',local_path,' ',remote_path];
+		%cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; rsync -aP --include="*.rapic" --exclude="*" ',remote_path,' ',local_path];
+		cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; rsync -avP ',remote_path,'*.rapic',' ',local_path];
         [sout,eout] = unix(cmd_string);
         
         %get file list of dl'ed files
