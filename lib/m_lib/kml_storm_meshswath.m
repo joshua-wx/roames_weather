@@ -1,4 +1,4 @@
-function [swath_kml,swath_placemark_kml] = kml_storm_swath(swath_kml,swath_placemark_kml,track_jstruct,track_id)
+function [swath_kml,swath_placemark_kml] = kml_storm_meshswath(swath_kml,swath_placemark_kml,track_jstruct,track_id)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
