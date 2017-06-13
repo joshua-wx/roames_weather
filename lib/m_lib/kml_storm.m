@@ -115,7 +115,7 @@ if ~isempty(storm_jstruct)
             track_kml = kml_storm_track(track_kml,track_jstruct,track_id);
         end
         if options(9)==1
-            [swath_kml,swath_stat_kml] = kml_storm_swath(swath_kml,swath_stat_kml,track_jstruct,track_id);
+            [swath_kml,swath_stat_kml] = kml_storm_meshswath(swath_kml,swath_stat_kml,track_jstruct,track_id);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
         if options(10)==1
