@@ -18,6 +18,7 @@ transform_path    = [local_tmp_path,'transforms/'];
 kmlobj_struct     = [];
 vol_struct        = [];
 storm_jstruct     = [];
+radar_id_list     = [];
 restart_tries     = 0;
 crash_restart     = false;
 %init tmp path
@@ -166,7 +167,7 @@ while exist('tmp/kill_vis','file')==2
     end
     if isempty(download_odimh5_list)
         %break on no odimh5 data
-        display('download_odimh5_list is empty')
+        disp('download_odimh5_list is empty')
         continue
     end
     download_list = [download_odimh5_list;download_stormh5_list];
@@ -220,10 +221,10 @@ while exist('tmp/kill_vis','file')==2
         storm_jstruct_filt = storm_jstruct(logical(filt_mask));
         if ~isempty(storm_jstruct_filt)
             %generate storm tracking
-            track_id_list = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
+            track_id_list  = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
 
             %use tracks, cell masks to generate storm and track kml
-            kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+            kmlobj_struct  = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
 
             %mark everything as processed in original storm_struct
             proced_idx            = find([storm_jstruct.proced]==false);
@@ -263,12 +264,12 @@ while exist('tmp/kill_vis','file')==2
     end
     
     %rotate ddb, cp_file, and qa logs to 200kB
-    unix(['tail -c 200kB  tmp/log.qa > tmp/log.qa']);
-    unix(['tail -c 200kB  tmp/log.ddb > tmp/log.ddb']);
-    unix(['tail -c 200kB  tmp/log.cp > tmp/log.cp']);
-    unix(['tail -c 200kB  tmp/log.rm > tmp/log.rm']);
-    unix(['tail -c 200kB  tmp/log.sqs > tmp/log.sqs']);
-	unix(['tail -c 200kB  tmp/log.singledop > tmp/log.singledop']);
+    unix('tail -c 200kB  tmp/log.qa > tmp/log.qa');
+    unix('tail -c 200kB  tmp/log.ddb > tmp/log.ddb');
+    unix('tail -c 200kB  tmp/log.cp > tmp/log.cp');
+    unix('tail -c 200kB  tmp/log.rm > tmp/log.rm');
+    unix('tail -c 200kB  tmp/log.sqs > tmp/log.sqs');
+	unix('tail -c 200kB  tmp/log.singledop > tmp/log.singledop');
     %Kill function
     if toc(kill_timer)>kill_wait
         %update user
@@ -279,7 +280,7 @@ while exist('tmp/kill_vis','file')==2
         if ~isdeployed
             %not deployed method: trigger background restart command before
             %kill
-            [~,~] = system(['matlab -desktop -r "run ',pwd,'/vis.m" &'])
+            [~,~] = system(['matlab -desktop -r "run ',pwd,'/vis.m" &']);
         else
             %deployed method: restart controlled by run_wv_process sh
             %script
@@ -305,7 +306,7 @@ catch err
     %check restart tries
     restart_tries = restart_tries+1;
     if restart_tries > max_restart_tries
-        display('number of restart tries has exceeded max_restart_tries, killing script')
+        disp('number of restart tries has exceeded max_restart_tries, killing script')
         %removing kill script prevents restart
         delete('tmp/kill_vis')
     end
@@ -408,8 +409,8 @@ for i=1:length(download_stormh5_list)
     local_stormh5_ffn    = [download_path,stormh5_name,ext];
     if exist(local_stormh5_ffn,'file') == 2
         %read basic atts
-        stormh5_rid        = str2num(stormh5_name(1:2));
-        stormh5_start_td   = datenum([stormh5_name(4:18)],r_tfmt);
+        stormh5_rid        = str2double(stormh5_name(1:2));
+        stormh5_start_td   = datenum(stormh5_name(4:18),r_tfmt);
         h5_info            = h5info(local_stormh5_ffn);
         stormh5_groups     = length(h5_info.Groups);
         %loop through groups
@@ -466,7 +467,6 @@ for i=1:length(temp_ffn_list)
         for m=1:length(jnames)
         	field_name                = jnames{m};
             field_struct              = jstruct_out.Responses.(storm_ddb_table)(j).(field_name);
-            field_type                = fieldnames(field_struct); field_type = field_type{1};
             clean_struct.(field_name) = field_struct;
         end
 		%add proced flag
@@ -474,7 +474,7 @@ for i=1:length(temp_ffn_list)
 		%append h5 ffn
 		[~,fn,ext] = fileparts(clean_struct.data_ffn.S);
 		local_stormh5_ffn = [download_path,fn,ext];
-		group_id          = str2num(clean_struct.subset_id.N);
+		group_id          = str2double(clean_struct.subset_id.N);
         clean_struct.local_stormh5_ffn = local_stormh5_ffn;
         %append mesh grid
         storm_data_struct      = h5_data_read(local_stormh5_ffn,'',group_id);
@@ -493,7 +493,6 @@ function vol_struct = update_vol_struct(vol_struct,download_odimh5_list,download
 %old entries using oldest_time and returns radar_ids which have been
 %cleaned (for updating kml)
 load('tmp/global.config.mat')
-update_count    = 0;
 
 %clean vol_struct
 if ~isempty(vol_struct)
@@ -501,7 +500,6 @@ if ~isempty(vol_struct)
     remove_idx      = find([vol_struct.start_timestamp]<oldest_time);
     if ~isempty(remove_idx)
         %preserve removed radar_ids
-        remove_radar_id = [vol_struct(remove_idx).radar_id];
         vol_struct(remove_idx) = [];
     end
 end
@@ -511,7 +509,7 @@ for i=1:length(download_odimh5_list)
     local_odimh5_ffn     = [download_path,odimh5_name,ext];
     if exist(local_odimh5_ffn,'file') == 2
         %read basic atts
-        odimh5_rid          = str2num(odimh5_name(1:2));
+        odimh5_rid          = str2double(odimh5_name(1:2));
         odimh5_start_td     = process_read_vol_time(local_odimh5_ffn);
         %read range for masking
         [~,rng_vec]         = process_read_ppi_dims(local_odimh5_ffn,1,true);

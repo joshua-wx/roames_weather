@@ -1,4 +1,4 @@
-function climate_generate_image(data_grid,img_type,radar_id,vec_data,data_grid_R,map_config_fn,rain_year_count)
+function climate_generate_image(data_grid,img_type,radar_id,vec_data,data_grid_R,map_config_fn,rain_year_count,colorbar_label)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

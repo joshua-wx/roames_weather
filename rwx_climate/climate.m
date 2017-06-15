@@ -287,7 +287,7 @@ for m = 1:length(radar_id_list)
     end
     
     %image plot centroid grid
-    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn,cent_rain_year_count)
+    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn,cent_rain_year_count,'Annual Frequency')
 
     %%% Density/Direction plots %%%
 
@@ -303,7 +303,7 @@ for m = 1:length(radar_id_list)
     
     %preallocate
     blank_grid    = zeros(grid_size(1),grid_size(2));
-    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid);
+    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid,'max_grid',blank_grid);
     %create mapping georef struct
     radar_lat_vec = geo_coords.radar_lat_vec;
     radar_lon_vec = geo_coords.radar_lon_vec;
@@ -380,8 +380,10 @@ for m = 1:length(radar_id_list)
     vec_data                         = [line_vertices,arrow_vertices];
 
     %plot density and direction maps
-    climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count)
+    climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Annual Frequency')
+    %plot max and direction maps
+    climate_generate_image(track_grids.max_grid,'max',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Maximum Hailsize (mm)')
     %kml plot merged swath grid
-    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list)
+    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Annual Frequency')
 end
 disp('RWX Climate plotting complete')

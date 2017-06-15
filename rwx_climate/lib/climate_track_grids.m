@@ -61,6 +61,7 @@ end
 %density track
 blank_grid         = zeros(size(track_grids.density_grid));
 total_density_grid = blank_grid;
+max_grid           = blank_grid;
 track_u_grid       = blank_grid;
 track_v_grid       = blank_grid;
 
@@ -95,6 +96,11 @@ for i=1:length(init_ind)
     finl_mask  = finl_grid > data_min;
     %apply convex hull
     conv_mask  = bwconvhull(init_mask + finl_mask);
+    %build max grid
+    if i==1
+        max_grid = max(cat(3,max_grid,init_grid),[],3);
+    end
+    max_grid = max(cat(3,max_grid,finl_grid),[],3);
     %calc u,v for pair
     %use distance function
     [dist,az]       = distance(init_latloncent(i,1),init_latloncent(i,2),finl_latloncent(i,1),finl_latloncent(i,2));
@@ -112,9 +118,10 @@ for i=1:length(init_ind)
 end
 %normalise density
 norm_density_grid        = total_density_grid>0;
-%accumulate frequency
+%accumulate
 track_grids.density_grid = track_grids.density_grid + norm_density_grid;
 track_grids.u_grid       = track_grids.u_grid       + track_u_grid;
 track_grids.v_grid       = track_grids.v_grid       + track_v_grid;
 track_grids.n_grid       = track_grids.n_grid       + total_density_grid;
-
+%append
+track_grids.max_grid     = max(cat(3,track_grids.max_grid,max_grid),[],3);

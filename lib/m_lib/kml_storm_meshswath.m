@@ -22,7 +22,7 @@ load('tmp/vis.config.mat');
 for i=1:length(swath_mesh_threshold)
     mesh_threshold = swath_mesh_threshold(i);
     %trace boundaries
-    bound_struct = struct;
+    bound_struct  = struct;
     for j=1:length(track_jstruct)
         %create mesh mask (merge sub regions)
         mesh_grid = track_jstruct(j).mesh_grid;
@@ -35,20 +35,20 @@ for i=1:length(swath_mesh_threshold)
             continue
         end
         %setup lat lon vec for mesh
-        latlonbox  = str2num(track_jstruct(j).storm_latlonbox.S);
+        latlonbox  = str2double(track_jstruct(j).storm_latlonbox.S);
         lat_vec    = linspace(latlonbox(1),latlonbox(2),size(mesh_mask,1));
         lon_vec    = linspace(latlonbox(4),latlonbox(3),size(mesh_mask,2));
-        h_grid_deg = str2num(track_jstruct(j).h_grid.N);
+        h_grid_deg = str2double(track_jstruct(j).h_grid.N);
         %trace boundaries
-        bound_idx = bwboundaries(mesh_mask,4); bound_idx = bound_idx{1};
+        bound_idx  = bwboundaries(mesh_mask,4); bound_idx = bound_idx{1};
         %grow from centroids of each pixel to boundaries
-        bound_lat = [];
-        bound_lon = [];
+        bound_lat  = [];
+        bound_lon  = [];
         for k=1:size(bound_idx,1)
-            tmp_lat = lat_vec(bound_idx(k,1));
-            tmp_lon = lon_vec(bound_idx(k,2));
-            bound_lat = [bound_lat;tmp_lat-(h_grid_deg/2);tmp_lat-(h_grid_deg/2);tmp_lat+(h_grid_deg/2);tmp_lat+(h_grid_deg/2)];
-            bound_lon = [bound_lon;tmp_lon-(h_grid_deg/2);tmp_lon+(h_grid_deg/2);tmp_lon-(h_grid_deg/2);tmp_lon+(h_grid_deg/2)];
+            tmp_lat   = lat_vec(bound_idx(k,1));
+            tmp_lon   = lon_vec(bound_idx(k,2));
+            bound_lat = [bound_lat; tmp_lat-(h_grid_deg/2); tmp_lat-(h_grid_deg/2); tmp_lat+(h_grid_deg/2); tmp_lat+(h_grid_deg/2)];
+            bound_lon = [bound_lon; tmp_lon-(h_grid_deg/2); tmp_lon+(h_grid_deg/2); tmp_lon-(h_grid_deg/2); tmp_lon+(h_grid_deg/2)];
         end
         conv_idx = convhull(bound_lat,bound_lon);
         %add to struct
@@ -81,7 +81,7 @@ for i=1:length(swath_mesh_threshold)
             %generate kml, write to file and create networklinks for the tracks data
             place_id            = ['track_id_',num2str(track_id)];
             asset_table         = asset_filter(asset_data_fn,tmp_lat,tmp_lon);
-            swath_kml           = ge_swath_poly(swath_kml,['../track.kml#swath_',num2str(i),'_style'],place_id,'','','clampToGround',1,tmp_lon,tmp_lat,repmat(0,length(tmp_lat),1),asset_table);
+            swath_kml           = ge_swath_poly(swath_kml,['../track.kml#swath_',num2str(i),'_style'],place_id,'','','clampToGround',1,tmp_lon,tmp_lat,zeros(length(tmp_lat),1),asset_table);
         end  
     end
 end

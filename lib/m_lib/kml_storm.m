@@ -10,15 +10,17 @@ load([site_info_fn,'.mat']);
 load('vis.config.mat')
 
 %extract storm ids
-if isempty(storm_jstruct)
+if isempty(storm_jstruct) || isempty(vol_struct)
     return
 end
+vol_radar_id  = [vol_struct.radar_id];
+vol_timestamp = [vol_struct.start_timestamp];
 
 proced_idx            = find([storm_jstruct.proced]==false);
 %% generate cell objects
 for i=1:length(proced_idx)
     %init labels
-    radar_id       = str2num(storm_jstruct(proced_idx(i)).radar_id.N);
+    radar_id       = str2double(storm_jstruct(proced_idx(i)).radar_id.N);
     cell_path      = [cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
     %init time
     data_start_ts  = datenum(storm_jstruct(proced_idx(i)).start_timestamp.S,ddb_tfmt);
@@ -28,13 +30,13 @@ for i=1:length(proced_idx)
     data_tag       = [num2str(radar_id,'%02.0f'),'_',datestr(data_start_ts,r_tfmt)];
     sort_id        = storm_jstruct(proced_idx(i)).sort_id.S;
     %init subset
-    subset_id      = str2num(storm_jstruct(proced_idx(i)).subset_id.N);
+    subset_id      = str2double(storm_jstruct(proced_idx(i)).subset_id.N);
     kml_fn         = [data_tag,'_',num2str(subset_id,'%03.0f')];
     %init h_grid
-    h_grid_deg     = str2num(storm_jstruct(proced_idx(i)).h_grid.N);
-    v_grid         = str2num(storm_jstruct(proced_idx(i)).v_grid.N);
+    h_grid_deg     = str2double(storm_jstruct(proced_idx(i)).h_grid.N);
+    v_grid         = str2double(storm_jstruct(proced_idx(i)).v_grid.N);
     %extract storm latlonbox
-    storm_latlonbox   = str2num(storm_jstruct(proced_idx(i)).storm_latlonbox.S);
+    storm_latlonbox   = str2double(storm_jstruct(proced_idx(i)).storm_latlonbox.S);
     %extract data from struct
     stormh5_ffn       = storm_jstruct(proced_idx(i)).local_stormh5_ffn;
     storm_data_struct = h5_data_read(stormh5_ffn,'',subset_id);
@@ -88,6 +90,11 @@ if ~isempty(storm_jstruct)
         %sort by time
         [track_time,sort_idx] = sort(track_time);
         track_jstruct         = track_jstruct(sort_idx);
+        %extract newest timestamp (+ radar_id) from track and the newest timestamp from vol_struct for the same radar_id (to check if a new cell has been added) 
+        end_track_radar_id   = storm_radar_id_list(track_idx(end));
+        end_track_timestamp  = track_time(end);
+        newest_vol_timestamp = max(vol_timestamp(vol_radar_id==end_track_radar_id));
+            
         %% track objects
         if options(5)==1
             stat_kml  = kml_storm_stat(stat_kml,track_jstruct,track_id);
@@ -98,16 +105,14 @@ if ~isempty(storm_jstruct)
         if options(7)==1
             [swath_kml,swath_stat_kml] = kml_storm_meshswath(swath_kml,swath_stat_kml,track_jstruct,track_id);
         end
-        %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
-        if options(8)==1
-            %check timestamp of of last cell in track from radar n is the
-            %same time as the last scan from radar n
-            end_track_radar_id  = storm_radar_id_list(track_idx(end));
-            end_track_timestamp = track_time(end);
-            last_radar_timestamp = max(storm_timestamp_list(storm_radar_id_list==end_track_radar_id));
-            if end_track_timestamp == last_radar_timestamp
+        %% objects for new data, check if a new cell has been added
+        if end_track_timestamp == newest_vol_timestamp
+            %nowcast
+            if options(8)==1
                 [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id);
             end
+             %generate mesh impact map for new cells
+             impact_generate_mesh(track_jstruct);
         end
     end
 end

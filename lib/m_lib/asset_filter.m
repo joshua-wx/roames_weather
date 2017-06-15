@@ -37,7 +37,7 @@ for i=1:length(power_struct)
         power_lon     = power_lon(power_mask);
         [len_pairs,~] = distance(power_lat(1:end-1),power_lon(1:end-1),power_lat(2:end),power_lon(2:end));
         seg_len       = deg2km(sum(len_pairs));
-        power_kv      = [power_kv;str2num(power_struct(i).CAPACITY_k)];
+        power_kv      = [power_kv;str2double(power_struct(i).CAPACITY_k)];
         power_len     = [power_len;seg_len];
     end
 end

@@ -1,4 +1,4 @@
-function climate_generate_kml(data_grid,radar_id,geo_coords,map_config_fn,rain_year_count,date_list)
+function climate_generate_kml(data_grid,radar_id,geo_coords,map_config_fn,rain_year_count,date_list,colorbar_label)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
