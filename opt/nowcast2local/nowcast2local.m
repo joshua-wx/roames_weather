@@ -27,7 +27,7 @@ log_fn=['nowcast2local_log_',datestr(now,'yymmdd_HHMM'),'.mat'];
 load(['tmp/','site_info.txt','.mat']);
 
 %start loop
-for i = 3:length(siteinfo_name_list)
+for i = [2,5:length(siteinfo_name_list)]
     %create flurry url
     site_name = siteinfo_name_list{i};
     site_id   = num2str(siteinfo_id_list(i), '%02.0f');
@@ -41,10 +41,10 @@ for i = 3:length(siteinfo_name_list)
 
         %run fetch --limit-rate=1024k
         disp(['Downloading: ',remote_path]);
-
-        %cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; wget -r -np -nH -nd -A "*.rapic" -P ',local_path,' ',remote_path];
+        % --limit-rate=512k
+        cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; wget --limit-rate=1200k -r -np -nH -nd -A "*.rapic" -P ',local_path,' ',remote_path];
 		%cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; rsync -aP --include="*.rapic" --exclude="*" ',remote_path,' ',local_path];
-		cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; rsync -avP ',remote_path,'*.rapic',' ',local_path];
+		%cmd_string  = ['export LD_LIBRARY_PATH=/usr/lib; rsync --bwlimit=512 -avzP ',remote_path,'*.rapic',' ',local_path];
         [sout,eout] = unix(cmd_string);
         
         %get file list of dl'ed files
