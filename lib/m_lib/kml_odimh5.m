@@ -21,6 +21,7 @@ load(transform_fn,'img_azi','img_rng','img_latlonbox','geo_coords','h_grid_deg')
 img_atts = struct('img_azi',img_azi,'img_rng',img_rng,'img_latlonbox',img_latlonbox,'radar_mask',mask_grid);
 %process odimh5
 ppi_struct               = process_read_ppi_data(odimh5_ffn,ppi_sweep);
+ppi_NI                   = ppi_struct.atts.NI;
 [ppi_elv,~]              = process_read_ppi_atts(odimh5_ffn,ppi_sweep);
 vol_start_time           = process_read_vol_time(odimh5_ffn);
 if isempty(ppi_elv) || isempty(ppi_struct)
@@ -37,19 +38,19 @@ if options(1)==1
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_dbzh',link,ffn);
 end
 %PPI Velocity
-if options(2)==1 && ~isempty(ppi_struct.atts.NI)
+if options(2)==1 && ~isempty(ppi_NI)
     %create kml for vel ppi
     ppi_tag                   = [data_tag,'.ppi_vradh.sweep_',num2str(ppi_elv,'%02.1f')];
     [link,ffn]                = kml_odimh5_ppi(ppi_path,ppi_tag,img_atts,ppi_struct,2);
     kmlobj_struct             = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_vradh',link,ffn);
 end
 %Single Doppler Velocity
-if options(11)==1 && ~isempty(ppi_struct.atts.NI)
+if options(9)==1 && ~isempty(ppi_NI)
     %create kml for vel ppi
 	sdppi_struct              = process_read_ppi_data(odimh5_ffn,sd_sweep+1); %python to matlab index
 	[sdppi_elv,~]             = process_read_ppi_atts(odimh5_ffn,sd_sweep+1); %python to matlab index
     sdppi_tag                 = [data_tag,'.ppi_singledop.sweep_',num2str(sdppi_elv,'%02.1f')];
-    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,sdppi_struct,ppi_path,sdppi_tag,geo_coords,h_grid_deg);
+    [link,ffn,error]          = kml_singledop_ppi(odimh5_ffn,sdppi_struct,ppi_path,sdppi_tag,geo_coords,h_grid_deg,radar_id,ppi_NI);
     if isempty(error)
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
     else

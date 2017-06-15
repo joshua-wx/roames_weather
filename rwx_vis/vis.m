@@ -245,8 +245,12 @@ while exist('tmp/kill_vis','file')==2
         crash_restart        = false;
         update_radar_id_list = radar_id_list;
     end
+    
     %update kml from kmlobj_struct
     kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
+    
+    %generate impact maps
+    
 
     %% ending loop
     %Update user

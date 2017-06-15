@@ -35,27 +35,19 @@ for i=1:length(r_id_list)
         offline_type = 'ppi_vradh';
     end
     %SingleDoppler
-    if options(11)==1
+    if options(9)==1
         generate_nl_ppi(radar_id,kmlobj_struct,'ppi_singledop',ppi_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
         offline_type = 'ppi_singledop';
     end
     
     %offline ppi data
-    if any(options([1,2,11]))
+    if any(options([1,2,9]))
         display('building offline images')
         generate_offline_nl(radar_id,kmlobj_struct,offline_type,ppi_path);
     end
     
-    %xsec_refl
-    if options(3)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_refl',cell_path,max_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-    end
-    %xsec_vel
-    if options(4)==1
-        generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'xsec_vel',cell_pathmax_ge_alt,ppi_minLodPixels,ppi_maxLodPixels);
-    end
     %iso
-    if options(5)==1 || options(6)==1
+    if options(3)==1 || options(4)==1
         try
             generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
         catch err

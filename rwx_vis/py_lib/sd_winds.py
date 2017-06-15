@@ -42,13 +42,16 @@ sweep       = int(sys.argv[7])
 thin_azi    = int(sys.argv[8])
 thin_rng    = int(sys.argv[9])
 plt_thin    = int(sys.argv[10])
+out_flag    = int(sys.argv[11])
+out_ffn     = sys.argv[12]
 
 #read h5_path into radar object
 py_radar = aux_io.read_odim_h5(h5_ffn, file_field_names=True)
 # despeckle
 gatefilter = correct.despeckle.despeckle_field(py_radar,'VRADH', size = 50)
 # dealais using NI
-corr_vel = correct.dealias_region_based(py_radar, vel_field='VRADH', nyquist_vel=NI, gatefilter=gatefilter)
+corr_vel = correct.dealias_region_based(py_radar, vel_field='VRADH',
+									nyquist_vel=NI, gatefilter=gatefilter)
 py_radar.add_field('VRADH_corr', corr_vel, False)
 #median filter
 start     = py_radar.get_start(sweep)
@@ -62,8 +65,9 @@ py_radar.fields['VRADH_corr']['data'][start:end] = flt_data
 
 #generate sdop fields
 sd_obj = singledop.SingleDoppler2D(L=sd_l, radar=py_radar, range_limits=[min_rng,max_rng],
-	                                sweep_number=sweep,name_vr='VRADH_corr',thin_factor=[thin_azi,thin_rng],max_range=max_rng,grid_edge=max_rng,
-                                    filter_data=True,filter_distance=2)
+	                                sweep_number=sweep,name_vr='VRADH_corr',
+									thin_factor=[thin_azi,thin_rng],max_range=max_rng,
+									grid_edge=max_rng,filter_data=True,filter_distance=2)
 
 #setup figure
 fig = plt.figure(figsize=(12, 12),frameon=False)
@@ -73,7 +77,8 @@ fig.add_axes(ax)
 #plot wind speed
 sd_display = singledop.AnalysisDisplay(sd_obj)
 wind_spd   = np.sqrt(sd_display.analysis_u**2+sd_display.analysis_v**2)
-ct         = ax.contour(sd_display.analysis_x, sd_display.analysis_y, wind_spd*3.6,levels=[70,90,120],colors=('#ff3300','r','k'),linewidths=(2,3,4))
+ct         = ax.contour(sd_display.analysis_x, sd_display.analysis_y, wind_spd*3.6,
+									levels=[70,90,120],colors=('#ff3300','r','k'),linewidths=(2,3,4))
 plt.clabel(ct, fontsize=14, inline=1,fmt='%3.0f')
 #plot wind direction vectors
 cond  = np.logical_and(sd_display.analysis_x % plt_thin == 0, sd_display.analysis_y % plt_thin == 0)
@@ -85,3 +90,7 @@ Q     = ax.quiver(sd_display.analysis_x[cond], sd_display.analysis_y[cond],
 ax.axis('tight')
 ax.axis('off')
 plt.savefig(plt_ffn,transparent=True)
+
+#output to NC
+if out_flag==1:
+	save = singledop.NetcdfSave(sd_obj, out_ffn, radar=py_radar)

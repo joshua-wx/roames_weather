@@ -168,13 +168,13 @@ if options(2)==1
     ppi_str = ge_folder(ppi_str,tmp_str,'PPI VRADH','',1);
     offline_nl_flag = true;
 end
-if options(11)==1
+if options(9)==1
     tmp_str = generate_radar_nl('ppi_singledop',dest_root,ppi_obj_path,site_no_selection,site_latlonbox,ppi_minLodPixels,ppi_maxLodPixels,local_dest_flag,offline_nl_flag);
     ppi_str = ge_folder(ppi_str,tmp_str,'SingleDoppler','',1);
     offline_nl_flag = true;
 end
 %build offline ground overlays
-if any(options([1,2,11]))
+if any(options([1,2,9]))
     display('building offline images')
     generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
@@ -187,15 +187,7 @@ wait_aws_finish
 %cell.kml
 display('building cell nl kml')
 cell_str  = cell_style_str;
-if options(3)==1
-    tmp_str   = generate_radar_nl('xsec_dbhz',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
-    cell_str  = ge_folder(cell_str,tmp_str,'XSection Reflectivity','',1);
-end
-if options(4)==1
-    tmp_str   = generate_radar_nl('xsec_vradh',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
-    cell_str  = ge_folder(cell_str,tmp_str,'XSection Doppler','',1);
-end
-if options(5)==1 || options(6)==1
+if options(3)==1 || options(4)==1
     tmp_str   = generate_radar_nl('iso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
     cell_str  = ge_folder(cell_str,tmp_str,'Isosurface Reflectivity','',1);
 end
@@ -208,19 +200,19 @@ wait_aws_finish
 %track.kml
 display('building track nl kml')
 track_str  = track_style_str;
-if options(7)==1
+if options(5)==1
     tmp_str   = generate_nl('stat','Cell Stats',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
-if options(8)==1
+if options(6)==1
     tmp_str    = generate_nl('track','Tracks',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
-if options(9)==1
+if options(7)==1
     tmp_str    = generate_nl('swath','Impact',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end
-if options(10)==1
+if options(8)==1
     tmp_str    = generate_nl('nowcast','Nowcast',dest_root,track_obj_path,local_dest_flag);
     track_str  = [track_str,tmp_str];
 end

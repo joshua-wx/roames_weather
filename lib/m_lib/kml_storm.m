@@ -41,27 +41,8 @@ for i=1:length(proced_idx)
     refl_vol          = double(storm_data_struct.refl_vol)./r_scale;
     smooth_refl_vol   = flipud(smooth3(refl_vol)); %smooth volume
     
-    %Refl xsections
-    if options(3)==1
-        xsec_idx = xsec_idx(v_grid,xsec_alt);
-        for k=1:length(xsec_idx)
-            [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,refl_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_refl_cmap,min_dbz,'dbzh');
-            kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_dbzh',link,ffn);
-        end
-    end
-    
-    %Dopl xsections
-    if options(4)==1 && vol_vel_ni~=0
-        xsec_idx        = xsec_idx(v_grid,xsec_alt);
-        vel_vol         = double(storm_data_struct.vel_vol)./r_scale;
-        for k=1:length(xsec_idx)
-            [link,ffn]    = kml_storm_xsec(dest_root,cell_path,kml_fn,vel_vol,xsec_idx(k),xsec_alt(k),storm_latlonbox,interp_vel_cmap,min_vel,'vradh');
-            kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'xsec_vradh',link,ffn);
-        end
-    end
-    
     %iso
-    if options(5)==1 || options(6)==1
+    if options(3)==1 || options(4)==1
         [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox,h_grid_deg,v_grid);
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'iso',link,ffn);
     end
@@ -108,17 +89,17 @@ if ~isempty(storm_jstruct)
         [track_time,sort_idx] = sort(track_time);
         track_jstruct         = track_jstruct(sort_idx);
         %% track objects
-        if options(7)==1
+        if options(5)==1
             stat_kml  = kml_storm_stat(stat_kml,track_jstruct,track_id);
         end
-        if options(8)==1
+        if options(6)==1
             track_kml = kml_storm_track(track_kml,track_jstruct,track_id);
         end
-        if options(9)==1
+        if options(7)==1
             [swath_kml,swath_stat_kml] = kml_storm_meshswath(swath_kml,swath_stat_kml,track_jstruct,track_id);
         end
         %% nowcast, only generate for tracks which extend to the last timestamp in storm_jstruct
-        if options(10)==1
+        if options(8)==1
             %check timestamp of of last cell in track from radar n is the
             %same time as the last scan from radar n
             end_track_radar_id  = storm_radar_id_list(track_idx(end));
@@ -132,20 +113,20 @@ if ~isempty(storm_jstruct)
 end
 
 %cell stats
-if options(7)==1
+if options(5)==1
     ge_kml_out(stats_ffn,'Cell Stats',stat_kml);
 end
 %track
-if options(8)==1
+if options(6)==1
     ge_kml_out(track_ffn,'Tracks',track_kml);
 end
 %swath
-if options(9)==1
+if options(7)==1
     ge_kml_out(swath_ffn,'Swaths',swath_kml);
     ge_kml_out(swath_stat_ffn,'Swaths Stats',swath_stat_kml);
 end
 %nowcast
-if options(10)==1
+if options(8)==1
     ge_kml_out(nowcast_ffn,'Nowcasts',nowcast_kml);
     ge_kml_out(nowcast_stat_ffn,'Nowcast Stats',nowcast_stat_kml);
 end
@@ -163,13 +144,3 @@ tmp_struct = struct('radar_id',radar_id,'sort_id',sort_id,...
     'latlonbox',storm_latlonbox,'type',type,'nl',link,'ffn',ffn);
 
 kmlobj_struct = [kmlobj_struct,tmp_struct];
-
-
-function xsec_idx = xsec_idx(v_grid,xsec_alt)
-%init index of xsec alts from vol_alt
-xsec_idx = [];
-vol_alt  = [v_grid:v_grid:v_grid*100];
-for i=1:length(xsec_alt)
-    [~,tmp_idx] = min(abs(xsec_alt(i)-vol_alt));
-    xsec_idx    = [xsec_idx;tmp_idx];
-end

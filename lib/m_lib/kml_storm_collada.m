@@ -25,7 +25,7 @@ load('tmp/vis.config.mat');
 load('tmp/interp_cmaps.mat')
 
 %generate isosurface matrices and select style
-if options(5)==1 %inneriso
+if options(3)==1 %inneriso
     %set max faces
     n_faces        = inner_iso_faces;
     %find dbz threshold
@@ -49,7 +49,7 @@ else
     inner_collada_ffn = '';
 end
 
-if options(6)==1 %outeriso
+if options(4)==1 %outeriso
     %set max faces
     n_faces        = outer_iso_faces;
     %set threshold
