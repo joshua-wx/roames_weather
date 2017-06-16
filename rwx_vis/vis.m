@@ -20,7 +20,7 @@ vol_struct        = [];
 storm_jstruct     = [];
 radar_id_list     = [];
 restart_tries     = 0;
-crash_restart     = false;
+restart_flag      = false;
 %init tmp path
 if exist(local_tmp_path,'file') ~= 7
     mkdir(local_tmp_path)
@@ -241,9 +241,10 @@ while exist('tmp/kill_vis','file')==2
         track_id_list      = [];
     end
     
-    %check for crash and force update for all radar ids
-    if crash_restart
-        crash_restart        = false;
+    %check for restart and force update for all radar ids (fixes crash
+    %issues with data)
+    if restart_flag
+        restart_flag         = false;
         update_radar_id_list = radar_id_list;
     end
     
@@ -274,8 +275,10 @@ while exist('tmp/kill_vis','file')==2
     if toc(kill_timer)>kill_wait
         %update user
         disp(['@@@@@@@@@ rwx_vis restarted at ',datestr(now)])
+        %update restart flag
+        restart_flag = true;
         %update restart_vars_fn on kml update for realtime processing
-        save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries')
+        save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','restart_flag')
         %restart
         if ~isdeployed
             %not deployed method: trigger background restart command before
@@ -310,11 +313,11 @@ catch err
         %removing kill script prevents restart
         delete('tmp/kill_vis')
     end
-    %update crash restart
-    crash_restart = true;
+    %update restart flag
+    restart_flag = true;
     %save vars
 	if save_object_struct == 1
-    	save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','crash_restart')
+    	save(restart_vars_fn,'kmlobj_struct','vol_struct','storm_jstruct','restart_tries','restart_flag')
 	end
     %rethrow and crash script
     rethrow(err)

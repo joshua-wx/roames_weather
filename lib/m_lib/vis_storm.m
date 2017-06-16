@@ -82,7 +82,7 @@ if ~isempty(storm_jstruct)
         end
         track_idx         = find(track_id==tracking_id_list);
         %skip short tracks
-        if length(track_idx)<min_track_cells
+        if length(track_idx) < min_track_cells
             continue
         end
         track_jstruct         = storm_jstruct(track_idx);
@@ -111,11 +111,11 @@ if ~isempty(storm_jstruct)
             if options(8)==1
                 [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id);
             end
-             %generate mesh impact map for new cells
-             impact_generate_mesh(track_jstruct);
         end
     end
 end
+%generate mesh impact map
+impact_generate_mesh(vol_struct,storm_jstruct,tracking_id_list);
 
 %cell stats
 if options(5)==1
