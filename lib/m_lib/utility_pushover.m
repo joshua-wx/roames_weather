@@ -1,4 +1,4 @@
-function pushover(app,message)
+function utility_pushover(app,message)
 
 token_input_path = 'pushover.token';
 read_config(token_input_path);

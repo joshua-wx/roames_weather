@@ -56,6 +56,6 @@ for i = [2,5:length(siteinfo_name_list)]
             save(log_fn,'log')
         end
     end
-    %send pushover notification
-    pushover('nowcast2local',['finished radar ',site_id]);
+    %send utility_pushover notification
+    utility_pushover('nowcast2local',['finished radar ',site_id]);
 end

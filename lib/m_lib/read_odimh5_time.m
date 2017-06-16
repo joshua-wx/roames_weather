@@ -1,4 +1,4 @@
-function vol_datetime = process_read_vol_time(h5_ffn)
+function vol_datetime = read_odimh5_time(h5_ffn)
 
 %WHAT: reads volume time and date from /what
 
@@ -10,5 +10,5 @@ try
 	vol_datetime = datenum([h5_vol_date,h5_vol_time],'yyyymmddHHMMSS');
 catch err
     disp([h5_ffn,' is broken']);
-    log_cmd_write('tmp/log.ppi_vol_time','',[h5_ffn,' for vol time is broken ',datestr(now)],[err.identifier,' ',err.message]);
+    utility_log_write('tmp/log.ppi_vol_time','',[h5_ffn,' for vol time is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end  

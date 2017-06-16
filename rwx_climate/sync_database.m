@@ -89,7 +89,7 @@ for m = 1:length(radar_id_list)
 
     %% sync ddb for s3 data
     %build stormh5 file name list and dates  
-    archive_ffn_list = getAllFiles([db_root,num2str(radar_id,'%02.0f'),'/']);
+    archive_ffn_list = utility_getAllFiles([db_root,num2str(radar_id,'%02.0f'),'/']);
     stormh5_dt_list  = [];
     stormh5_ffn_list = {};
     %extract file dates and locations of stormh5
@@ -169,7 +169,7 @@ for m = 1:length(radar_id_list)
                 tmp_jstruct.date_id.N    = datestr(target_datetime,ddb_dateid_tfmt);
                 tmp_jstruct.sort_id.S    = [datestr(target_datetime,ddb_tfmt),'_',num2str(radar_id,'%02.0f'),'_',num2str(k,'%03.0f')];
                 %create entry for batch read for current storm
-                [ddb_read_struct,tmp_sz] = addtostruct(ddb_read_struct,tmp_jstruct);
+                [ddb_read_struct,tmp_sz] = utility_addtostruct(ddb_read_struct,tmp_jstruct);
                 %parse batch read if size is 25 or last cell of last file for
                 %current day
                 if tmp_sz==25 || (j == length(target_idx) && k == stormh5_group_no)
@@ -192,7 +192,7 @@ for m = 1:length(radar_id_list)
     end
 
     %wait for aws batch read to finish
-    wait_aws_finish
+    utility_aws_wait
     %generate unique date list
     uniq_temp_date_list = unique(temp_date_list);
 
@@ -231,7 +231,7 @@ for m = 1:length(radar_id_list)
                     field_name                = jnames{m};
                     field_struct              = jstruct_out.Responses.(storm_ddb)(k).(field_name);
                     field_type                = fieldnames(field_struct); field_type = field_type{1};
-                    clean_struct.(field_name) = jstruct_to_mat(field_struct,field_type);
+                    clean_struct.(field_name) = utility_jstruct_to_mat(field_struct,field_type);
                 end
                 %append clean_struct to storm_struct
                 storm_struct = [storm_struct,clean_struct];

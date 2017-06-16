@@ -118,7 +118,7 @@ for i=1:length(siteid_list)
 end
 %split up coverage polygons into cells
 [cov_lat,cov_lon] = polysplit(cov_lat,cov_lon);
-coverage_str      = ge_line_style(coverage_str,'coverage_style',html_color(0.5,[1,1,1]),2);
+coverage_str      = ge_line_style(coverage_str,'coverage_style',utility_html_color(0.5,[1,1,1]),2);
 for i=1:length(cov_lat)
     %write each polygon to kml string
     temp_lat     = cov_lat{i};
@@ -131,8 +131,8 @@ file_mv([tempdir,'coverage.kml'],[s3_path,'coverage.kml'])
 
 %% build style kml (duplicated from individual radar kmz)
 kml_style = '';
-kml_style = ge_swath_poly_style(kml_style,'poly_style',html_color(1,silence_edge_color),silence_line_width,html_color(1,silence_face_color),false);
-kml_style = ge_swath_poly_style(kml_style,'trans_poly',html_color(1/255,silence_edge_color),silence_line_width,html_color(1/255,silence_face_color),true);
+kml_style = ge_swath_poly_style(kml_style,'poly_style',utility_html_color(1,silence_edge_color),silence_line_width,utility_html_color(1,silence_face_color),false);
+kml_style = ge_swath_poly_style(kml_style,'trans_poly',utility_html_color(1/255,silence_edge_color),silence_line_width,utility_html_color(1/255,silence_face_color),true);
 
 %% build index kml
 %init master and link 
@@ -150,7 +150,7 @@ ge_kml_out(temp_ffn,'RoamesWX Climate',master_str);
 %transfer to root path
 file_mv(temp_ffn,[s3_path,'doc.kml']);
 
-wait_aws_finish
+utility_aws_wait
 disp('RWX Climate kmz compile complete')
 
 

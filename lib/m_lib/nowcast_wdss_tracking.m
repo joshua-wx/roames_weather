@@ -23,13 +23,13 @@ tracking_id_out = zeros(length(storm_jstruct),1);
 %% Load vars
 %jstruct vars
 if jstruct_flag %visualisation
-    storm_radar_id           = jstruct_to_mat([storm_jstruct.radar_id],'N');
-    storm_subset_id          = jstruct_to_mat([storm_jstruct.subset_id],'N');
-    storm_start_timestamp    = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-    storm_lat                = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
-    storm_lon                = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
-    storm_area               = jstruct_to_mat([storm_jstruct.area],'N');
-    storm_cell_vil           = jstruct_to_mat([storm_jstruct.cell_vil],'N');
+    storm_radar_id           = utility_jstruct_to_mat([storm_jstruct.radar_id],'N');
+    storm_subset_id          = utility_jstruct_to_mat([storm_jstruct.subset_id],'N');
+    storm_start_timestamp    = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+    storm_lat                = utility_jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
+    storm_lon                = utility_jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
+    storm_area               = utility_jstruct_to_mat([storm_jstruct.area],'N');
+    storm_cell_vil           = utility_jstruct_to_mat([storm_jstruct.cell_vil],'N');
 else %climatology
     storm_radar_id           = vertcat(storm_jstruct.radar_id);
     storm_subset_id          = vertcat(storm_jstruct.subset_id);
@@ -103,7 +103,7 @@ for j=1:length(uniq_start_timestamp)
     %loop through tn1 inds
     for i=1:length(tn1_storm_ind)
         tn1_radar_id   = storm_radar_id(tn1_storm_ind(i));
-        tn1_radar_step = calc_radar_step(vol_struct,tn1_radar_id);
+        tn1_radar_step = utility_radar_step(vol_struct,tn1_radar_id);
         %case (1): tn1 has a simple track
         if ismember(tn1_storm_ind(i),tn1_storm_ind_with_tracks)
             [temp_proj_lat,temp_proj_lon,temp_proj_azi,temp_search_dist,temp_trck_len] = nowcast_wdss_tracking_project(tn1_storm_ind(i),tn1_storm_ind(i),tn_dt,min_track_len,storm_db,tn1_radar_step);
@@ -165,8 +165,8 @@ for j=1:length(uniq_start_timestamp)
 
         %case: keep UNIQUE cell pairs (1 tn, 1 tn1)
         if length(result_tn_storm_ind)==1 && ~ismember(result_tn_storm_ind,ist_asc_tn_ind)
-            ist_asc_tn1_ind=[ist_asc_tn1_ind;tn1_storm_ind(i)];
-            ist_asc_tn_ind=[ist_asc_tn_ind;result_tn_storm_ind];
+            ist_asc_tn1_ind = [ist_asc_tn1_ind;tn1_storm_ind(i)];
+            ist_asc_tn_ind  = [ist_asc_tn_ind;result_tn_storm_ind];
         end
     end
     
@@ -330,7 +330,7 @@ for i=1:length(uniq_radar_id_list)
         continue
     end
     %check if the tn1 and tn step is too large
-    radar_step            = calc_radar_step(vol_struct,target_radar_id);
+    radar_step            = utility_radar_step(vol_struct,target_radar_id);
     if minute(tn_timestamp-tn1_timestamp) > (radar_step*2)+1
         continue
     end
@@ -339,32 +339,30 @@ for i=1:length(uniq_radar_id_list)
     tn1_storm_ind = [tn1_storm_ind;tmp_tn1];
 end
 
-
-
-function plot_wdss_tracking(radar_lat,radar_lon,storm_db,tn1_proj_lat,tn1_proj_lon,tn1_search_dist,tn_dt)
-
-figure('units','normalized','outerposition',[0 0 1 1])
-hold on
-worldmap([radar_lat-2, radar_lat+2],[radar_lon-2, radar_lon+2])
-geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5]);
-
-[unique_track_id,~,ic]=unique(storm_db.track_id);
-
-for i=1:length(unique_track_id)
-    if unique_track_id(i)==0
-        continue
-    end
-    cent_lat = storm_db.lat(ic==i);
-    cent_lon = storm_db.lon(ic==i);    
-    plotm(cent_lat,cent_lon,'r')
-end
-
-for i=1:length(tn1_proj_lat)
-    plotm(tn1_proj_lat(i),tn1_proj_lon(i),'bo');
-    [lat,lon] = scircle1(tn1_proj_lat(i),tn1_proj_lon(i),km2deg(tn1_search_dist(i)));
-    plotm(lat,lon,'k');
-end
-
-saveas(gcf,['tmp/img/',datestr(tn_dt),'.png'])
-
-close all
+% function plot_wdss_tracking(radar_lat,radar_lon,storm_db,tn1_proj_lat,tn1_proj_lon,tn1_search_dist,tn_dt)
+% 
+% figure('units','normalized','outerposition',[0 0 1 1])
+% hold on
+% worldmap([radar_lat-2, radar_lat+2],[radar_lon-2, radar_lon+2])
+% geoshow('landareas.shp', 'FaceColor', [0.5 1.0 0.5]);
+% 
+% [unique_track_id,~,ic]=unique(storm_db.track_id);
+% 
+% for i=1:length(unique_track_id)
+%     if unique_track_id(i)==0
+%         continue
+%     end
+%     cent_lat = storm_db.lat(ic==i);
+%     cent_lon = storm_db.lon(ic==i);    
+%     plotm(cent_lat,cent_lon,'r')
+% end
+% 
+% for i=1:length(tn1_proj_lat)
+%     plotm(tn1_proj_lat(i),tn1_proj_lon(i),'bo');
+%     [lat,lon] = scircle1(tn1_proj_lat(i),tn1_proj_lon(i),km2deg(tn1_search_dist(i)));
+%     plotm(lat,lon,'k');
+% end
+% 
+% saveas(gcf,['tmp/img/',datestr(tn_dt),'.png'])
+% 
+% close all

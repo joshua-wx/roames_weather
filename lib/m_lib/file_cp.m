@@ -33,7 +33,7 @@ if strcmp(src_ffn(1:2),'s3')
     [sout,eout] = unix(cmd);
     %log
     if ~isempty(eout)
-        log_cmd_write('tmp/log.cp',src_ffn,cmd,eout)
+        utility_log_write('tmp/log.cp',src_ffn,cmd,eout)
     end
 elseif strcmp(dest_ffn(1:2),'s3') %copy from local to s3
     %s3 command in background

@@ -34,5 +34,5 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb update-item --table-name '
 
 [sout,eout]       = unix([cmd,' >> tmp/log.ddb 2>&1 &']);
 % if sout~=0
-%     log_cmd_write('log.ddb','',cmd,eout)
+%     utility_log_write('log.ddb','',cmd,eout)
 % end

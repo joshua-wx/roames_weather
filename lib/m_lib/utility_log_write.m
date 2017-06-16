@@ -1,4 +1,4 @@
-function log_cmd_write(log_ffn,efile,cmd,eout)
+function utility_log_write(log_ffn,efile,cmd,eout)
 
 %formatting of timedate string
 td_format='HH:MM_dd-mm-yy';

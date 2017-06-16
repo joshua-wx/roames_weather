@@ -37,8 +37,8 @@ for i = 1:length(part_key_value)
     %if not empty
     if ~isempty(jstruct)
         %extract data ffn list
-        data_ffn_list = jstruct_to_mat([jstruct.data_ffn],'S');
-        data_rid_list = jstruct_to_mat([jstruct.radar_id],'N');
+        data_ffn_list = utility_jstruct_to_mat([jstruct.data_ffn],'S');
+        data_rid_list = utility_jstruct_to_mat([jstruct.radar_id],'N');
         %append
         if isempty(radar_id_list)
             pending_ffn_list = [pending_ffn_list;unique(data_ffn_list)];

@@ -37,5 +37,5 @@ cmd          = ['export LD_LIBRARY_PATH=/usr/lib; aws s3 sync ',src_path,' ',des
 [sout,eout] = unix(cmd);
 %write error as needed
 if isempty(eout)
-    log_cmd_write('tmp/log.sync',src_path,cmd,eout)
+    utility_log_write('tmp/log.sync',src_path,cmd,eout)
 end

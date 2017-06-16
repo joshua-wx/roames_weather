@@ -26,7 +26,7 @@ load('tmp/global.config.mat');
 load('tmp/process.config.mat');
 
 %list tracks
-track_id               = jstruct_to_mat([storm_jstruct.track_id],'N');
+track_id               = utility_jstruct_to_mat([storm_jstruct.track_id],'N');
 [unqiue_track_id,~,ic] = unique(track_id);
 radar_id               = vol_obj.radar_id;
 timestamp              = vol_obj.start_timedate;

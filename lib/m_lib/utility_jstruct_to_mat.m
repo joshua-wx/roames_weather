@@ -1,4 +1,4 @@
-function out = jstruct_to_mat(jstruct,type)
+function out = utility_jstruct_to_mat(jstruct,type)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

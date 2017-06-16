@@ -1,4 +1,4 @@
-function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = kml_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,target_dt)
+function [fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = vis_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,target_dt)
 %WHAT
 %for the inputted track index list 'track_idx', nowcast elipsses are produced from the end
 %cells using the historical data.
@@ -37,7 +37,7 @@ trck_dt        = [];
 intensity      = [];
 
 %extract end time of track and database
-jstruct_dt       = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+jstruct_dt       = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
 track_dt         = jstruct_dt(track_idx);
 track_dt_mask    = track_dt <= target_dt;
 

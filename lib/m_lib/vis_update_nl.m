@@ -1,4 +1,4 @@
-function kml_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,r_id_list,options)
+function vis_update_nl(kmlobj_struct,storm_jstruct,track_id_list,dest_root,r_id_list,options)
 
 %init
 load('tmp/global.config.mat')
@@ -8,12 +8,12 @@ load('tmp/vis.config.mat')
 if ~isempty(storm_jstruct) && ~isempty(kmlobj_struct)
     kml_sort_list       = {kmlobj_struct.sort_id};
     kml_type            = {kmlobj_struct.type};
-    jstruct_sort_list   = jstruct_to_mat([storm_jstruct.sort_id],'S');
+    jstruct_sort_list   = utility_jstruct_to_mat([storm_jstruct.sort_id],'S');
     filter_mask         = ismember(kml_sort_list,jstruct_sort_list) | strncmp('ppi',kml_type,3);
     %check for entries to remove
     if any(~filter_mask)
         kmlobj_struct = kmlobj_struct(filter_mask);
-        log_cmd_write('tmp/log.update_kml',strjoin(kml_sort_list(~filter_mask)),'','');
+        utility_log_write('tmp/log.update_kml',strjoin(kml_sort_list(~filter_mask)),'','');
     end
 end
 %% generate new nl kml for cell and scan objects
@@ -42,17 +42,13 @@ for i=1:length(r_id_list)
     
     %offline ppi data
     if any(options([1,2,9]))
-        display('building offline images')
+        disp('building offline images')
         generate_offline_nl(radar_id,kmlobj_struct,offline_type,ppi_path);
     end
     
     %iso
     if options(3)==1 || options(4)==1
-        try
-            generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
-        catch err
-            keyboard
-        end
+         generate_nl_cell(radar_id,storm_jstruct,track_id_list,kmlobj_struct,'iso',cell_path,max_ge_alt,iso_minLodPixels,iso_maxLodPixels);
     end
 end
 
@@ -126,7 +122,7 @@ kml_sort_list       = {kmlobj_struct.sort_id};
 time_list           = [kmlobj_struct.start_timestamp];
 
 %build jstruct cell list and storm_id list
-jstruct_sort_list = jstruct_to_mat([storm_jstruct.sort_id],'S');
+jstruct_sort_list = utility_jstruct_to_mat([storm_jstruct.sort_id],'S');
 
 %build track_list
 [~,Lib]    = ismember(kml_sort_list,jstruct_sort_list);

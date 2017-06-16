@@ -1,4 +1,4 @@
-function [nowcast_kml,nowcast_stat_kml]=kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id)
+function [nowcast_kml,nowcast_stat_kml] = vis_storm_nowcast_kml(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id)
 %WHAT
 %for the inputted track 'cur_track', a forecast is produced from the end
 %cells using the historical data. Forecast data is saved as forecast swaths
@@ -27,7 +27,7 @@ name        = ['track_id_',num2str(track_id)];
 track_idx        = find(tracking_id_list==track_id);
 end_cell_idx     = track_idx(end);
 timestamp        = datenum(storm_jstruct(end_cell_idx).start_timestamp.S,ddb_tfmt);
-[fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = kml_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,timestamp);
+[fcst_lat_polys,fcst_lon_polys,fcst_dt,trck_vil,trck_top,trck_mesh,trck_dt,intensity] = vis_storm_nowcast_polys(track_idx,storm_jstruct,tracking_id_list,timestamp);
 
 if isempty(fcst_dt)
     return

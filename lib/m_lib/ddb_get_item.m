@@ -41,7 +41,7 @@ if sout ==0 && ~isempty(eout)
 elseif sout ==0 && isempty(eout)
     jstruct_out = [];
 else
-    log_cmd_write('tmp/log.ddb','',cmd,eout)
+    utility_log_write('tmp/log.ddb','',cmd,eout)
     jstruct_out = [];
 end
 if exist(temp_fn,'file')==2

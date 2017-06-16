@@ -1,4 +1,4 @@
-function [link,ffn] = kml_odimh5_ppi(dest_path,data_tag,img_atts,ppi_struct,data_number)
+function [link,ffn] = vis_odimh5_kml(dest_path,data_tag,img_atts,ppi_struct,data_number)
 
 load('tmp/interp_cmaps.mat')
 load('tmp/vis.config.mat')

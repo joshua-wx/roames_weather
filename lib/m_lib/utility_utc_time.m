@@ -1,4 +1,4 @@
-function utc_datenum=utc_time
+function utc_datenum=utility_utc_time
 % WHAT
 % returns the utc time in datenum format
 

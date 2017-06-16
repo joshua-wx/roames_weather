@@ -1,4 +1,4 @@
-function dataset_struct = process_read_ppi_data(h5_ffn,dataset_no)
+function dataset_struct = read_odimh5_ppi_data(h5_ffn,dataset_no)
 
 %WHAT: reads ppi from odimh5 volumes into a struct included the required
 %variables
@@ -42,12 +42,12 @@ try
         dataset_struct.data2.data = nan(size(data));
     end
     %read dimensions
-    [azi_vec,rng_vec] = process_read_ppi_dims(h5_ffn,dataset_no,true);
+    [azi_vec,rng_vec] = read_odimh5_ppi_dims(h5_ffn,dataset_no,true);
     %check dims match image size
     [img_i,img_j] = size(data);
     %abort if size of image does not match h5 dims
     if length(rng_vec) ~= img_i || length(azi_vec) ~= img_j
-        log_cmd_write('tmp/log.ppi_data_read','',['/dataset',num2str(dataset_no),' img dim not matching h5 dim ',datestr(now)],[err.identifier,' ',err.message]);
+        utility_log_write('tmp/log.ppi_data_read','',['/dataset',num2str(dataset_no),' img dim not matching h5 dim ',datestr(now)],[err.identifier,' ',err.message]);
         dataset_struct = [];
         return
     end
@@ -55,5 +55,5 @@ try
 catch err
     dataset_struct = [];
     disp(['/dataset',num2str(dataset_no),' is broken']);
-    log_cmd_write('tmp/log.ppi_data_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
+    utility_log_write('tmp/log.ppi_data_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end  

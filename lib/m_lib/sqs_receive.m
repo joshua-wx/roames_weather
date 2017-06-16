@@ -42,7 +42,7 @@ while true
 		break
 	else
 		%error
-		log_cmd_write('tmp/log.sqs','',cmd,eout)
+		utility_log_write('tmp/log.sqs','',cmd,eout)
 	end
 	%clear temp_fn
 	if exist(temp_fn,'file')==2

@@ -28,7 +28,7 @@ for i=1:length(datetime_list)
     jstruct     = ddb_query_begins('date_id',date_id,'sort_id',sort_id,p_exp,ddb_table);
     %if ddb exists, append ffn to list
     if ~isempty(jstruct)
-        tmp_ffnlist = jstruct_to_mat([jstruct.data_ffn],'S');
+        tmp_ffnlist = utility_jstruct_to_mat([jstruct.data_ffn],'S');
         ffn_list    = [ffn_list;tmp_ffnlist];
     end
 end

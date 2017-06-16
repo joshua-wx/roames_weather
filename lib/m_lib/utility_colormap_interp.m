@@ -1,4 +1,4 @@
-function colormap_interp(refl_cmap_fn,vel_cmap_fn)
+function utility_colormap_interp(refl_cmap_fn,vel_cmap_fn)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

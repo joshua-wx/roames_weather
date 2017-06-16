@@ -1,4 +1,4 @@
-function [link,ffn] = kml_storm_collada(dest_root,dest_path,cell_tag,options,refl_vol,storm_latlonbox,h_grid_deg,v_grid)
+function [link,ffn] = vis_storm_collada_kml(dest_root,dest_path,cell_tag,options,refl_vol,storm_latlonbox,h_grid_deg,v_grid)
 
 %WHAT
     %takes a subset of volume data the ideally contains one cell and
@@ -105,7 +105,7 @@ high_normals   = assign_normals_to_vertices(triangles,feature_ids,true);
 %init vars
 textures       = cell(size(triangles,1),1);
 texcoords      = repmat([0 0 0 1 1 1],size(triangles,1),1);
-colors         = [repmat(cmap,size(triangles,1),4)];
+colors         = repmat(cmap,size(triangles,1),4);
 %write collada
 iso_tag        = [cell_tag,'_',type];
 collada_fn     = [iso_tag,'.dae'];
@@ -142,8 +142,6 @@ if length(fv.faces)>n_faces
     fv = reducepatch(fv,n_faces/length(fv.faces));
 end
 
-faces     = [];
-vertices  = [];
 triangles = [];
 %arrange face vertices to be contiunes (append) and reverse order to
 %plot as anticlockwise

@@ -97,7 +97,7 @@ while exist('tmp/kill_prep','file')==2 %run loop while script termination contro
     cmd         = 'export LD_LIBRARY_PATH=/usr/lib; ./tmp/lftp_mirror_scipt';
     [sout,eout] = unix(cmd);
     if sout ~= 0
-        log_cmd_write('tmp/log.lftp',' ',cmd,eout)
+        utility_log_write('tmp/log.lftp',' ',cmd,eout)
     end
     %reate dir listing
     local_mirror_dir = dir(local_mirror_path); local_mirror_list = {local_mirror_dir.name}; local_mirror_list(1:2)=[];
@@ -217,11 +217,11 @@ catch err
     display(err)
     %save error to file and log
     message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    utility_log_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %send push notification
     if pushover_flag == 1
-        pushover('prep',message)
+        utility_pushover('prep',message)
     end
     rethrow(err)
 end
@@ -245,7 +245,7 @@ fetch_volumes     = {};
 fetch_h5_datetime = [];
 fetch_h5_r_id     = [];
 fetch_h5_fn       = {};
-oldest_date_num   = addtodate(utc_time,min_offset,'minute');
+oldest_date_num   = addtodate(utility_utc_time,min_offset,'minute');
 
 %extract parameters from scan_filenames
 if ~isempty(scan_filenames)
@@ -348,7 +348,7 @@ tmp_rapic_ffn = [tempname,'.rapic'];
 cmd = ['cat ',cell2mat(dled_files'),' > ',tmp_rapic_ffn];
 [sout,eout]=unix(cmd);
 if sout ~= 0
-    log_cmd_write('tmp/log.cat',broken_rapic_fn,cmd,eout)
+    utility_log_write('tmp/log.cat',broken_rapic_fn,cmd,eout)
 end
 
 %filter for error messages
@@ -363,7 +363,7 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; rapic_to_odim ',tmp_rapic_ffn,' ',tmp_h
 [sout,eout]=unix(cmd);
 if sout ~= 0
     eout
-    log_cmd_write('tmp/log.convert',broken_rapic_fn,'',eout)
+    utility_log_write('tmp/log.convert',broken_rapic_fn,'',eout)
 end
 
 %write missing latlonheight data as required
@@ -379,7 +379,7 @@ if exist(tmp_h5_ffn,'file')~=2
     broken_file(tmp_rapic_ffn,broken_rapic_fn,broken_dest)
     return
 else
-    vol_dt        = process_read_vol_time(tmp_h5_ffn);
+    vol_dt        = read_odimh5_time(tmp_h5_ffn);
     h5_dir        = dir(tmp_h5_ffn);
     h5_size       = round(h5_dir.bytes/1000);
 end

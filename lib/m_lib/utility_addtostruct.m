@@ -1,4 +1,4 @@
-function [ddb_struct,tmp_sz] = addtostruct(ddb_struct,data_struct)
+function [ddb_struct,tmp_sz] = utility_addtostruct(ddb_struct,data_struct)
 
 %init
 data_name_list  = fieldnames(data_struct);

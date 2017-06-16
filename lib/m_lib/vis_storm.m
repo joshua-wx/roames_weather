@@ -1,4 +1,4 @@
-function kmlobj_struct = kml_storm(kmlobj_struct,vol_struct,storm_jstruct,tracking_id_list,dest_root,options)
+function kmlobj_struct = vis_storm(kmlobj_struct,vol_struct,storm_jstruct,tracking_id_list,dest_root,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure for a single radar_id
@@ -24,7 +24,7 @@ for i=1:length(proced_idx)
     cell_path      = [cell_obj_path,num2str(radar_id,'%02.0f'),'/'];
     %init time
     data_start_ts  = datenum(storm_jstruct(proced_idx(i)).start_timestamp.S,ddb_tfmt);
-    radar_step     = calc_radar_step(vol_struct,radar_id);
+    radar_step     = utility_radar_step(vol_struct,radar_id);
     data_stop_ts   = addtodate(data_start_ts,radar_step,'minute');
     %init tags
     data_tag       = [num2str(radar_id,'%02.0f'),'_',datestr(data_start_ts,r_tfmt)];
@@ -45,7 +45,7 @@ for i=1:length(proced_idx)
     
     %iso
     if options(3)==1 || options(4)==1
-        [link,ffn]    = kml_storm_collada(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox,h_grid_deg,v_grid);
+        [link,ffn]    = vis_storm_collada_kml(dest_root,cell_path,kml_fn,options,smooth_refl_vol,storm_latlonbox,h_grid_deg,v_grid);
         kmlobj_struct = collate_kmlobj(kmlobj_struct,radar_id,sort_id,data_start_ts,data_stop_ts,storm_latlonbox,'iso',link,ffn);
     end
 end
@@ -70,8 +70,8 @@ nowcast_stat_kml  = '';
 %process track objects (replaced every run for updated radars)
 if ~isempty(storm_jstruct)
     % create unique track list
-    storm_radar_id_list  = jstruct_to_mat([storm_jstruct.radar_id],'N');
-    storm_timestamp_list = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+    storm_radar_id_list  = utility_jstruct_to_mat([storm_jstruct.radar_id],'N');
+    storm_timestamp_list = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
     uniq_track_id_list   = unique(tracking_id_list);
     %loop through tracks
     for i=1:length(uniq_track_id_list)
@@ -97,13 +97,13 @@ if ~isempty(storm_jstruct)
             
         %% track objects
         if options(5)==1
-            stat_kml  = kml_storm_stat(stat_kml,track_jstruct,track_id);
+            stat_kml  = vis_storm_stat_kml(stat_kml,track_jstruct,track_id);
         end
         if options(6)==1
-            track_kml = kml_storm_track(track_kml,track_jstruct,track_id);
+            track_kml = vis_storm_track_kml(track_kml,track_jstruct,track_id);
         end
         if options(7)==1
-            [swath_kml,swath_stat_kml] = kml_storm_meshswath(swath_kml,swath_stat_kml,track_jstruct,track_id);
+            [swath_kml,swath_stat_kml] = vis_storm_meshswath_kml(swath_kml,swath_stat_kml,track_jstruct,track_id);
         end
         %% objects for new data, check if a new cell has been added
         if end_track_timestamp == newest_vol_timestamp

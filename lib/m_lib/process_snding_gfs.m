@@ -1,4 +1,4 @@
-function [extract_db,nn_snd_fz_h,nn_snd_minus20_h]=gfs_latest_analysis_snding(extract_db,r_lat,r_lon,radar_id,eraint_ddb_table)
+function [extract_db,nn_snd_fz_h,nn_snd_minus20_h] = process_snding_gfs(extract_db,r_lat,r_lon,radar_id,eraint_ddb_table)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -26,7 +26,7 @@ function [extract_db,nn_snd_fz_h,nn_snd_minus20_h]=gfs_latest_analysis_snding(ex
 nn_snd_fz_h      = [];
 nn_snd_minus20_h = [];
 %utc time
-utc_datenum = utc_time;
+utc_datenum = utility_utc_time;
 %floor hour component of datetime
 date_vec    = datevec(utc_datenum);
 adj_datenum = datenum(date_vec(1),date_vec(2),date_vec(3),floor(date_vec(4)/6)*6,0,0);
@@ -88,8 +88,8 @@ try
         web_str = urlread(snd_url);
     end
 catch
-    %gfs extract failed url request... send pushover update
-    pushover('process gfs fetch failed',snd_url);
+    %gfs extract failed url request... send utility_pushover update
+    utility_pushover('process gfs fetch failed',snd_url);
     nn_snd_fz_h      = [];
     nn_snd_minus20_h = [];
     return

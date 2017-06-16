@@ -1,4 +1,4 @@
-function [azi_vec,rng_vec] = process_read_ppi_dims(h5_ffn,dataset_no,wrap_azi)
+function [azi_vec,rng_vec] = read_odimh5_ppi_dims(h5_ffn,dataset_no,wrap_azi)
 
 %WHAT: reads dims variables from dataset and generates azimuth and rng
 %vectors

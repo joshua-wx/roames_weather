@@ -31,7 +31,7 @@ radar_id       = grid_obj.radar_id;
 timestamp      = grid_obj.vol_dt;
 
 %list tracks
-track_id               = jstruct_to_mat([storm_jstruct.track_id],'N');
+track_id               = utility_jstruct_to_mat([storm_jstruct.track_id],'N');
 [unqiue_track_id,~,ic] = unique(track_id);
 
 for i=1:length(unqiue_track_id)

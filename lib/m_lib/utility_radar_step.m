@@ -1,4 +1,4 @@
-function radar_step = calc_radar_step(vol_struct,radar_id)
+function radar_step = utility_radar_step(vol_struct,radar_id)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

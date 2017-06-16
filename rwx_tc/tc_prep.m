@@ -61,7 +61,7 @@ for i=1:length(download_s3_list)
     file_cp(download_s3_list{i},download_path,0,1);
 end
 %wait for aws processes to finish
-wait_aws_finish
+utility_aws_wait
 
 %% organise into composite sets
 
@@ -166,7 +166,7 @@ for i=1:length(composite_fn_list)
         %struct up atts
         img_atts       = struct('img_azi',img_azi,'img_rng',img_rng);
         %regrid into cartesian
-        ppi_struct                  = process_read_ppi_data(odimh5_ffn,ppi_sweep); %read ppi struct
+        ppi_struct                  = read_odimh5_ppi_data(odimh5_ffn,ppi_sweep); %read ppi struct
         [ppi_azi_grid,ppi_rng_grid] = meshgrid(ppi_struct.atts.azi_vec,ppi_struct.atts.rng_vec); %grid for dims
         ppi_data                    = ppi_struct.data1.data; %extract dbzh data
         ppi_img                     = interp2(ppi_azi_grid,ppi_rng_grid,ppi_data,img_atts.img_azi,img_atts.img_rng,'linear');

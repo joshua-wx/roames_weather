@@ -1,4 +1,4 @@
-function [extract_db,fz_h,minus20_h] = ddb_eraint_extract(extract_db,timestamp,radar_id,eraint_ddb_table)
+function [extract_db,fz_h,minus20_h] = process_snding_eraint(extract_db,timestamp,radar_id,eraint_ddb_table)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

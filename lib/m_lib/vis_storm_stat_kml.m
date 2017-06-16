@@ -1,8 +1,8 @@
-function kml_str = kml_storm_stat(kml_str,storm_jstruct,track_id)
+function kml_str = vis_storm_stat_kml(kml_str,storm_jstruct,track_id)
 
 load('tmp/global.config.mat')
 
-timestamps  = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+timestamps  = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
 timestep_mm = mode(minute(timestamps(2:end)-timestamps(1:end-1)));
 %init string
 %loop through cells

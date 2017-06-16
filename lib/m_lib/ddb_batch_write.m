@@ -37,5 +37,5 @@ cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb batch-write-item -
 [sout,eout] = unix([cmd,' >> tmp/log.ddb 2>&1',back_cmd]);
 %write to log
 if eout ~= 0
-    log_cmd_write('log.ddb','',cmd,eout)
+    utility_log_write('log.ddb','',cmd,eout)
 end

@@ -28,7 +28,7 @@ cmd = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb query --table-name ',ddb_t
 [sout,eout]       = unix([cmd,' | tee ',temp_fn]);
 %output to logs
 if sout~=0 || isempty(eout)
-    log_cmd_write('tmp/log.ddb','',cmd,eout)
+    utility_log_write('tmp/log.ddb','',cmd,eout)
     jstruct = '';
     return
 end

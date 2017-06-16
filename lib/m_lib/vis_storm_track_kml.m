@@ -1,4 +1,4 @@
-function track_kml = kml_storm_track(track_kml,track_jstruct,track_id)
+function track_kml = vis_storm_track_kml(track_kml,track_jstruct,track_id)
 %WHAT: Generates a storm track kml file using the inputted init and finl
 %ident pair.
 
@@ -23,10 +23,10 @@ load('tmp/vis.config.mat');
 init_jstruct = track_jstruct(1:end-1);
 finl_jstruct = track_jstruct(2:end);
 
-start_lat_vec = jstruct_to_mat([init_jstruct.storm_z_centlat],'N');
-start_lon_vec = jstruct_to_mat([init_jstruct.storm_z_centlon],'N');
-end_lat_vec   = jstruct_to_mat([finl_jstruct.storm_z_centlat],'N');
-end_lon_vec   = jstruct_to_mat([finl_jstruct.storm_z_centlon],'N');
+start_lat_vec = utility_jstruct_to_mat([init_jstruct.storm_z_centlat],'N');
+start_lon_vec = utility_jstruct_to_mat([init_jstruct.storm_z_centlon],'N');
+end_lat_vec   = utility_jstruct_to_mat([finl_jstruct.storm_z_centlat],'N');
+end_lon_vec   = utility_jstruct_to_mat([finl_jstruct.storm_z_centlon],'N');
 
 %select the colour based on the number of elements in the path
 path_color_id = length(init_jstruct);

@@ -1,4 +1,4 @@
-function wait_aws_finish
+function utility_aws_wait
 
 %wait for aws processes to finish
 dispstat('','init')

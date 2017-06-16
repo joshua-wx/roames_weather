@@ -1,4 +1,4 @@
-function [ppi_elv,vol_time] = process_read_ppi_atts(h5_ffn,dataset_no)
+function [ppi_elv,vol_time] = read_odimh5_ppi_atts(h5_ffn,dataset_no)
 %WHAT: reads scan and elv data from dataset_no from h5_ffn.
 %INPUTS:
 %h5_ffn: path to h5 file
@@ -19,5 +19,5 @@ try
     vol_time     = datenum([start_date,start_time],'yyyymmddHHMMSS');
 catch err
     disp(['/dataset',num2str(dataset_no),' is broken']);
-	log_cmd_write('tmp/log.ppi_att_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
+	utility_log_write('tmp/log.ppi_att_read','',[h5_ffn,' for ','/dataset',num2str(dataset_no),' is broken ',datestr(now)],[err.identifier,' ',err.message]);
 end

@@ -1,4 +1,4 @@
-function kml_build_root(dest_root,site_no_selection,local_dest_flag)
+function vis_build_kml(dest_root,site_no_selection,local_dest_flag)
 %WHAT
 %Performs the following tasks to prepare for the execution of the
 %ge_update_heirarchy script
@@ -47,7 +47,7 @@ if local_dest_flag==1
     mkdir([dest_root,track_obj_path]);
     mkdir([dest_root,cell_obj_path]);
 else
-    file_rm([dest_root],1,0)
+    file_rm(dest_root,1,0)
 end
 
 %s3 nl from doc.kml need a url prefix
@@ -67,15 +67,15 @@ cell_style_str  = '';
 forecast_S_colormap = [255/255,8/255,0/255];
 forecast_W_colormap = [255/255,255/255,0/255];
 forecast_N_colormap = [255/255,150/255,0/255];
-track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_S_style'],html_color(.6,forecast_S_colormap),5,'00FFFFFF');
-track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_W_style'],html_color(.6,forecast_W_colormap),3,'00FFFFFF');
-track_style_str     = ge_nowcast_multipoly_style(track_style_str,['fcst_N_style'],html_color(.6,forecast_N_colormap),3,'00FFFFFF');
+track_style_str     = ge_nowcast_multipoly_style(track_style_str,'fcst_S_style',utility_html_color(.6,forecast_S_colormap),5,'00FFFFFF');
+track_style_str     = ge_nowcast_multipoly_style(track_style_str,'fcst_W_style',utility_html_color(.6,forecast_W_colormap),3,'00FFFFFF');
+track_style_str     = ge_nowcast_multipoly_style(track_style_str,'fcst_N_style',utility_html_color(.6,forecast_N_colormap),3,'00FFFFFF');
 
 %track path
 path_colormap = flipud(colormap(autumn(max_vis_trck_length)));
 close(gcf);
 for i=1:max_vis_trck_length
-    track_style_str = ge_line_style(track_style_str,['path_',num2str(i),'_style'],html_color(.8,path_colormap(i,:)),3);
+    track_style_str = ge_line_style(track_style_str,['path_',num2str(i),'_style'],utility_html_color(.8,path_colormap(i,:)),3);
 end
 %balloon style (stats and graph)
 cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',url_prefix,icons_path);
@@ -83,7 +83,7 @@ cell_style_str  = ge_balloon_stats_style(cell_style_str,'balloon_stats_style',ur
 swath_colormap = flipud(colormap(autumn(length(swath_mesh_threshold))));
 close(gcf);
 for i=1:length(swath_mesh_threshold)
-    track_style_str = ge_swath_poly_style(track_style_str,['swath_',num2str(i),'_style'],html_color(.8,swath_colormap(i,:)),5,'00FFFFFF',true);
+    track_style_str = ge_swath_poly_style(track_style_str,['swath_',num2str(i),'_style'],utility_html_color(.8,swath_colormap(i,:)),5,'00FFFFFF',true);
 end
 
 %% Build overlay/icon paths and copy images
@@ -126,7 +126,7 @@ for i=1:length(site_no_selection)
 end
 %split up coverage polygons into cells
 [cov_lat,cov_lon] = polysplit(cov_lat,cov_lon);
-coverage_str      = ge_line_style(coverage_str,'coverage_style',html_color(0.5,[1,1,1]),2);
+coverage_str      = ge_line_style(coverage_str,'coverage_style',utility_html_color(0.5,[1,1,1]),2);
 for i=1:length(cov_lat)
     %write each polygon to kml string
     temp_lat     = cov_lat{i};
@@ -155,7 +155,7 @@ file_mv(temp_ffn,[dest_root,'doc.kml'])
 %% build ppi groups kml
 
 %ppi.kml
-display('building ppi nl kml')
+disp('building ppi nl kml')
 ppi_str         = ppi_style_str;
 offline_nl_flag = false;
 if options(1)==1
@@ -175,17 +175,17 @@ if options(9)==1
 end
 %build offline ground overlays
 if any(options([1,2,9]))
-    display('building offline images')
+    disp('building offline images')
     generate_offline_radar(dest_root,ppi_obj_path,site_no_selection,site_latlonbox)
 end
 
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'PPI Objects',ppi_str);
 file_mv(temp_ffn,[dest_root,'ppi.kml']);
-wait_aws_finish
+utility_aws_wait
 
 %cell.kml
-display('building cell nl kml')
+disp('building cell nl kml')
 cell_str  = cell_style_str;
 if options(3)==1 || options(4)==1
     tmp_str   = generate_radar_nl('iso',dest_root,cell_obj_path,site_no_selection,'','','',local_dest_flag);
@@ -195,10 +195,10 @@ end
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Cell Objects',cell_str);
 file_mv(temp_ffn,[dest_root,'cell.kml']);
-wait_aws_finish
+utility_aws_wait
 
 %track.kml
-display('building track nl kml')
+disp('building track nl kml')
 track_str  = track_style_str;
 if options(5)==1
     tmp_str   = generate_nl('stat','Cell Stats',dest_root,track_obj_path,local_dest_flag);
@@ -220,7 +220,7 @@ end
 temp_ffn = tempname;
 ge_kml_out(temp_ffn,'Track Objects',track_str);
 file_mv(temp_ffn,[dest_root,'track.kml']);
-wait_aws_finish
+utility_aws_wait
 
 function kml_out = generate_radar_nl(prefix,dest_root,file_path,radar_id_list,site_latlonbox,minlod,maxlod,local_dest_flag,offline_nl_flag)
 %WHAT: creates network links and empty kml points which the nl point to for

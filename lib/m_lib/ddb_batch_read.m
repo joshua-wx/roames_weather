@@ -51,6 +51,6 @@ cmd         = ['export LD_LIBRARY_PATH=/usr/lib; aws dynamodb batch-get-item --r
 [sout,eout] = unix([cmd,' | tee ',json_ffn,' &']);
 %error catching
 if sout ~= 0
-    log_cmd_write('log.ddb','',cmd,eout)
+    utility_log_write('log.ddb','',cmd,eout)
     json_ffn = '';
 end

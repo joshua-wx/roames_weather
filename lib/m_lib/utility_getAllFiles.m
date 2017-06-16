@@ -1,4 +1,4 @@
-function fileList = getAllFiles(dirName)
+function fileList = utility_getAllFiles(dirName)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017

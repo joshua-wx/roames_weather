@@ -123,7 +123,7 @@ while exist('tmp/kill_process','file')==2
 
     % create time span
     if realtime_flag == 1
-        date_list = utc_time;
+        date_list = utility_utc_time;
     elseif isempty(date_start_restart) %new climatology processing instance
         date_list = datenum(date_start,'yyyy_mm_dd'):datenum(date_stop,'yyyy_mm_dd');
     else %restart climatology processing
@@ -151,7 +151,7 @@ while exist('tmp/kill_process','file')==2
                 file_cp(fetch_h5_ffn_list{i},download_path,0,1)
             end
             %wait for aws process to finish
-            wait_aws_finish
+            utility_aws_wait
         else
             disp(['Climatology processing downloading files from ',datestr(date_list(date_idx)),' for radar ',num2str(radar_id_list)]);
             %sync day of data from radar_id from s3 to local, radar_id_list must be a single number
@@ -201,7 +201,7 @@ while exist('tmp/kill_process','file')==2
                 if realtime_flag == 1
                     %extract radar lat lon
                     %retrieve current GFS temperature data for above radar site
-                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = gfs_latest_analysis_snding(nwp_extract_list,grid_obj.radar_lat,grid_obj.radar_lon,radar_id,eraint_ddb_table);
+                    [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = process_snding_gfs(nwp_extract_list,grid_obj.radar_lat,grid_obj.radar_lon,radar_id,eraint_ddb_table);
                 else
                     %dummy radar for UQXPOL
                     if radar_id==99
@@ -209,7 +209,7 @@ while exist('tmp/kill_process','file')==2
                         nn_snd_minus20_h = 7600;
                     else
                         %load era-interim fzlvl data from ddb
-                        [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = ddb_eraint_extract(nwp_extract_list,grid_obj.vol_dt,radar_id,eraint_ddb_table);
+                        [nwp_extract_list,nn_snd_fz_h,nn_snd_minus20_h] = process_snding_eraint(nwp_extract_list,grid_obj.vol_dt,radar_id,eraint_ddb_table);
                     end
                 end
                 if isempty(nn_snd_fz_h)
@@ -273,7 +273,7 @@ while exist('tmp/kill_process','file')==2
     if realtime_flag==0
         delete('tmp/kill_process')
         message = ['COMPLETED radar_id ',num2str(radar_id_list,'%02.0f'),' form ',date_start,' to ',date_stop,' in ',num2str(toc(kill_timer)/60/60),'hrs'];
-        pushover(['process ',pushover_tag],message);
+        utility_pushover(['process ',pushover_tag],message);
         break
     end
     
@@ -288,11 +288,11 @@ catch err
     display(err)
     %save error and log
     message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    utility_log_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %send push notification
     if pushover_flag == 1
-        pushover(['process ',pushover_tag],message)
+        utility_pushover(['process ',pushover_tag],message)
     end
     %check restart tries
     restart_tries = restart_tries+1;
@@ -399,7 +399,7 @@ if ~isempty(storm_obj)
             tmp_jstruct.(storm_obj(i).stats_labels{j}).N = num2str(storm_stats(j));
         end
         %append to put struct
-        [ddb_put_struct,tmp_sz] = addtostruct(ddb_put_struct,tmp_jstruct);
+        [ddb_put_struct,tmp_sz] = utility_addtostruct(ddb_put_struct,tmp_jstruct);
         %write if needed
         if tmp_sz==25 || i == length(storm_obj)
             %batch write

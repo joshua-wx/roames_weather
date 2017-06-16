@@ -19,14 +19,14 @@ if strcmp(src_ffn(1:2),'s3') %move from s3 to local
     cmd         = [prefix_cmd,'aws s3 mv --quiet ',src_ffn,' ',dest_ffn];
     [sout,eout] = unix(cmd);
     if isempty(eout)
-        log_cmd_write('tmp/log.mv',src_ffn,cmd,eout)
+        utility_log_write('tmp/log.mv',src_ffn,cmd,eout)
     end
 elseif strcmp(dest_ffn(1:2),'s3') %move local to s3
     %s3 command
     cmd         = [prefix_cmd,'aws s3 mv --quiet ',src_ffn,' ',dest_ffn,' >> tmp/log.mv 2>&1 &'];
     [sout,eout] = unix(cmd);
 %     if isempty(eout)
-%         log_cmd_write('log.cp_file',src_ffn,cmd,eout)
+%         utility_log_write('log.cp_file',src_ffn,cmd,eout)
 %     end
 else %move local to local
     movefile(src_ffn,dest_ffn)

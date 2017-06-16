@@ -81,7 +81,7 @@ for i=1:length(year_list)
                     disp([h5_name{k},' of size ',num2str(h5_size(k)),' removed'])
                     file_rm([s3_bucket,h5_name{k}],0,1)
                     pause(0.1)
-                    wait_aws_finish(200)
+                    utility_aws_wait(200)
                     remove_idx = [remove_idx,k];
                 end
             end
@@ -110,7 +110,7 @@ for i=1:length(year_list)
                 [sout,eout] = unix(cmd);
                 h5_name{k}  = [h5_path,'/',new_fn];
                 pause(0.1)
-                wait_aws_finish(200)
+                utility_aws_wait(200)
             end
         end
 
@@ -130,7 +130,7 @@ for i=1:length(year_list)
                 cmd         = [prefix_cmd,'aws s3 mv ',h5_ffn,' ',new_ffn,' >> log.mv 2>&1 &'];
                 disp(['renaming ',h5_ffn,' to remove nowcast filename'])
                 pause(0.1)
-                wait_aws_finish(200)
+                utility_aws_wait(200)
                 [sout,eout] = unix(cmd);
                 h5_name{k}  = [h5_path,'/',new_tag];
             end
@@ -165,7 +165,7 @@ for i=1:length(year_list)
                     cmd             = [prefix_cmd,'aws s3 rm ',s3_bucket,h5_name{duplicate_idx(l)},' &'];
                     [sout,eout]     = unix(cmd);
                     pause(0.1)
-                    wait_aws_finish(200)
+                    utility_aws_wait(200)
                     display(['removing ',h5_name{duplicate_idx(l)}])
                 end
             end
@@ -225,13 +225,13 @@ for i=1:length(year_list)
     end
 end
 display(['qc complete for ',num2str(radar_id_list)])
-pushover('qc_odimh5',['qc complete for ',num2str(radar_id_list)])
+utility_pushover('qc_odimh5',['qc complete for ',num2str(radar_id_list)])
 catch err
-    pushover('qc_odimh5',['qc CRASHED for ',num2str(radar_id_list)])
+    utility_pushover('qc_odimh5',['qc CRASHED for ',num2str(radar_id_list)])
     rethrow(err)
 end
 
-function wait_aws_finish(limit)
+function utility_aws_wait(limit)
 
 %wait for aws processes to finish
 while true

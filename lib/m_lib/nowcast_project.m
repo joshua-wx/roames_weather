@@ -27,7 +27,7 @@ forecast_offset = 1/24/60; %offset of 1 min
 load('tmp/global.config.mat');
 
 %decompose end cell track
-start_timedate     = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+start_timedate     = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
 tn1_track_id       = tracking_id_list(tn1_ident_ind);
 tn1_start_timedate = start_timedate(tn1_ident_ind);
 trck_ind           = find(tracking_id_list==tn1_track_id & start_timedate<=tn1_start_timedate);
@@ -45,14 +45,14 @@ end
 
 %extract timedate, latloncent for each track cell from ident_db
 trck_dt_fsct    = start_timedate(trck_ind_fcst);
-trck_latcent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlat],'N');
-trck_loncent    = jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlon],'N');
-trck_vil_fcst   = jstruct_to_mat([storm_jstruct(trck_ind_fcst).cell_vil],'N');
+trck_latcent    = utility_jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlat],'N');
+trck_loncent    = utility_jstruct_to_mat([storm_jstruct(trck_ind_fcst).storm_z_centlon],'N');
+trck_vil_fcst   = utility_jstruct_to_mat([storm_jstruct(trck_ind_fcst).cell_vil],'N');
 
 trck_dt          = start_timedate(trck_ind);
-trck_mesh       = jstruct_to_mat([storm_jstruct(trck_ind).max_mesh],'N');
-trck_top        = jstruct_to_mat([storm_jstruct(trck_ind).max_tops],'N');
-trck_vil        = jstruct_to_mat([storm_jstruct(trck_ind).cell_vil],'N');
+trck_mesh       = utility_jstruct_to_mat([storm_jstruct(trck_ind).max_mesh],'N');
+trck_top        = utility_jstruct_to_mat([storm_jstruct(trck_ind).max_tops],'N');
+trck_vil        = utility_jstruct_to_mat([storm_jstruct(trck_ind).cell_vil],'N');
 
 %calculate polyfit of lat lon cents
 [lat_p,lat_s,lat_mu] = polyfit(trck_dt_fsct,trck_latcent,1);

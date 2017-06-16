@@ -71,7 +71,7 @@ else
 end
 
 %load colourmaps for png generation
-colormap_interp('refl24bit.txt','vel24bit.txt');
+utility_colormap_interp('refl24bit.txt','vel24bit.txt');
 
 % Load global config files
 read_config(global_config_fn);
@@ -114,11 +114,11 @@ if exist(restart_vars_fn,'file')==2
     catch
         %corrupt file
         delete(restart_vars_fn);
-        kml_build_root(dest_root,radar_id_list,local_dest_flag);
+        vis_build_kml(dest_root,radar_id_list,local_dest_flag);
     end
 else
     %build root kml
-    kml_build_root(dest_root,radar_id_list,local_dest_flag);
+    vis_build_kml(dest_root,radar_id_list,local_dest_flag);
 end
 
 %build asset data
@@ -146,8 +146,8 @@ while exist('tmp/kill_vis','file')==2
     
     % Calculate time limits from time options
     if realtime_flag == 1
-        oldest_time = addtodate(utc_time,realtime_length,'hour');
-        newest_time = utc_time;
+        oldest_time = addtodate(utility_utc_time,realtime_length,'hour');
+        newest_time = utility_utc_time;
     else
         oldest_time = datenum(date_start,ddb_tfmt);
         newest_time = datenum(date_stop,ddb_tfmt);
@@ -177,7 +177,7 @@ while exist('tmp/kill_vis','file')==2
         file_cp(download_list{i},download_path,0,1);
     end
     %wait for aws processes to finish
-    wait_aws_finish
+    utility_aws_wait
     
     %% update vol object
     vol_struct                   = update_vol_struct(vol_struct,download_odimh5_list,download_path,oldest_time);
@@ -205,11 +205,11 @@ while exist('tmp/kill_vis','file')==2
         start_timestep         = vol_struct(vol_proced_idx(i)).start_timestamp;
         odimh5_ffn             = vol_struct(vol_proced_idx(i)).local_odimh5_ffn;
         %extract radar timestep
-        radar_step             = calc_radar_step(vol_struct,radar_id);
+        radar_step             = utility_radar_step(vol_struct,radar_id);
         %create domain mask
         [ppi_mask,geo_coords]  = process_radar_mask(radar_id,start_timestep,vol_struct,transform_path);
-        %create ppi kml
-        kmlobj_struct          = kml_odimh5(kmlobj_struct,odimh5_ffn,ppi_mask,radar_id,radar_step,dest_root,transform_path,options);
+        %create ppi kml (also generate impact map data for single doppler)
+        kmlobj_struct          = vis_odimh5(kmlobj_struct,odimh5_ffn,ppi_mask,radar_id,radar_step,dest_root,transform_path,options);
         %create mask information for storm cells in storm_jstruct
         storm_jstruct          = mask_storm_cells(radar_id,start_timestep,storm_jstruct,ppi_mask,geo_coords);
     end
@@ -217,14 +217,14 @@ while exist('tmp/kill_vis','file')==2
     %% process storm and track objects
     if ~isempty(storm_jstruct)
         %remove storm entries outside of domain
-        filt_mask          = jstruct_to_mat([storm_jstruct.domain_mask],'N');
+        filt_mask          = utility_jstruct_to_mat([storm_jstruct.domain_mask],'N');
         storm_jstruct_filt = storm_jstruct(logical(filt_mask));
         if ~isempty(storm_jstruct_filt)
             %generate storm tracking
             track_id_list  = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
 
             %use tracks, cell masks to generate storm and track kml
-            kmlobj_struct  = kml_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+            kmlobj_struct  = vis_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
 
             %mark everything as processed in original storm_struct
             proced_idx            = find([storm_jstruct.proced]==false);
@@ -248,7 +248,7 @@ while exist('tmp/kill_vis','file')==2
     end
     
     %update kml from kmlobj_struct
-    kml_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
+    vis_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
     
     %generate impact maps
     
@@ -297,11 +297,11 @@ catch err
     %display and log error
     display(err)
     message = [err.identifier,10,10,getReport(err,'extended','hyperlinks','off')];
-    log_cmd_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
+    utility_log_write('tmp/log.crash','',['crash error at ',datestr(now)],[err.identifier,' ',err.message]);
     save(['tmp/crash_',datestr(now,'yyyymmdd_HHMMSS'),'.mat'],'err')
     %push notification
     if pushover_flag == 1
-        pushover('vis',message)
+        utility_pushover('vis',message)
     end
     %check restart tries
     restart_tries = restart_tries+1;
@@ -336,13 +336,13 @@ if isempty(storm_jstruct)
 end
 
 %init
-storm_date_id         = jstruct_to_mat([storm_jstruct.date_id],'N');
-storm_sort_id         = jstruct_to_mat([storm_jstruct.sort_id],'S');
-storm_mask            = jstruct_to_mat([storm_jstruct.domain_mask],'N');
-storm_radar_id        = jstruct_to_mat([storm_jstruct.radar_id],'N');
-storm_start_timestamp = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
-storm_lat             = jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
-storm_lon             = jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
+storm_date_id         = utility_jstruct_to_mat([storm_jstruct.date_id],'N');
+storm_sort_id         = utility_jstruct_to_mat([storm_jstruct.sort_id],'S');
+storm_mask            = utility_jstruct_to_mat([storm_jstruct.domain_mask],'N');
+storm_radar_id        = utility_jstruct_to_mat([storm_jstruct.radar_id],'N');
+storm_start_timestamp = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+storm_lat             = utility_jstruct_to_mat([storm_jstruct.storm_z_centlat],'N');
+storm_lon             = utility_jstruct_to_mat([storm_jstruct.storm_z_centlon],'N');
 
 %filter out radar_id and start_timestep
 filter_idx            = find(storm_radar_id==radar_id & storm_start_timestamp==start_timestep);
@@ -395,7 +395,7 @@ disp('extract required data from stormh5 ddb')
 %clean storm_jstruct
 if ~isempty(storm_jstruct)
     %find old entries
-    storm_jstruct_dates = datenum(jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+    storm_jstruct_dates = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
     remove_idx         = find(storm_jstruct_dates<oldest_time);
     if ~isempty(remove_idx)
         storm_jstruct(remove_idx) = [];
@@ -420,7 +420,7 @@ for i=1:length(download_stormh5_list)
             tmp_jstruct.date_id.N  = datestr(stormh5_start_td,ddb_dateid_tfmt);
             tmp_jstruct.sort_id.S  = [datestr(stormh5_start_td,ddb_tfmt),'_',num2str(stormh5_rid,'%02.0f'),'_',num2str(j,'%03.0f')];
             %create entry for batch read for current storm
-            [ddb_read_struct,tmp_sz] = addtostruct(ddb_read_struct,tmp_jstruct);
+            [ddb_read_struct,tmp_sz] = utility_addtostruct(ddb_read_struct,tmp_jstruct);
             %parse batch read if size is 25 or last cell of last file for
             %current day
 			if tmp_sz==25 || (i == length(download_stormh5_list) && j == stormh5_groups)
@@ -441,7 +441,7 @@ for i=1:length(download_stormh5_list)
     end
 end
 %wait for aws batch read to finish
-wait_aws_finish
+utility_aws_wait
 %read back in ddb local files
 for i=1:length(temp_ffn_list)
 	%read out ddb data	
@@ -510,9 +510,9 @@ for i=1:length(download_odimh5_list)
     if exist(local_odimh5_ffn,'file') == 2
         %read basic atts
         odimh5_rid          = str2double(odimh5_name(1:2));
-        odimh5_start_td     = process_read_vol_time(local_odimh5_ffn);
+        odimh5_start_td     = read_odimh5_time(local_odimh5_ffn);
         %read range for masking
-        [~,rng_vec]         = process_read_ppi_dims(local_odimh5_ffn,1,true);
+        [~,rng_vec]         = read_odimh5_ppi_dims(local_odimh5_ffn,1,true);
         radar_rng           = floor(max(rng_vec)/10)*10; %round to 10s of km
         %add to vol struct
         tmp_struct          = struct('radar_id',odimh5_rid,'start_timestamp',odimh5_start_td,'local_odimh5_ffn',local_odimh5_ffn,'radar_rng',radar_rng,'proced',false);

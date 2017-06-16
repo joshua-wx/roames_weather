@@ -91,7 +91,7 @@ for i=1:length(fetch_date_list)
     file_cp(s3_ffn,local_h5ffn,0,0);
     if exist(local_h5ffn,'file')~=2
         disp('warning, local_h5ffn not found')
-        log_cmd_write('tmp/log.validate','s3 cp failed','',local_h5ffn)
+        utility_log_write('tmp/log.validate','s3 cp failed','',local_h5ffn)
         continue
     end
     %read site lat/lon
@@ -99,7 +99,7 @@ for i=1:length(fetch_date_list)
     site_lon = h5readatt(local_h5ffn,'/where','lon');
     %run singledop
     local_ncffn  = tempname;
-    sdppi_struct = process_read_ppi_data(local_h5ffn,sd_sweep+1); %python to matlab index
+    sdppi_struct = read_odimh5_ppi_data(local_h5ffn,sd_sweep+1); %python to matlab index
     cmd     = ['python sd_winds_ncout2.py',' ',local_h5ffn,' ',local_ncffn,' ',...
         num2str(sdppi_struct.atts.NI),' ',num2str(sd_l),' ',num2str(sd_min_rng),' ',...
         num2str(sd_max_rng),' ',num2str(sd_sweep),' ',num2str(sd_thin_azi),' '...
@@ -108,7 +108,7 @@ for i=1:length(fetch_date_list)
     [sout,eout] = unix(cmd);
     if sout ~= 0
         disp(eout)
-        log_cmd_write('tmp/log.validate','singledop failed','',local_h5ffn)
+        utility_log_write('tmp/log.validate','singledop failed','',local_h5ffn)
         continue
     else
         %load nc data
@@ -153,6 +153,6 @@ end
 %move to s3
 file_cp(out_fn,[odimh5_s3_bucket,out_fn],0,0)
 %send im
-pushover('sd validate','radar processing complete')
+utility_pushover('sd validate','radar processing complete')
 
 keyboard

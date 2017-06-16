@@ -33,20 +33,20 @@ dataset_count = length(dataset_list);
 
 %preallocate matrices to build HDF5 coordinates and dump scan1 and
 %scan2 data to improve performance
-[vol_azi_vec,vol_rng_vec]   = process_read_ppi_dims(h5_ffn,1,true);
+[vol_azi_vec,vol_rng_vec]   = read_odimh5_ppi_dims(h5_ffn,1,true);
 [vol_azi_grid,vol_rng_grid] = meshgrid(vol_azi_vec,vol_rng_vec); %grid for dataset
 empty_vol  = nan(length(vol_rng_vec),length(vol_azi_vec),dataset_count);
 empty_vec  = nan(dataset_count,1);
 dbzh_vol   = empty_vol;
 vradh_vol  = empty_vol;
 elv_vec    = empty_vec;
-vol_dt     = process_read_vol_time(h5_ffn);
+vol_dt     = read_odimh5_time(h5_ffn);
 sig_flag   = false;
 
 %load data frm h5 datasets into matrices
 for i=1:dataset_count
     %load ppi attributes
-    [ppi_elv,~] = process_read_ppi_atts(h5_ffn,i);
+    [ppi_elv,~] = read_odimh5_ppi_atts(h5_ffn,i);
     %skip ppi when error exists (indicated by zero elv angle)
     if isempty(ppi_elv)
         sig_flag = false;
@@ -55,7 +55,7 @@ for i=1:dataset_count
     elv_vec(i)         = ppi_elv;
 
     %read ppi data from file
-    dataset_struct = process_read_ppi_data(h5_ffn,i);
+    dataset_struct = read_odimh5_ppi_data(h5_ffn,i);
 	if isempty(dataset_struct)
 		sig_flag = false;
 		break %abort loop and set sig flag to false

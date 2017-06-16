@@ -34,8 +34,8 @@ end
 img_cmap    = flipud(hot(colormap_steps));
 %init kml (duplicated from individual radar kmz)
 kml_str     = '';
-kml_str     = ge_swath_poly_style(kml_str,'poly_style',html_color(1,silence_edge_color),silence_line_width,html_color(1,silence_face_color),false);
-kml_str     = ge_swath_poly_style(kml_str,'trans_poly',html_color(1/255,silence_edge_color),silence_line_width,html_color(1/255,silence_face_color),true);
+kml_str     = ge_swath_poly_style(kml_str,'poly_style',utility_html_color(1,silence_edge_color),silence_line_width,utility_html_color(1,silence_face_color),false);
+kml_str     = ge_swath_poly_style(kml_str,'trans_poly',utility_html_color(1/255,silence_edge_color),silence_line_width,utility_html_color(1/255,silence_face_color),true);
 
 %resize image
 [img_grid,img_cmap] = imresize(data_grid,img_cmap,img_rescale,'nearest','Colormap','original');
