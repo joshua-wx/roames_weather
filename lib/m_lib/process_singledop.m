@@ -1,4 +1,4 @@
-function [error,png_ffn,sd_impact_ffn] = process_singledop(odimh5_ffn,sdppi_struct,data_tag,radar_id)
+function [error,png_ffn,sd_impact_ffn] = process_singledop(odimh5_ffn,sdppi_struct,data_tag,vol_start_time,radar_id)
 
 load('tmp/vis.config.mat')
 
@@ -9,7 +9,8 @@ if ismember(radar_id,impact_radar_id)
     if exist(tmp_path,'file') ~= 7
         mkdir(tmp_path);
     end
-    sd_impact_ffn = [impact_tmp_root,num2str(radar_id,'%02.0f'),'/',data_tag,'.nc'];
+    nc_fn = ['sd_',datestr(vol_start_time,'yyyymmdd_HHMMSS')];
+    sd_impact_ffn = [impact_tmp_root,num2str(radar_id,'%02.0f'),'/',nc_fn,'.nc'];
 else
     impact_sd_flag = 0;
     sd_impact_ffn  = '';

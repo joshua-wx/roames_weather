@@ -1,4 +1,4 @@
-function [nowcast_kml,nowcast_stat_kml] = vis_storm_nowcast_kml(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id)
+function nowcast_kml = vis_storm_nowcast_kml(nowcast_kml,storm_jstruct,tracking_id_list,track_id)
 %WHAT
 %for the inputted track 'cur_track', a forecast is produced from the end
 %cells using the historical data. Forecast data is saved as forecast swaths
@@ -81,8 +81,6 @@ ballon_struct.y_data2    = hist_mesh;
 ballon_struct.ctitle2    = 'MaxExpSizeHail (mm)';
 ballon_struct.y_data3    = hist_top;
 ballon_struct.ctitle3    = 'Echo-top Height (km)';
-
-%nowcast_stat_kml = ge_nowcast_placemark(nowcast_stat_kml,1,['../track.kml#nowcast_placemark_',intensity,'_style'],name,hist_min,asset_table,hist_vild,'VILD (g/m^3)',hist_mesh,'MaxExpSizeHail (mm)',hist_top,'Echo-top Height (km)',mean(fcst_lat_polys{end}),mean(fcst_lon_polys{end}));
 
 %% generate kml
 nowcast_kml = ge_nowcast_multipoly(nowcast_kml,['../track.kml#fcst_',intensity,'_style'],name,'','','clampToGround',1,fcst_lon_polys,fcst_lat_polys,[],ballon_struct);

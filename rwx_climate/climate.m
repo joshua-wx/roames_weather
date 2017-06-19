@@ -303,7 +303,7 @@ for m = 1:length(radar_id_list)
     
     %preallocate
     blank_grid    = zeros(grid_size(1),grid_size(2));
-    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid,'max_grid',blank_grid);
+    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid,'max_grid',blank_grid,'grid_size',grid_size);
     %create mapping georef struct
     radar_lat_vec = geo_coords.radar_lat_vec;
     radar_lon_vec = geo_coords.radar_lon_vec;

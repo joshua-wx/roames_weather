@@ -49,10 +49,10 @@ if options(9)==1 && ~isempty(ppi_NI)
     %create kml for vel ppi
 	sdppi_struct              = read_odimh5_ppi_data(odimh5_ffn,sd_sweep+1); %python to matlab index
 	[sdppi_elv,~]             = read_odimh5_ppi_atts(odimh5_ffn,sd_sweep+1); %python to matlab index
-    [error,png_ffn,~]         = process_singledop(odimh5_ffn,sdppi_struct,data_tag,radar_id);
+    [error,png_ffn,~]         = process_singledop(odimh5_ffn,sdppi_struct,data_tag,vol_start_time,radar_id);
     if isempty(error)
         file_tag              = [data_tag,'.ppi_singledop.sweep_',num2str(sdppi_elv,'%02.1f')];
-        [link,ffn]            = vis_singledop_kml(dest_path,png_ffn,file_tag,geo_coords,h_grid_deg);
+        [link,ffn]            = vis_singledop_kml(ppi_path,png_ffn,file_tag,geo_coords,h_grid_deg);
         kmlobj_struct         = collate_kmlobj(kmlobj_struct,radar_id,'',vol_start_time,vol_stop_time,img_latlonbox,'ppi_singledop',link,ffn);
     else
         utility_log_write('tmp/log.singledop','','',odimh5_ffn)

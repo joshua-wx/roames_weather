@@ -224,7 +224,7 @@ while exist('tmp/kill_vis','file')==2
             track_id_list  = nowcast_wdss_tracking(storm_jstruct_filt,vol_struct,true);
 
             %use tracks, cell masks to generate storm and track kml
-            kmlobj_struct  = vis_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,options);
+            kmlobj_struct  = vis_storm(kmlobj_struct,vol_struct,storm_jstruct_filt,track_id_list,dest_root,transform_path,options);
 
             %mark everything as processed in original storm_struct
             proced_idx            = find([storm_jstruct.proced]==false);

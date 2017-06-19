@@ -1,4 +1,4 @@
-function [swath_kml,swath_placemark_kml] = vis_storm_meshswath_kml(swath_kml,swath_placemark_kml,track_jstruct,track_id)
+function swath_kml = vis_storm_meshswath_kml(swath_kml,track_jstruct,track_id)
 %WHAT: Generates a storm swath kml file using the inputted init and finl
 %ident pair.
 
@@ -35,7 +35,7 @@ for i=1:length(swath_mesh_threshold)
             continue
         end
         %setup lat lon vec for mesh
-        latlonbox  = str2double(track_jstruct(j).storm_latlonbox.S);
+        latlonbox  = str2num(track_jstruct(j).storm_latlonbox.S);
         lat_vec    = linspace(latlonbox(1),latlonbox(2),size(mesh_mask,1));
         lon_vec    = linspace(latlonbox(4),latlonbox(3),size(mesh_mask,2));
         h_grid_deg = str2double(track_jstruct(j).h_grid.N);

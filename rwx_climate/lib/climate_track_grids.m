@@ -11,7 +11,8 @@ function track_grids = climate_track_grids(track_grids,track_ind,storm_date_list
 %
 % INPUTS
 % track_grids:          struct continaing accumulated density and motion
-%                       fields (density_grid: track counts, u_grid: u motion field, v_grid: v motion field,
+%                       fields (density_grid: track counts, u_grid: u
+%                       motion field, v_grid: v motion field, max_grid
 %                       n_grid: total overlap count for motion normalisation)
 % track_ind:            index of track entires from database (mx1)
 % storm_date_list:      date list (nx1)
@@ -58,70 +59,19 @@ for i = 1:length(track_ind)
     storm_data{i}  = h5data;
 end
 
-%density track
-blank_grid         = zeros(size(track_grids.density_grid));
-total_density_grid = blank_grid;
-max_grid           = blank_grid;
-track_u_grid       = blank_grid;
-track_v_grid       = blank_grid;
+%build struct for swath processing
+track_struct     = struct('track_storm_data',storm_data(track_ind),...
+    'track_latloncent',storm_latloncent_list(track_ind),...
+    'track_ijbox',storm_ijbox_list(track_ind),...
+    'track_date_list',storm_date_list(track_ind));
+%generate swath
+out_struct = process_swath(track_struct,data_min,radar_step,track_grids.grid_size);
 
-%assign initial pair data
-init_ind        = track_ind(1:end-1);
-init_storm_data = storm_data(1:end-1);
-init_latloncent = storm_latloncent_list(init_ind,:);
-init_ijbox      = storm_ijbox_list(init_ind,:);
-init_date_list  = storm_date_list(init_ind);
-%assign final pair data
-finl_ind        = track_ind(2:end);
-finl_storm_data = storm_data(2:end);
-finl_latloncent = storm_latloncent_list(finl_ind,:);
-finl_ijbox      = storm_ijbox_list(finl_ind,:);
-finl_date_list  = storm_date_list(finl_ind);
-
-%loop through pairs
-for i=1:length(init_ind)
-    %skip if track segment not continous in time (mask removes cells from tracks which don't meet
-    %criteria, these pairs need to be skipped)
-    if floor((finl_date_list(i)-init_date_list(i))*24*60) > radar_step
-        continue
-    end
-    %create conv of inital and final
-    %create inital mask
-    init_grid  = blank_grid;
-    init_grid(init_ijbox(i,1):init_ijbox(i,2),init_ijbox(i,3):init_ijbox(i,4)) = init_storm_data{i};
-    init_mask  = init_grid > data_min;
-    %create final mask
-    finl_grid  = blank_grid;
-    finl_grid(finl_ijbox(i,1):finl_ijbox(i,2),finl_ijbox(i,3):finl_ijbox(i,4)) = finl_storm_data{i};
-    finl_mask  = finl_grid > data_min;
-    %apply convex hull
-    conv_mask  = bwconvhull(init_mask + finl_mask);
-    %build max grid
-    if i==1
-        max_grid = max(cat(3,max_grid,init_grid),[],3);
-    end
-    max_grid = max(cat(3,max_grid,finl_grid),[],3);
-    %calc u,v for pair
-    %use distance function
-    [dist,az]       = distance(init_latloncent(i,1),init_latloncent(i,2),finl_latloncent(i,1),finl_latloncent(i,2));
-    dist            = deg2km(dist); %convert deg to km
-    vel             = dist/((finl_date_list(i)-init_date_list(i))*24); %convert km to km/h
-    az              = mod(90-az,360); %convert from compass to cartesian deg
-    az_u            = vel*cosd(az); %use velocity and azimuth to calc u,v
-    az_v            = vel*sind(az); %use velocity and azimuth to calc v
-    u_mask          = conv_mask.*az_u; %apply velocity values to masked areas
-    v_mask          = conv_mask.*az_v;
-    %append masks to track grids
-    total_density_grid = total_density_grid + conv_mask;
-    track_u_grid       = track_u_grid + u_mask;
-    track_v_grid       = track_v_grid + v_mask;
-end
-%normalise density
-norm_density_grid        = total_density_grid>0;
 %accumulate
-track_grids.density_grid = track_grids.density_grid + norm_density_grid;
-track_grids.u_grid       = track_grids.u_grid       + track_u_grid;
-track_grids.v_grid       = track_grids.v_grid       + track_v_grid;
-track_grids.n_grid       = track_grids.n_grid       + total_density_grid;
+normalised_density_grid  = out_struct.density_grid > 0;
+track_grids.density_grid = track_grids.density_grid + normalised_density_grid;
+track_grids.u_grid       = track_grids.u_grid       + out_struct.u_grid;
+track_grids.v_grid       = track_grids.v_grid       + out_struct.v_grid;
+track_grids.n_grid       = track_grids.n_grid       + out_struct.density_grid;
 %append
-track_grids.max_grid     = max(cat(3,track_grids.max_grid,max_grid),[],3);
+track_grids.max_grid     = max(cat(3,track_grids.max_grid,out_struct.max_grid),[],3);

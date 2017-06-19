@@ -1,4 +1,4 @@
-function kmlobj_struct = vis_storm(kmlobj_struct,vol_struct,storm_jstruct,tracking_id_list,dest_root,options)
+function kmlobj_struct = vis_storm(kmlobj_struct,vol_struct,storm_jstruct,tracking_id_list,dest_root,transform_path,options)
 
 %WHAT: Master script that generates new kml objects and updates the kml
 %network tree structure for a single radar_id
@@ -36,7 +36,7 @@ for i=1:length(proced_idx)
     h_grid_deg     = str2double(storm_jstruct(proced_idx(i)).h_grid.N);
     v_grid         = str2double(storm_jstruct(proced_idx(i)).v_grid.N);
     %extract storm latlonbox
-    storm_latlonbox   = str2double(storm_jstruct(proced_idx(i)).storm_latlonbox.S);
+    storm_latlonbox   = str2num(storm_jstruct(proced_idx(i)).storm_latlonbox.S); %must be str2num (vector)
     %extract data from struct
     stormh5_ffn       = storm_jstruct(proced_idx(i)).local_stormh5_ffn;
     storm_data_struct = h5_data_read(stormh5_ffn,'',subset_id);
@@ -56,16 +56,12 @@ end
 stats_ffn         = [dest_root,track_obj_path,'stat.kml'];
 track_ffn         = [dest_root,track_obj_path,'track.kml'];
 swath_ffn         = [dest_root,track_obj_path,'swath.kml'];
-swath_stat_ffn    = [dest_root,track_obj_path,'swath_stat.kml'];
 nowcast_ffn       = [dest_root,track_obj_path,'nowcast.kml'];
-nowcast_stat_ffn  = [dest_root,track_obj_path,'nowcast_stat.kml'];
 %init vars
 stat_kml          = '';
 track_kml         = '';
 swath_kml         = '';
-swath_stat_kml    = '';
 nowcast_kml       = '';
-nowcast_stat_kml  = '';
 
 %process track objects (replaced every run for updated radars)
 if ~isempty(storm_jstruct)
@@ -94,7 +90,6 @@ if ~isempty(storm_jstruct)
         end_track_radar_id   = storm_radar_id_list(track_idx(end));
         end_track_timestamp  = track_time(end);
         newest_vol_timestamp = max(vol_timestamp(vol_radar_id==end_track_radar_id));
-            
         %% track objects
         if options(5)==1
             stat_kml  = vis_storm_stat_kml(stat_kml,track_jstruct,track_id);
@@ -103,19 +98,19 @@ if ~isempty(storm_jstruct)
             track_kml = vis_storm_track_kml(track_kml,track_jstruct,track_id);
         end
         if options(7)==1
-            [swath_kml,swath_stat_kml] = vis_storm_meshswath_kml(swath_kml,swath_stat_kml,track_jstruct,track_id);
+            swath_kml = vis_storm_meshswath_kml(swath_kml,track_jstruct,track_id);
         end
         %% objects for new data, check if a new cell has been added
         if end_track_timestamp == newest_vol_timestamp
             %nowcast
             if options(8)==1
-                [nowcast_kml,nowcast_stat_kml] = kml_storm_nowcast(nowcast_kml,nowcast_stat_kml,storm_jstruct,tracking_id_list,track_id);
+                nowcast_kml = kml_storm_nowcast(nowcast_kml,storm_jstruct,tracking_id_list,track_id);
             end
         end
     end
 end
-%generate mesh impact map
-impact_generate_mesh(vol_struct,storm_jstruct,tracking_id_list);
+%generate mesh impact map for unprocessed storm_jstructs
+impact_generate_mesh(vol_struct,storm_jstruct(proced_idx),tracking_id_list(proced_idx),transform_path);
 
 %cell stats
 if options(5)==1
@@ -128,12 +123,10 @@ end
 %swath
 if options(7)==1
     ge_kml_out(swath_ffn,'Swaths',swath_kml);
-    ge_kml_out(swath_stat_ffn,'Swaths Stats',swath_stat_kml);
 end
 %nowcast
 if options(8)==1
     ge_kml_out(nowcast_ffn,'Nowcasts',nowcast_kml);
-    ge_kml_out(nowcast_stat_ffn,'Nowcast Stats',nowcast_stat_kml);
 end
 
 
