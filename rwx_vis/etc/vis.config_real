@@ -53,7 +53,7 @@ max_vis_trck_length   20                %length of storm track colormap
 ppi_sweep             2                 %starting from 1st sweep = 1
 ppi_dbzh_mask         10                %gatemask which is applied to reflectivity and velocity PPI images in dBZ
 ppi_resize_scale      3                 %resize factor for ppi images
-swath_mesh_threshold  [15,30,45]        %mesh thresholds for swath generation
+swath_mesh_threshold  [15,30,45]        %mesh thresholds for swath generation. Must be increasing.
 smallest_no_faces     6                 %lowest number of faces for an isosurface
 min_voxels            3                 %minimum number of grid voxels for isosurface
 outer_iso_faces       2000              %maximum total number of face for the outer_iso

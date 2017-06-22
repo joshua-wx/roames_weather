@@ -1,0 +1,4 @@
+#! /bin/bash
+
+./run_s3_rapic_to_odimh5.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
+

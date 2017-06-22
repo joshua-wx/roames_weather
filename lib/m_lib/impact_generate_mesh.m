@@ -14,36 +14,47 @@ load('vis.config.mat')
 %generate unique list of radar ids and their index for remapping
 [uniq_storm_rid_list,~,rid_idx]  = unique(utility_jstruct_to_mat([storm_jstruct.radar_id],'N'));
 storm_timestamp_list             = datenum(utility_jstruct_to_mat([storm_jstruct.start_timestamp],'S'),ddb_tfmt);
+storm_mesh_list                  = utility_jstruct_to_mat([storm_jstruct.max_mesh],'N');
 vol_radar_id                     = [vol_struct.radar_id];
 vol_timestamp                    = [vol_struct.start_timestamp];
 
 %for each radar id
 for i = 1:length(uniq_storm_rid_list)
-    %extract track list
+    
+    %extract radar storm times
     target_rid                        = uniq_storm_rid_list(i);
-    radar_step                        = utility_radar_step(vol_struct,target_rid);    
-    %init blank grid
-    transform_fn = [transform_path,'regrid_transform_',num2str(target_rid,'%02.0f'),'.mat'];
-    load(transform_fn,'grid_size')
-    impact_grid  =  zeros(grid_size(1),grid_size(2));
-    %extract radar volume times from strom
-    
-    %filter by first mesh threshold??? earlier???
-    
-    %loop track id
-    %pass each pair to gridding
-    %should gridding be a linear interpolation??!?!
-    %collate and save... want a file for each volume.
-    
-    
-    rid_track_list                    = tracking_id_list(rid_idx==i);
-    uniq_rid_track_list               = unique(rid_track_list);
-    
+    rid_stormtime_list                = storm_timestamp_list(rid_idx==i);
+    uniq_rid_stormtime_list           = unique(rid_stormtime_list);
     
     %extract newest for vol time for target_rid
-    for j = 1:length(uniq_rid_track_list)
-        target_track          = uniq_rid_track_list(j);
-        track_idx             = tracking_id_list==target_track;
+    for j = 1:length(uniq_rid_stormtime_list)
+        %for each storm timestamp (volume)
+        target_idx  = storm_timestamp_list == uniq_rid_stormtime_list(j);
+        
+        %check rid_mesh for minimum mesh threshold
+        target_mesh = storm_mesh_list(target_idx);
+        target_idx  = target_idx(target_mesh>=swath_mesh_threshold(1));
+        if isempty(target_idx)
+            continue
+        end
+        
+        %init blank grid
+        transform_fn = [transform_path,'regrid_transform_',num2str(target_rid,'%02.0f'),'.mat'];
+        load(transform_fn,'grid_size')
+        impact_grid  =  zeros(grid_size(1),grid_size(2));
+        
+        %for each target cell
+        for k = 1:length(target_idx)
+            %check if previous cell also has a high mesh
+            target_ind   = target_idx(k);
+            target_track = tracking_id_list(target_ind);
+            track_idx    = 
+            %
+            
+        end
+    end
+end
+        
         %sort track by time
         track_time            = storm_timestamp_list(track_idx);
         [track_time,sort_idx] = sort(track_time);
@@ -64,6 +75,7 @@ for i = 1:length(uniq_storm_rid_list)
         for k = 1:length(swath_mesh_threshold)
             %generate swath grid
             mesh_threshold   = swath_mesh_threshold(i);
+            radar_step       = utility_radar_step(vol_struct,target_rid);
             out_struct       = process_swath(track_struct,mesh_threshold,radar_step,grid_size);
             %collate convex density grid using max function
             mesh_grid        = (out_struct.density_grid > 0).*mesh_threshold;
