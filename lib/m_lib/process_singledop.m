@@ -10,7 +10,7 @@ if ismember(radar_id,impact_radar_id)
         mkdir(tmp_path);
     end
     nc_fn = ['sd_',datestr(vol_start_time,'yyyymmdd_HHMMSS')];
-    sd_impact_ffn = [impact_tmp_root,num2str(radar_id,'%02.0f'),'/',nc_fn,'.nc'];
+    sd_impact_ffn = [impact_tmp_root,'wind_',num2str(radar_id,'%02.0f'),'/',nc_fn,'.nc'];
 else
     impact_sd_flag = 0;
     sd_impact_ffn  = '';
