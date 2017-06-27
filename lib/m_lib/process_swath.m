@@ -1,4 +1,4 @@
-function out_struct = process_swath(track_struct,data_mask,radar_step,grid_size)
+function out_struct = process_swath(track_latloncent,track_ijbox,track_date_list,track_data,data_mask,radar_step,grid_size)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -23,31 +23,30 @@ u_grid       = blank_grid;
 v_grid       = blank_grid;
 
 %calc inital and final index
-keyboard
-if length(track_struct)>1
-    init_idx = [1:length(track_struct)-1];
-    finl_idx = [2:length(track_struct)];
+if length(track_date_list)>1
+    init_idx = [1:length(track_date_list)-1];
+    finl_idx = [2:length(track_date_list)];
 else %case of single cell, duplicate init and final
     init_idx = 1;
     finl_idx = 1;
 end
 
 %assign initial pair data
-init_storm_data = track_struct.track_data(init_idx);
-init_latloncent = track_struct.track_latloncent_list(init_idx,:);
-init_ijbox      = track_struct.track_ijbox_list(init_idx,:);
-init_date_list  = track_struct.track_date_list(init_idx);
+init_storm_data = track_data(init_idx);
+init_latloncent = track_latloncent(init_idx,:);
+init_ijbox      = track_ijbox(init_idx,:);
+init_date_list  = track_date_list(init_idx);
 %assign final pair data
-finl_storm_data = track_struct.track_data(finl_idx);
-finl_latloncent = track_struct.track_latloncent_list(finl_idx,:);
-finl_ijbox      = track_struct.track_ijbox_list(finl_idx,:);
-finl_date_list  = track_struct.track_date_list(finl_idx);
+finl_storm_data = track_data(finl_idx);
+finl_latloncent = track_latloncent(finl_idx,:);
+finl_ijbox      = track_ijbox(finl_idx,:);
+finl_date_list  = track_date_list(finl_idx);
 
 %loop through pairs
-for i=1:length(init_ind)
+for i=1:length(init_idx)
     %skip if track segment not continous in time (mask removes cells from tracks which don't meet
     %criteria, these pairs need to be skipped)
-    if floor((finl_date_list(i)-init_date_list(i))*24*60) > radar_step
+    if floor((finl_date_list(i)-init_date_list(i))*24*60) > radar_step*2
         continue
     end
     %create conv of inital and final

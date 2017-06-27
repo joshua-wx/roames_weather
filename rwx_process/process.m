@@ -364,7 +364,7 @@ if ~isempty(storm_obj)
         oldest_time_str = datestr(addtodate(vol_dt,-1,'minute'),ddb_tfmt);
         newest_time_str = datestr(addtodate(vol_dt,1,'minute'),ddb_tfmt); %buffer time for between function to remove volumes which may have seconds removed
         %query for storm_ddb entries
-        delete_jstruct  = ddb_query('date_id',num2str(vol_dt,ddb_dateid_tfmt),'sort_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
+        delete_jstruct  = ddb_query('date_id',datestr(vol_dt,ddb_dateid_tfmt),'sort_id',oldest_time_str,newest_time_str,storm_atts,storm_ddb_table);
         for i=1:length(delete_jstruct)
             %remove items
             ddb_rm_item(delete_jstruct(i),storm_ddb_table);

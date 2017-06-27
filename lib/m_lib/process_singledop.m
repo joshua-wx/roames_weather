@@ -1,16 +1,17 @@
 function [error,png_ffn,sd_impact_ffn] = process_singledop(odimh5_ffn,sdppi_struct,data_tag,vol_start_time,radar_id)
 
 load('tmp/vis.config.mat')
+load('global.config.mat')
 
 %build impact map variables
 if ismember(radar_id,impact_radar_id)
     impact_sd_flag = 1;
-    tmp_path       = [impact_tmp_root,num2str(radar_id,'%02.0f')];
+    tmp_path       = [impact_tmp_root,'wind/',num2str(radar_id,'%02.0f'),'/'];
     if exist(tmp_path,'file') ~= 7
         mkdir(tmp_path);
     end
-    nc_fn = ['sd_',datestr(vol_start_time,'yyyymmdd_HHMMSS')];
-    sd_impact_ffn = [impact_tmp_root,'wind_',num2str(radar_id,'%02.0f'),'/',nc_fn,'.nc'];
+    nc_fn = ['sd_',datestr(vol_start_time,r_tfmt),'.nc'];
+    sd_impact_ffn = [tmp_path,nc_fn];
 else
     impact_sd_flag = 0;
     sd_impact_ffn  = '';
