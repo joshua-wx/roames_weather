@@ -59,13 +59,8 @@ for i = 1:length(track_ind)
     storm_data{i}  = h5data;
 end
 
-%build struct for swath processing
-track_struct     = struct('track_storm_data',storm_data(track_ind),...
-    'track_latloncent',storm_latloncent_list(track_ind),...
-    'track_ijbox',storm_ijbox_list(track_ind),...
-    'track_date_list',storm_date_list(track_ind));
 %generate swath
-out_struct = process_swath(track_struct,data_min,radar_step,track_grids.grid_size);
+out_struct = process_swath(storm_latloncent_list(track_ind,:),storm_ijbox_list(track_ind,:),storm_date_list(track_ind),storm_data,data_min,radar_step,track_grids.grid_size);
 
 %accumulate
 normalised_density_grid  = out_struct.density_grid > 0;

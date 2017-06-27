@@ -10,7 +10,7 @@ if ismember(radar_id,impact_radar_id)
     if exist(tmp_path,'file') ~= 7
         mkdir(tmp_path);
     end
-    nc_fn = ['sd_',datestr(vol_start_time,r_tfmt),'.nc'];
+    nc_fn = [datestr(vol_start_time,r_tfmt),'.nc'];
     sd_impact_ffn = [tmp_path,nc_fn];
 else
     impact_sd_flag = 0;
