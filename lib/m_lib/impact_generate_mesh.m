@@ -25,9 +25,14 @@ for i = 1:length(uniq_storm_rid_list)
     uniq_rid_track_list = unique(rid_track_list);
     radar_step          = utility_radar_step(vol_struct,target_rid);
     
+	%check radar id against impact radar id list
+	if ~ismember(target_rid,impact_radar_id)
+		continue
+	end
+
     %skip if no high mesh
     rid_mesh_list       = storm_mesh_list(rid_idx==i);
-    if ~any(rid_mesh_list>=swath_mesh_threshold(1))
+    if ~any(rid_mesh_list >= swath_mesh_threshold(1))
         continue
     end
     
