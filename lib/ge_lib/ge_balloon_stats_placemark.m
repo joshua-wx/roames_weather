@@ -1,4 +1,19 @@
-function kml_str=ge_balloon_stats_placemark(kml_str,vis,Style_id,place_id,vild,mesh,tops,storm_id,lat,lon,timeSpanStart,timeSpanStop)
+function kml_str = ge_balloon_stats_placemark(kml_str,vis,Style_id,place_id,vild,mesh,tops,storm_id,lat,lon,timeSpanStart,timeSpanStop)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates kml for the storm stats values (3) using extendeddata as inputs
+%(template stored in style). anchored at lat lon at a height of 20km
+% INPUTS
+% kml_str: string containing kml
+% vis: flag for visbility (binary)
+%
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %WHAT: generates kml for the storm stats values (3) using extendeddata as inputs
 %(template stored in style). anchored at lat lon at a height of 20km
 
