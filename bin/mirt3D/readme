@@ -1,0 +1,40 @@
+3D interpolation
+
+https://au.mathworks.com/matlabcentral/fileexchange/24177-3d-interpolation
+
+mirt3D_mexinterp is fast mex version of Matlab's interp3 function.
+It also allows to interpolate vector valued 3D images or a sequence (video) of 3D images simultaneously.
+
+Compile:
+mex mirt3D_mexinterp.cpp
+
+Usage:
+ Output_image = mirt3D_mexinterp(Input_image, XI,YI,ZI)
+
+Interpolates the 3D image 'Input_image' at the points with coordinates X,Y,Z. Input_image is assumed to be defined at a regular grid 1:N, 1:M, 1:K, where [M,N,K]=size(Input_image). Points outside the boundary return NaNs. This is equivalent (but much faster) to Matlab's:
+ Output_image = interp3(Input_image,XI,YI,ZI,'linear',NaN);
+
+Also you can interpolate a stack of 3D images at the same time:
+
+ Output_images = mirt3D_mexinterp(Input_images, XI,YI,ZI).
+
+where 'Input_images' can be a stack of many 3D images (4D).
+The function interpolates each of the 3D images at X,Y,Z coordinates and return a stack of corresponding interpolated images. This is equivalent to Matlab's
+ 
+   Input_images(:,:,:,1)=Input_image1;
+   Input_images(:,:,:,2)=Input_image2;
+   Input_images(:,:,:,3)=Input_image3;
+   Input_images(:,:,:,4)=Input_image4;
+  
+   Output_images(:,:,:,1) = interp3(Input_image1,XI,YI,ZI,'linear',NaN);
+   Output_images(:,:,:,2) = interp3(Input_image2,XI,YI,ZI,'linear',NaN);
+   Output_images(:,:,:,3) = interp3(Input_image3,XI,YI,ZI,'linear',NaN);
+   Output_images(:,:,:,4) = interp3(Input_image4,XI,YI,ZI,'linear',NaN);
+ 
+This is especially useful for vector valued 3D images, RGB images, to interpolate the whole 3D video at the same coordinates or to interpolate image and its gradients at the same time (e.g. in image registration). For vector valued images, the extra speed gain is from the precomputation of coefficients common for all images in the stack.
+
+While submitting this function, I've noticed another mex implementation of 3D interpolation by Brian (ba_interp3) matlab exchange ID: 21702. His function has similar fast performance, with a slight advantage of mirt3D_mexinterp especially for vector valued images. Note, that ba_interp3 also allows nearest and cubic interpolations, and puts the closest points outside the boundaries.
+
+Enjoy and leave a comment. Also see more at my
+homepage: https://sites.google.com/site/myronenko/
+

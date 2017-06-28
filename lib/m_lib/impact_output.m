@@ -19,7 +19,7 @@ for i = 1:length(radar_id_list)
     
     %init blank grid
     transform_fn = [transform_path,'regrid_transform_',num2str(radar_id,'%02.0f'),'.mat'];
-    load(transform_fn,'grid_size','img_latlonbox')
+    load(transform_fn,'grid_size','img_latlonbox','geo_coords','h_grid_deg')
     impact_grid  =  zeros(grid_size(1),grid_size(2));
     
     %% hail
@@ -40,13 +40,13 @@ for i = 1:length(radar_id_list)
             continue
         end
         fn_datelist = datenum(fn,r_tfmt);
-        if fn_datelist<addtodate(newest_timestamp,-impact_hrs,'hour')
+        if fn_datelist<addtodate(newest_timestamp,-impact_hrs,'hour') || fn_datelist>newest_timestamp
             remove_idx = [remove_idx,j];
         end
     end
     %clear out old files from local path and list
     for j = 1:length(remove_idx)
-        delete([local_path,local_fn_list(remove_idx(j))])
+        delete([local_path,local_fn_list{remove_idx(j)}])
     end
     local_fn_list(remove_idx) = [];
     
@@ -54,17 +54,16 @@ for i = 1:length(radar_id_list)
     master_grid = zeros(grid_size(1),grid_size(2));
     for j = 1:length(local_fn_list)
         load([local_path,local_fn_list{j}])
-        master_grid = master_grid + impact_grid;
+        master_grid = max(cat(3,master_grid,impact_grid),[],3);
     end
     %write grid out
-    tmp_image_ffn = [tempdir,'impact_img_out.png'];
+    tmp_image_ffn = [tempdir,'impact_hail_out.png'];
     %adjust levels
     img_grid = discretize(master_grid,[swath_mesh_threshold,999],'IncludedEdge','left');
     img_grid(isnan(img_grid)) = 0;
-    img_grid = img_grid + 1;
     img_cmap = [1,1,1;colormap(flipud(autumn(length(swath_mesh_threshold))))];
     %write file out
-    grid_map(tmp_image_ffn,radar_id,img_grid,img_cmap,img_latlonbox,'Wind Speed km/h',cellstr(num2str(swath_mesh_threshold(:)))')
+    grid_map(tmp_image_ffn,radar_id,img_grid,img_cmap,img_latlonbox,'Radar Hail Size (mm)',cellstr(num2str(swath_mesh_threshold(:)))')
     
     
     %% wind
@@ -85,39 +84,44 @@ for i = 1:length(radar_id_list)
             continue
         end
         fn_datelist = datenum(fn,r_tfmt);
-        if fn_datelist<addtodate(newest_timestamp,-impact_hrs,'hour')
+        if fn_datelist<addtodate(newest_timestamp,-impact_hrs,'hour') || fn_datelist>newest_timestamp
             remove_idx = [remove_idx,j];
         end
     end
     %clear out old files from local path and list
     for j = 1:length(remove_idx)
-        delete([local_path,local_fn_list(remove_idx(j))])
+        delete([local_path,local_fn_list{remove_idx(j)}])
     end
     local_fn_list(remove_idx) = [];
     
     %collate
+    %build img_latlonbox
+    [img_lat_N,~] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),0);
+    [img_lat_S,~] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),180);
+    [~,img_lon_E] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),90);
+    [~,img_lon_W] = reckon(geo_coords.radar_lat,geo_coords.radar_lon,km2deg(sd_max_rng),270);
+    sd_img_latlonbox = [img_lat_N+h_grid_deg/2;img_lat_S-h_grid_deg/2;img_lon_E+h_grid_deg/2;img_lon_W-h_grid_deg/2];
+
     
-    %read in u,v,grid_limits,radar lat/lon
-    %convert to speed
-    %collate
-    %generate R
-    
-    
-    master_grid = zeros(grid_size(1),grid_size(2));
+    sd_grid_len = sd_max_rng*2 + 1;
+    master_grid = zeros(sd_grid_len,sd_grid_len);
     for j = 1:length(local_fn_list)
-        load([local_path,local_fn_list{j}])
-        master_grid = master_grid + impact_grid;
+        sd_u   = ncread([local_path,local_fn_list{j}],'analysis_u');
+        sd_v   = ncread([local_path,local_fn_list{j}],'analysis_v');
+        sd_wpd = sqrt(sd_u.^2 + sd_v.^2) .* 3.6;
+        master_grid = max(cat(3,master_grid, sd_wpd),[],3);
     end
     %write grid out
-    tmp_image_ffn = [tempdir,'impact_img_out.png'];
+    tmp_image_ffn = [tempdir,'impact_wind_out.png'];
     %adjust levels
     img_grid = discretize(master_grid,[impact_wind_lvl,999],'IncludedEdge','left');
     img_grid(isnan(img_grid)) = 0;
-    img_grid = img_grid + 1;
     img_cmap = [1,1,1;colormap(flipud(jet(length(impact_wind_lvl))))];
     %write file out
-    grid_map(tmp_image_ffn,radar_id,img_grid,img_cmap,img_latlonbox,'Wind Speed (km/h)',cellstr(num2str(impact_wind_lvl(:)))')    
+    grid_map(tmp_image_ffn,radar_id,fliplr(img_grid),img_cmap,sd_img_latlonbox,'Doppler Wind Speed (km/h)',cellstr(num2str(impact_wind_lvl(:)))')    
     
+    keyboard
+    %need to save images to s3? remove figures when deployed
     
     
 end
@@ -131,7 +135,12 @@ read_config(map_config_fn);
 load(['tmp/',map_config_fn,'.mat'])
 
 %create figure
-h = figure('color','w','position',[1 1 1000 1000]); hold on;
+if isdeployed
+    h = figure('color','w','position',[1 1 1000 1000],'visible','off');
+else
+    h = figure('color','w','position',[1 1 1000 1000]);
+end
+hold on
 %set limits
 axesm('mercator','MapLatLimit',[map_S_lat map_N_lat],'MapLonLimit',[map_W_lon map_E_lon]);
 %set options
@@ -161,10 +170,9 @@ for i=1:length(cities_names)
     geoshow(out_lat,out_lon,'DisplayType','point','Marker','o','MarkerSize',out_mksz,'MarkerFaceColor','k','MarkerEdgeColor','k')
 end
 %create colorbar
-c = colorbar('Ticks',[1,2,3],'ticklabels',colorbar_ticklabels,'FontSize',12);
+c = colorbar('Ticks',1:length(colorbar_ticklabels),'ticklabels',colorbar_ticklabels,'FontSize',12);
 c.Label.String   = colorbar_label;
 c.Label.FontSize = 16;
 %save
 saveas(gca,out_ffn,'png');
-keyboard
 close(h)

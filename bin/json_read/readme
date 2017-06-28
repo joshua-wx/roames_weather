@@ -1,0 +1,21 @@
+Mex wrapper to C++ class for fast reading and writing of JSON files
+
+https://au.mathworks.com/matlabcentral/fileexchange/59166-c++-json-io
+
+
+These function wrap Niels Lohmann's JSON for Modern C++ class into mex wrappers, for fast reading of JSON files into MATLAB variables, and writing MATLAB variables into JSON files.
+JSON for Modern C++ must be downloaded separately from:
+https://github.com/nlohmann/json
+
+Mex these functions by calling:
+   mex json_read.cpp
+and
+   mex json_write.cpp
+Note that your C++ compiler must support C++11.
+
+Example usage: var = json_read(filename)
+IN:
+   filename - String of filename (if in current directory) or full or relative path to the JSON file to be read in.
+OUT:
+   var - MATLAB interpretation of the JSON data.
+
