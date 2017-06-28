@@ -35,6 +35,7 @@ unix('touch tmp/kill_vis');
 if isdeployed
     addpath('etc/geo_data')
     addpath('etc')
+    addpath('etc/impact_maps')
     addpath('tmp')
     addpath('py_lib')
 else
@@ -45,6 +46,7 @@ else
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc/geo_data')
     addpath('/home/meso/dev/roames_weather/bin/json_read')
     addpath('/home/meso/dev/roames_weather/rwx_vis/etc')
+    addpath('/home/meso/dev/roames_weather/rwx_vis/etc/impact_maps')
     addpath('/home/meso/dev/roames_weather/rwx_vis/tmp')
     addpath('/home/meso/dev/roames_weather/rwx_vis/py_lib')
 end
@@ -252,7 +254,7 @@ while exist('tmp/kill_vis','file')==2
     vis_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
     
     %generate impact maps
-    
+    impact_output(update_radar_id_list,newest_time,transform_path);
 
     %% ending loop
     %Update user

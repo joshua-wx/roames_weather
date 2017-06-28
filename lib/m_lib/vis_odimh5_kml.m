@@ -25,7 +25,7 @@ if data_number == 1
 end
 
 %apply domain mask
-domain_mask          = img_atts.radar_mask;
+domain_mask           = img_atts.radar_mask;
 ppi_img(~domain_mask) = min_value;
 
 %transform into png
@@ -53,8 +53,8 @@ function data_out = png_transform(data_in,type,min_value)
 %scale to true value using transformation constants
 if strcmp(type,'refl');
         %scale for colormapping
-        data_out=(data_in-min_value)*2+1;
+        data_out = (data_in-min_value)*2+1;
 else strcmp(type,'vel');
         %scale for colormapping
-        data_out=(data_in-min_value)+1;
+        data_out = (data_in-min_value)+1;
 end
