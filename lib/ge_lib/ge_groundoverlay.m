@@ -1,6 +1,26 @@
 function kml_str=ge_groundoverlay(kml_str,name,image_path,LatLonBox,timeSpanStart,timeSpanStop,altitudemode,altitude,visible,draw_order)
-%WHAT: generates a ground overlay kml object for an image using its latlonbox,
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates a ground overlay kml object for an image using its latlonbox,
 %start/stop ts
+% INPUTS
+% kml_str: string containing kml
+% name: name for kml object (String)
+% image_path: path to image for ground overlay (string)
+% LatLonBox: style name containing a # (string)
+% timeSpanStart: starting time for kml time span (GE timestamp) (str)
+% timeSpanStop: stoping time for kml time span (GE timestamp) (str)
+% altitudemode: string containing an acceptable altitudemode clamped/absolute
+% altitude: altitude for ground overlay (number) (km)
+% visible: visibility for ground overlay (binary)
+% draw_order: draw order integer (number)
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %build altitudemode kml string
 if strcmp(altitudemode,'clamped')

@@ -1,24 +1,34 @@
 function kml_str=ge_screenoverlay(kml_str,name,path,screen_x,screen_y,size_x,size_y,timeSpanStart,timeSpanStop)
-%WHAT: generates the kml string for overlaying logos on the screen.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates the kml string for overlaying logos on the screen.
+% INPUT:
+% kml_str: string containing kml
+% name: name for screen overlay object (String)
+% path: path to image file for screen overlay (string)
+% screen_x,screen_y: location as a fraction from bottom left corner
+% size_x,size_y: size of overlay as a fraction of the size of the screen.
+% timeSpanStart: starting time for kml time span (GE timestamp) (str)
+% timeSpanStop: stoping time for kml time span (GE timestamp) (str)
+% RETURNS
+% kml_str: string containing kml
+%
+% NOTE:
+% ALWAYS ANCHORS TO THE BOTTOM LEFT OF THE IMAGE, overlay XY set =0
+% build timekml if values inputted, otherwise blank
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%INPUT:
-%screen_x,screen_y: location as a fraction from bottom left corner
-%size_x,size_y: size of overlay as a fraction of the size of the screen.
-%value:0 keep aspect ratio
-
-%NOTE:
-%ALWAYS ANCHORS TO THE BOTTOM LEFT OF THE IMAGE, overlay XY set =0
-
-%build timekml if values inputted, otherwise blank
+%generate time kml
 if isempty(timeSpanStart)
     timekml='';
 else
     timekml=['<TimeSpan><begin>' timeSpanStart '</begin><end>' timeSpanStop '</end></TimeSpan>',10];
 end
 
-
-out='';
-
+%build kml
 out=['<ScreenOverlay>',10,...
         '<name>',name,'</name>',10,...
         timekml,...

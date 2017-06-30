@@ -1,5 +1,26 @@
 function kml_places_str=ge_swath_poly(kml_places_str,Style_id,name,timeSpanStart,timeSpanStop,altitudeMode,tessellate,X,Y,Z,table_html)
-%WHAT: creates a single polygon from x=long, y=lat, z=alt
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT:  creates a single polygon from x=long, y=lat, z=alt for use in swaths (closed polygons) includes table_html
+% INPUTS
+% kml_str: string containing kml
+% Style_id: style name containing a # (string)
+% name: name for kml object (String)
+% timeSpanStart: starting time for kml time span (GE timestamp) (str)
+% timeSpanStop: stoping time for kml time span (GE timestamp) (str)
+% altitudemode: string containing an acceptable altitudemode clamped/absolute
+% tessellate: smooth line using tesselation (binary)
+% X: array containing lon coordinates for rapid string generation (matrix)
+% Y: array containing lat coordinates for rapid string generation (matrix)
+% Z: array containing alt coordinates for rapid string generation (matrix)
+% table_html: string containing html for generate a table in the ballon popup
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 coord=[];
 for i=1:length(X)

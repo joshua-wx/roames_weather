@@ -1,6 +1,21 @@
 function kml_str=ge_poly_style(kml_str,Style_id,LineColor,LineWidth,PolyColor)
-%WHAT: Create a polygon style kml file using line colour, poly colour and
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: Create a polygon style kml file using line colour, poly colour and
 %line width
+% INPUTS
+% kml_str: string containing kml
+% Style_id: style name containing a # (string)
+% LineColor: line colour as a html hex string
+% LineWidth: line width as a number (number)
+% PolyColor: polygon colour as a html hex string
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 if isempty(LineColor)
     LineColor=PolyColor;

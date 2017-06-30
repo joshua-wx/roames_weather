@@ -1,7 +1,22 @@
 function kml_str=ge_balloon_stats_style(kml_str,Style_id,url_prefix,icons_path)
-%WHAT: Generates the style kml for the storm stats ballon with the extended
-%data template and the icon http link
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates kml for the storm stats values (3) using extendeddata as inputs
+%(template stored in style). anchored at lat lon at a height of 20km
+% INPUTS
+% kml_str: string containing kml
+% Style_id: style name containing a # (string)
+% place_id: name for kml object (String)
+% url_prefix: url prefix for location of icon path (String)
+% icons_path: path to location of icon for balloon (String)
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%generate xml
 out=['<Style id="',Style_id,'">',10,...
         '<BalloonStyle>',10,...
             '<text>',10,...
@@ -28,4 +43,5 @@ out=['<Style id="',Style_id,'">',10,...
         '</LabelStyle>',10,...    
     '</Style>',10];
 
+%collate
 kml_str=[kml_str,out];

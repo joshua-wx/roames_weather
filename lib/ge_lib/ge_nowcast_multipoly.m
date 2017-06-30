@@ -1,7 +1,26 @@
-function kml_places_str=ge_nowcast_multipoly(kml_places_str,Style_id,name,timeSpanStart,timeSpanStop,altitudeMode,tessellate,X_cell,Y_cell,Z_cell,ballon_struct)
-%generates a multi geometry polygon placemark kml for nowcasting polygons
+function kml_str=ge_nowcast_multipoly(kml_str,Style_id,name,timeSpanStart,timeSpanStop,altitudeMode,tessellate,X_cell,Y_cell,Z_cell,ballon_struct)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates a multi geometry polygon placemark kml for nowcasting polygons
 %including an intergrates ballon data using balloon_struct. Note, if z_cell is empty, is
 %prefilled with zeros
+% INPUTS
+% kml_str: string containing kml
+% Style_id: style name containing a # (string)
+% name: name for kml object (String)
+% timeSpanStart: starting time for kml time span (GE timestamp) (str)
+% timeSpanStop: stoping time for kml time span (GE timestamp) (str)
+% tessellate: smooth line using tesselation (binary)
+% X_cell: cell array containing lon coordinates for rapid string generation (cell of strings)
+% Y_cell: cell array containing lat coordinates for rapid string generation (cell of strings)
+% Z_cell: cell array containing alt coordinates for rapid string generation (cell of strings)
+% ballon_struct: struct containing attributes for balloon popup table (Struct)
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %setup balloon graph datasets
 %write matrices to text format for 3 datasets
@@ -28,6 +47,7 @@ poly_footer=['</coordinates>',...
         '</LinearRing>',...
         '</outerBoundaryIs>',...
         '</Polygon>'];
+
 %create cell for storing coord strings
 poly_cell=cell(1,length(X_cell)*3);    
 for i = 1:length(X_cell)
@@ -49,8 +69,10 @@ for i = 1:length(X_cell)
     poly_cell{(i-1)*3+2} = coord;
     poly_cell{(i-1)*3+3} = poly_footer;
 end
+
 %convert poly cell to char
 poly_string=[poly_cell{:}];
+
 %create custom header for multigeometry
 header=['<Placemark>',10,...
     '<name>',name,'</name>',10,...
@@ -92,7 +114,7 @@ header=['<Placemark>',10,...
 footer=[    '</MultiGeometry>',10,...
     '</Placemark>',10];
 
-kml_places_str=[kml_places_str,header,poly_string,10,footer];
+kml_str=[kml_str,header,poly_string,10,footer];
 
 
     

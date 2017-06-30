@@ -1,6 +1,22 @@
 function kml_str=ge_model(kml_str,vis,link,model_id,lat,lon,timeSpanStart,timeSpanStop)
-%WHAT: generates kml for the storm stats values (3) using extendeddata as inputs
-%(template stored in style). anchored at lat lon at a height of 20km
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: wraps a collada model in kml
+% INPUTS
+% kml_str: string containing kml
+% vis: flag for visbility (binary)
+% link: link to collada file (can be relative)
+% model_id: name for kml object (String)
+% lat: lat value for model centroid? placement (number) (deg)
+% lon: lon value for model centroid? placement (number) (deg)
+% timeSpanStart: starting time for kml time span (GE timestamp) (str)
+% timeSpanStop: stoping time for kml time span (GE timestamp) (str)
+% RETURNS
+% kml_str: string containing kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %build timekml if values inputted, otherwise blank
 if isempty(timeSpanStart)

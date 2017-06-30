@@ -1,6 +1,19 @@
 function out=ge_region(latlonbox,minAlt,maxAlt,minLod,maxLod)
-%WHAT: generates a kml string latlonaltbox and LoD info
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT: generates a kml string latlonaltbox and LoD info
+% INPUTS
+% latlonbox: 4 element matrix containing [N,S,E,W] (matrix)
+% minAlt: min altitude for visbility (number) (m)
+% maxAlt: max altitude for visbility (number) (m) 
+% minLod: min lod for visbility (number) (pixels)
+% maxLod: max lod for visbility (number) (pixels) 
+% RETURNS
+% out: string containing region kml
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 out=['<Region> ',10,...
         '<LatLonAltBox>',10,...

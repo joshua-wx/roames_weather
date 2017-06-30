@@ -1,12 +1,18 @@
 function ge_kmz_out(kmzfilename,kml_str,destination_folder,cappi_path)
-%HELP
-%Writes doc.kml containing kml_str to tempdir, then zips and
-%renames the extension to kmz and moves it to the destination folder.
-%INPUTS
-%kmzfilename: filename string without the extension for the kmz file
-%kml_str: kml code for doc.kml
-%destination_folder: path to copy kmz file to
-%cappi_path: the file path to the cappi image file, can be run without this
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Joshua Soderholm, Fugro ROAMES, 2017
+%
+% WHAT
+% Writes doc.kml containing kml_str to tempdir, then zips and
+% renames the extension to kmz and moves it to the destination folder.
+% INPUTS
+% kmzfilename: filename string without the extension for the kmz file
+% kml_str: kml code for doc.kml
+% destination_folder: path to copy kmz file to
+% cappi_path: the file path to the cappi image file, can be run without this
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %create header and footer
 header = ['<?xml version="1.0" encoding="UTF-8"?>',10,...
