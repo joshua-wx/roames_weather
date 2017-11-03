@@ -254,7 +254,9 @@ while exist('tmp/kill_vis','file')==2
     vis_update_nl(kmlobj_struct,storm_jstruct_filt,track_id_list,dest_root,update_radar_id_list,options);
     
     %generate impact maps
-    impact_output(update_radar_id_list,newest_time,transform_path);
+    if impact_flag
+        impact_output(update_radar_id_list,newest_time,transform_path);
+    end
 
     %% ending loop
     %Update user
