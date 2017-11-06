@@ -13,7 +13,8 @@ function sync_database(radar_id_list_in)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+disp('Ensure ddb read capacity is = 100 units/s to prevent failed reads')
+pause
 
 %setup config names
 database_config_fn = 'sync.config';
@@ -83,7 +84,13 @@ for m = 1:length(radar_id_list)
     if resync_h5 == 1
         s3_timer = tic;
         display(['storm_s3 sync of ',num2str(radar_id,'%02.0f')])
-        s3_sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],radar_id,'','','');
+        if strcmp(sync_year,'all')
+            disp('all years')
+            s3_sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/'],radar_id,'','','');
+        else
+            disp([num2str(sync_year),' year only'])
+            s3_sync(storm_s3,[db_root,num2str(radar_id,'%02.0f'),'/',num2str(sync_year),'/'],radar_id,sync_year,'','');
+        end
         disp(['storm_s3 sync complete in ',num2str(round(toc(s3_timer)/60)),'min'])
     end
 
@@ -207,7 +214,11 @@ for m = 1:length(radar_id_list)
         %loop through file list
         for j=1:length(target_ffn_list)
             %read json in temp file
-            jstruct_out = json_read(target_ffn_list{j});
+            try
+                jstruct_out = json_read(target_ffn_list{j});
+            catch
+                keyboard
+            end
             %delete temp file
             delete(target_ffn_list{j})
             %abort file if it contains unprocessed keys

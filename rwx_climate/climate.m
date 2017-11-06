@@ -383,7 +383,8 @@ for m = 1:length(radar_id_list)
     climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Annual Frequency')
     %plot max and direction maps
     climate_generate_image(track_grids.max_grid,'max',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Maximum Hailsize (mm)')
-    %kml plot merged swath grid
-    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Annual Frequency')
+    %kml plot merged swatsh grid
+    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Occurance')    
+    %climate_generate_kml(track_grids.max_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Maximum MESH (mm)')
 end
 disp('RWX Climate plotting complete')

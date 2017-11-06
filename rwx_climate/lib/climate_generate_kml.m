@@ -38,8 +38,8 @@ kml_str     = ge_swath_poly_style(kml_str,'poly_style',utility_html_color(1,sile
 kml_str     = ge_swath_poly_style(kml_str,'trans_poly',utility_html_color(1/255,silence_edge_color),silence_line_width,utility_html_color(1/255,silence_face_color),true);
 
 %resize image
-[img_grid,img_cmap] = imresize(data_grid,img_cmap,img_rescale,'nearest','Colormap','original');
-img_grid            = double(img_grid);
+img_grid = imresize(data_grid,img_rescale,'nearest');
+img_grid = double(img_grid);
 
 %create image grids
 img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
@@ -89,10 +89,10 @@ html_str   = ['<header><h1>',kml_tag,' - ',site_name,'</h1></header>',10,...
             
 %generate colorbar image
 colorbar_ffn = colorbar_img(img_cmap,data_grid,colorbar_label,rain_year_count);
-pause(1); %figure takes some time to create on disk
+pause(2); %figure takes some time to create on disk
 %copy to s3 folder
 s3_radar_path = [s3_path,num2str(radar_id,'%02.0f'),'/colorbar.png'];
-file_cp(colorbar_ffn,s3_radar_path,0,1);
+file_mv(colorbar_ffn,s3_radar_path);
 
 %generate swath poly
 [tmp_lat,tmp_lon] = scircle1(site_lat,site_lon,km2deg(data_range));
@@ -104,7 +104,7 @@ ge_kmz_out(kmz_fn,kml_str,[out_root,num2str(radar_id,'%02.0f'),'/'],image_ffn);
 
 %remove files
 delete(image_ffn)
-delete(colorbar_ffn)
+
 
 function colorbar_ffn = colorbar_img(cmap,data_grid,title,rain_year_count)
 %read climate config
