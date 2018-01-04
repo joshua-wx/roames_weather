@@ -3,8 +3,8 @@ function s3_extract
 %%WHAT: extract odimh5 volumes from s3 using a date/time/radar list file
 %%to provide Rob Warren with a TRIMM/GPM calibration dataset
 
-radar_id   = 04;
-list_fn    = 'IDR04_cpa.txt';
+radar_id   = 50;
+list_fn    = 'IDR50_cpa.txt';
 s3_root    = 's3://roames-weather-odimh5/odimh5_archive/';
 out_root   = '/home/meso/radar_temp/';
 prefix_cmd = 'export LD_LIBRARY_PATH=/usr/lib; ';

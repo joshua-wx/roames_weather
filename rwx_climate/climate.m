@@ -312,7 +312,7 @@ for m = 1:length(radar_id_list)
     %create list of unique dates
     flr_swth_date_list  = floor(swth_date_list);
     uniq_swth_date_list = unique(flr_swth_date_list);
-    prev_radar_step     = min(round((flr_swth_date_list(2:100)-flr_swth_date_list(1:100-1))*24*60)); %use first 100 cells dataset to guess radar step (but this can change)
+    prev_radar_step     = min(round((flr_swth_date_list(2:end)-flr_swth_date_list(1:end-1))*24*60)); %guess radar step
     %loop through each unique date
     for i=1:length(uniq_swth_date_list)
 

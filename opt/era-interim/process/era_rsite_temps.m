@@ -1,6 +1,14 @@
 function era_rsite_temps
 %WHAT: processes an era-interim dataset of pressure level temps into
-%freezing and -20C heights for each radar site across the country
+%freezing and -20C heights for each radar site across the country. This
+%script will update the database with new entries or overwrite old entires
+
+msgbox('ensure ddb table have sufficent write capacity ~ 100 units')
+pause
+
+%vars
+year_list       = 2017:2017;
+ddb_table       = 'wxradar_eraint_fzlvl';
 
 %add paths for lib/etc
 addpath('/home/meso/dev/roames_weather/lib/m_lib/')
@@ -35,8 +43,6 @@ load([local_tmp_path,site_info_fn,'.mat']);
 
 
 ddb_tmp_struct  = struct;
-year_list       = 1997:2016;
-ddb_table       = 'wxradar_eraint_fzlvl';
 
 for i=1:length(year_list)
     target_year = num2str(year_list(i));
@@ -53,9 +59,9 @@ for i=1:length(year_list)
     
     %loop through radar sites
     for j=1:length(siteinfo_id_list)
-        if siteinfo_id_list(j) ~= 21
-           continue
-        end
+%         if siteinfo_id_list(j) ~= 21
+%            continue
+%         end
         %init radar data
         site_lat     = siteinfo_lat_list(j);
         site_lon     = siteinfo_lon_list(j);
