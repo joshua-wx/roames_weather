@@ -194,6 +194,7 @@ for i=1:length(year_list)
             index_date_list     = datenum(year_list(i),1,1):datenum(year_list(i),12,31);
             vol_count_list      = zeros(length(index_date_list),1);
             vol_size_count_list = zeros(length(index_date_list),1);
+            vol_size_var        = zeros(length(index_date_list),1);
             vol_step_list       = zeros(length(index_date_list),1);
             %for each unique date, count the number of volumes ang the
             %number of steps
@@ -203,6 +204,7 @@ for i=1:length(year_list)
                 size_subset            = h5_size(dateonly_list == index_date_list(k));
                 vol_count_list(k)      = length(date_subset);
                 vol_size_count_list(k) = sum(size_subset>=thresh_vol_size);
+                vol_size_var(k)        = round(mean(size_subset(2:end)-size_subset(1:end-1)));
                 %calc radar step
                 if length(date_subset) > 1
                     vol_diff          = round((date_subset(2:end)-date_subset(1:end-1))*24*60);
@@ -219,7 +221,7 @@ for i=1:length(year_list)
             log_fn = [local_log_path,'/vol_count_',num2str(radar_id_list(j),'%02.0f'),'.log'];
             fid = fopen(log_fn,'at');
             for k = 1:length(index_date_list)
-                fprintf(fid,'%s %d %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_size_count_list(k),vol_step_list(k));
+                fprintf(fid,'%s %d %d %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_size_count_list(k),vol_step_list(k),vol_size_var(k));
             end
         end
     end

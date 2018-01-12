@@ -33,8 +33,8 @@ display('scp')
 % ssh_ip      = '52.62.201.208';
 % [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
 % %ftp machine 21-30
-ssh_ip      = '52.65.133.13';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
+ssh_ip      = '52.62.199.224';
+[sout,eout] = unix(['scp -i /home/meso/keys/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5']);
 % %ftp machine 31-40
 % ssh_ip      = '52.62.185.149';
 % [sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ssh_ip,':~/qc_odimh5'])
