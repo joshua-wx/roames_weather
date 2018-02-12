@@ -64,7 +64,8 @@ for i = 1:length(radar_id_list)
     img_cmap = [1,1,1;colormap(flipud(autumn(length(swath_mesh_threshold))))];
     %write file out
     grid_map(tmp_image_ffn,radar_id,img_grid,img_cmap,img_latlonbox,'Radar Hail Size (mm)',cellstr(num2str(swath_mesh_threshold(:)))')
-    
+    %mv
+    file_mv(tmp_image_ffn,[impact_out_root,'impact_hail_out.png'])
     
     %% wind
     %check local path exists
@@ -118,10 +119,9 @@ for i = 1:length(radar_id_list)
     img_grid(isnan(img_grid)) = 0;
     img_cmap = [1,1,1;colormap(flipud(jet(length(impact_wind_lvl))))];
     %write file out
-    grid_map(tmp_image_ffn,radar_id,fliplr(img_grid),img_cmap,sd_img_latlonbox,'Doppler Wind Speed (km/h)',cellstr(num2str(impact_wind_lvl(:)))')    
-    
-    keyboard
-    %need to save images to s3? remove figures when deployed
+    grid_map(tmp_image_ffn,radar_id,rot90(img_grid),img_cmap,sd_img_latlonbox,'Doppler Wind Speed (km/h)',cellstr(num2str(impact_wind_lvl(:)))')    
+    %mv
+    file_mv(tmp_image_ffn,[impact_out_root,'impact_wind_out.png'])
     
     
 end

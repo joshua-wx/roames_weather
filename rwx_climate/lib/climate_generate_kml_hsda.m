@@ -1,4 +1,4 @@
-function climate_generate_kml(data_grid,radar_id,geo_coords,map_config_fn,rain_year_count,date_list,colorbar_label)
+function climate_generate_kml_hsda(data_grid,radar_id,geo_coords,map_config_fn,rain_year_count,date_list,colorbar_label)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Joshua Soderholm, Fugro ROAMES, 2017
@@ -31,7 +31,7 @@ colormap_steps = length(unique(data_grid(:)));
 if colormap_steps > 128
     colormap_steps = 128;
 end
-img_cmap    = flipud(hot(colormap_steps));
+img_cmap    = jet(colormap_steps);
 %init kml (duplicated from individual radar kmz)
 kml_str     = '';
 kml_str     = ge_swath_poly_style(kml_str,'poly_style',utility_html_color(1,silence_edge_color),silence_line_width,utility_html_color(1,silence_face_color),false);
@@ -43,14 +43,13 @@ img_grid = double(img_grid);
 
 %create image grids
 %img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
-img_grid = img_grid + 1;
+%img_grid = img_grid + 1;
 
 %create transparency grid
 if kml_transparent_flag == 1
-    alpha_grid = img_grid./colormap_steps;
+    alpha_grid = zeros(size(img_grid));
     %shift transparency
-    alpha_grid(alpha_grid>0) = alpha_grid(alpha_grid>0)+0.6;
-    alpha_grid(alpha_grid>1) = 1;
+    alpha_grid(img_grid>0) = 1;
 else
     alpha_grid = ones(size(img_grid));
 end

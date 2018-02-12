@@ -19,19 +19,17 @@ end
 
 %build command to run python single doppler script
 png_ffn      = [tempdir,data_tag,'.png'];
-cmd          = ['python py_lib/sd_winds.py',' ',odimh5_ffn,' ',png_ffn,' ',...
+cmd          = ['/home/meso/anaconda2/bin/python2.7 py_lib/sd_winds.py',' ',odimh5_ffn,' ',png_ffn,' ',...
  		num2str(sdppi_struct.atts.NI),' ',num2str(sd_l),' ',num2str(sd_min_rng),' ',...
 		num2str(sd_max_rng),' ',num2str(sd_sweep),' ',num2str(sd_thin_azi),' ',...
 		num2str(sd_thin_rng),' ',num2str(sd_plt_thin),' ',num2str(impact_sd_flag),' ',...
         sd_impact_ffn];
 [sout,eout] = unix(cmd);
 
-%halt on exception
-if sout ~= 0
-    error = eout;
+%halt on exception (no png filename)
+if exist(png_ffn,'file')==2
+    error = [];
 else
-    error         = [];
-    png_ffn       = [];
-    sd_impact_ffn = [];
+    error = eout;
 end
     

@@ -51,14 +51,14 @@ else
     addpath('/home/meso/dev/roames_weather/rwx_vis/py_lib')
 end
 
+% load kml_config
+read_config(vis_config_fn);
+load([local_tmp_path,vis_config_fn,'.mat'])
+
 %clear tmp
 delete('/tmp/*dae')
 delete('/tmp/*kml')
 delete('/tmp/*png')
-
-% load kml_config
-read_config(vis_config_fn);
-load([local_tmp_path,vis_config_fn,'.mat'])
 
 %init download path
 if exist(download_path,'file')~=7
@@ -121,6 +121,8 @@ if exist(restart_vars_fn,'file')==2
 else
     %build root kml
     vis_build_kml(dest_root,radar_id_list,local_dest_flag);
+    %clear impact maps folder
+    rmdir(impact_tmp_root,'s')
 end
 
 %build asset data

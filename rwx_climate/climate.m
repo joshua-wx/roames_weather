@@ -287,7 +287,7 @@ for m = 1:length(radar_id_list)
     end
     
     %image plot centroid grid
-    climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn,cent_rain_year_count,'Annual Frequency')
+    %climate_generate_image(cent_grid,'centroid',radar_id,[],cent_R,map_config_fn,cent_rain_year_count,'Annual Frequency')
 
     %%% Density/Direction plots %%%
 
@@ -380,11 +380,23 @@ for m = 1:length(radar_id_list)
     vec_data                         = [line_vertices,arrow_vertices];
 
     %plot density and direction maps
-    climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Annual Frequency')
+    %climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Annual Frequency')
     %plot max and direction maps
-    climate_generate_image(track_grids.max_grid,'max',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Maximum Hailsize (mm)')
+    
+    %climate_generate_image(track_grids.max_grid,'max',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Maximum Hailsize (mm)')
     %kml plot merged swatsh grid
-    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Occurance')    
-    %climate_generate_kml(track_grids.max_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Maximum MESH (mm)')
+    
+    %temporary max processing
+    mesh_grid = track_grids.max_grid;
+    step_grid = zeros(size(mesh_grid));
+    step_grid(mesh_grid>0 & mesh_grid<25) = 1;
+    step_grid(mesh_grid>=25 & mesh_grid<=50) = 2;
+    step_grid(mesh_grid>50) = 3;
+    
+    fn_out = [date_start,'_mesh_steps.mat'];
+    save(fn_out,'step_grid','geo_coords')
+    
+    %climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Occurance')    
+    %climate_generate_kml_hsda(step_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Maximum MESH (mm)')
 end
 disp('RWX Climate plotting complete')

@@ -13,7 +13,8 @@ img_latlonbox = [img_lat_N+h_grid_deg/2;img_lat_S-h_grid_deg/2;img_lon_E+h_grid_
 
 %wrap in kmz and generate link
 %generate groundoverlay_kml
-ppi_img_kml  = ge_groundoverlay('',file_tag,[file_tag,'.png'],img_latlonbox,'','','clamped','',1,1);
+[~,fn,ext]   = fileparts(png_ffn);
+ppi_img_kml  = ge_groundoverlay('',file_tag,[fn,ext],img_latlonbox,'','','clamped','',1,1);
 %size kmlstr and png into a kmz
 kmz_fn  = [file_tag,'.kmz'];
 ge_kmz_out(kmz_fn,ppi_img_kml,dest_path,png_ffn); %TO FIX
