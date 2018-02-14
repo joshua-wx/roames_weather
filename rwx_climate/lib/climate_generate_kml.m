@@ -42,8 +42,7 @@ img_grid = imresize(data_grid,img_rescale,'nearest');
 img_grid = double(img_grid);
 
 %create image grids
-%img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
-img_grid = img_grid + 1;
+img_grid    = img_grid./max(img_grid(:)).*colormap_steps;
 
 %create transparency grid
 if kml_transparent_flag == 1
