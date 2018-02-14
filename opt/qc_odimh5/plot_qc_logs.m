@@ -40,13 +40,14 @@ for k=1:length(log_ids)
     date_num_m = datenum([date_vec_m,ones(size(date_vec_m,1),1)]);
 
     %plot
-    h=figure;
+    h=figure('pos',[10 10 1100 400]);
+    subplot(1,2,1)
     plot(date_num_m,vol_count_m,'b-','linewidth',1.5); datetick('x'); ylabel('number of volumes/month')
-    print(h,[log_root,log_ids{k},'monthly_count.png'],'-dpng');
-    close(h)
-    h=figure;
-    plot(date_num_m,vol_sample_m,'r-','linewidth',1.5); datetick('x'); ylabel('mode sampling time for month')
-    print(h,[log_root,log_ids{k},'monthly_sample.png'],'-dpng');
+    axis tight
+    subplot(1,2,2)
+    plot(date_num_m,vol_sample_m,'r-','linewidth',1.5); datetick('x'); ylabel('mode monthly sampling (min)')
+    axis tight
+    print(h,[log_root,log_ids{k},'monthly_stats.png'],'-dpng');
     close(h)
 end
 
