@@ -51,6 +51,11 @@ load([local_tmp_path,'/',config_input_fn,'.mat'])
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
 year_list      = [year_start:1:year_stop];
 
+%use generate list for all radar
+if strcmp(radar_id_list,'all')
+    radar_id_list = [1:99];
+end
+
 %loop through each year
 for i=1:length(year_list)
     %loop through each radar
@@ -174,7 +179,7 @@ for i=1:length(year_list)
         end
            
         %% (5) generate vol_count log
-        if vol_count_flag == 1
+        if vol_log_flag == 1
             %generate a log file that contains three columns,
             %[yyyymmdd,vol_count,vol_count_with_size_threshold,mode_step];
             %build h5_Date
@@ -196,12 +201,15 @@ for i=1:length(year_list)
             vol_size_count_list = zeros(length(index_date_list),1);
             vol_size_var        = zeros(length(index_date_list),1);
             vol_step_list       = zeros(length(index_date_list),1);
+            vol_video_list      = zeros(length(index_date_list),1);
             %for each unique date, count the number of volumes ang the
             %number of steps
             for k = 1:length(index_date_list)
                 %count number of volumes
-                date_subset            = date_list(dateonly_list == index_date_list(k));
-                size_subset            = h5_size(dateonly_list == index_date_list(k));
+                daily_mask             = dateonly_list == index_date_list(k);
+                date_subset            = date_list(daily_mask);
+                if isempty(date_subset); continue; end
+                size_subset            = h5_size(daily_mask);
                 vol_count_list(k)      = length(date_subset);
                 vol_size_count_list(k) = sum(size_subset>=thresh_vol_size);
                 vol_size_var(k)        = round(mean(size_subset(2:end)-size_subset(1:end-1)));
@@ -216,12 +224,24 @@ for i=1:length(year_list)
                     vol_step = 10; %default
                 end
                 vol_step_list(k) = vol_step;
+                % (6) generate index of video levels using first file for a radar day
+                if vol_log_video_flag == 1
+                    first_vol_idx = find(daily_mask,1,'first');
+                    first_vol_ffn = h5_name{first_vol_idx};
+                    try
+                        file_cp([s3_bucket,first_vol_ffn],[tempdir,'tempodim.h5'],0,0)
+                        vol_video_list(k) = h5readatt([tempdir,'tempodim.h5'],'/dataset1/data1/how','rapic_VIDRES');
+                    catch err
+                        disp(err)
+                        vol_video_list(k) = 0;
+                    end
+                end                      
             end
             %write to log file
             log_fn = [local_log_path,'/vol_count_',num2str(radar_id_list(j),'%02.0f'),'.log'];
             fid = fopen(log_fn,'at');
             for k = 1:length(index_date_list)
-                fprintf(fid,'%s %d %d %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_size_count_list(k),vol_step_list(k),vol_size_var(k));
+                fprintf(fid,'%s %d %d %d %d %d \n',datestr(index_date_list(k),'yyyymmdd'),vol_count_list(k),vol_size_count_list(k),vol_step_list(k),vol_size_var(k),vol_video_list(k));
             end
         end
     end

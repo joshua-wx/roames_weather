@@ -3,13 +3,17 @@ function plot_qc_logs
 %WHAT: generated monthly summary images from qc_odim log files
 
 %paths
-log_root = '/home/meso/GC_Dec2017_contract/archive_logs/';
-log_ids  = {'02','03','04','08','28','40','50','64','70','76'}
+log_root = '/home/meso/Dropbox/academic/open_radar/odimh5_logs/';
+log_ids  = [1:79];
 
 
 for k=1:length(log_ids)
     %extract data from file
-    dlm_data   = dlmread([log_root,'vol_count_',log_ids{k},'.log']);
+    ffn = [log_root,'vol_count_',num2str(log_ids(k),'%02.0f'),'.log'];
+    if exist(ffn,'file')~=2
+        continue
+    end
+    dlm_data   = dlmread(ffn);
     vol_count1 = dlm_data(:,2);
     vol_count2 = dlm_data(:,3);
     vol_sample = dlm_data(:,4);
@@ -42,12 +46,12 @@ for k=1:length(log_ids)
     %plot
     h=figure('pos',[10 10 1100 400]);
     subplot(1,2,1)
-    plot(date_num_m,vol_count_m,'b-','linewidth',1.5); datetick('x'); ylabel('number of volumes/month')
+    plot(date_num_m,vol_count_m,'b.','linewidth',1.5); datetick('x'); ylabel('number of volumes/month')
     axis tight
     subplot(1,2,2)
-    plot(date_num_m,vol_sample_m,'r-','linewidth',1.5); datetick('x'); ylabel('mode monthly sampling (min)')
+    plot(date_num_m,vol_sample_m,'r.','linewidth',1.5); datetick('x'); ylabel('mode monthly sampling (min)')
     axis tight
-    print(h,[log_root,log_ids{k},'monthly_stats.png'],'-dpng');
+    print(h,[log_root,num2str(log_ids(k),'%02.0f'),'monthly_stats.png'],'-dpng');
     close(h)
 end
 
