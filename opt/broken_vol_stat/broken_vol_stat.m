@@ -4,59 +4,68 @@ function broken_vol_stat
 %and lists the error codes, grouping by most common error.
 
 %init vars
-radar_id       = 54;
+radar_id       = 50;
 prefix_cmd     = 'export LD_LIBRARY_PATH=/usr/lib; ';
-s3_odimh5_root = 's3://roames-wxradar-archive/odimh5_archive/broken_vols/';
-s3_bucket      = 's3://roames-wxradar-archive/';
+s3_odimh5_root = 's3://roames-weather-odimh5/odimh5_archive/broken_vols/';
+s3_bucket      = 's3://roames-weather-odimh5/';
 s3_odimh5_path = [s3_odimh5_root,num2str(radar_id,'%02.0f'),'/'];
-log_fn         = ['broken_vol.',num2str(radar_id,'%02.0f'),'.log'];
+log_fn         = ['broken_vol.',num2str(radar_id,'%02.0f'),'.mat'];
 
 %ls s3 path
-display(['s3 ls for broken_vols radar_id: ',num2str(radar_id,'%02.0f')])
-cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path];
-[sout,eout] = unix(cmd);
-%read text
-C             = textscan(eout,'%*s %*s %*u %s');
-rapic_fn_list = C{1};
+% display(['s3 ls for broken_vols radar_id: ',num2str(radar_id,'%02.0f')])
+% cmd         = [prefix_cmd,'aws s3 ls ',s3_odimh5_path];
+% [sout,eout] = unix(cmd);
+% %read text
+% C             = textscan(eout,'%*s %*s %*u %s');
+% rapic_fn_list = C{1};
 
-%bin into groups of 500
-bin_count       = 0;
-rapic_fn_groups = {};
-tmp_group       = {};
-for i=1:length(rapic_fn_list);
-    tmp_group = [tmp_group;rapic_fn_list{i}];
-    bin_count = bin_count+1;
-    if bin_count == 500
-        rapic_fn_groups = [rapic_fn_groups,{tmp_group}];
-        bin_count       = 0;
-        tmp_group       = {};
-    elseif i==length(rapic_fn_list)
-        rapic_fn_groups = [rapic_fn_groups,{tmp_group}];
-    end
-end
+listing = dir('/home/meso/radar_temp'); listing(1:2) = [];
+rapic_fn_list = {listing.name};
     
 %download group to tmp folder
-for i = 1:length(rapic_fn_groups)
-    tmp_fn_list = rapic_fn_groups{i};
-    for j = 1:length(tmp_fn_list)
+len     = length(rapic_fn_list);
+log_rfn = cell(len,1);
+log_msg = cell(len,1);
+log_err = cell(len,1);
+parfor i = 1:len
+        rapic_fn = rapic_fn_list{i};
         %update user
-        display(['processing ',tmp_fn_list{j},' from group ',num2str(i),' of ',num2str(length(rapic_fn_groups))])
+        display(['processing ',num2str(i),' of ',num2str(len)])
         %download file
-        s3_ffn  = [s3_odimh5_path,tmp_fn_list{j}];
-        tmp_ffn = [tempdir,tmp_fn_list{j}];
-        cmd = [prefix_cmd,'aws s3 cp ',s3_ffn,' ',tmp_ffn];
-        [sout,eout] = unix(cmd);
+        %s3_ffn  = [s3_odimh5_path,rapic_fn];
+        %local_rapic_ffn = [tempdir,rapic_fn];
+        
+        local_rapic_ffn = ['/home/meso/radar_temp/',rapic_fn];
+        local_odim_ffn  = [tempdir,rapic_fn,'.h5'];
+        %cmd = [prefix_cmd,'aws s3 cp ',s3_ffn,' ',local_rapic_ffn];
+        %[sout,eout] = unix(cmd);
         %run convert and log
-        [sout,eout] = unix([prefix_cmd,'rapic_to_odim ',tmp_ffn,' ',tempdir,'tmp.h5']); %note, reset lD path from matlab to system default
+        [sout,eout] = unix([prefix_cmd,'rapic_to_odim ',local_rapic_ffn,' ',local_odim_ffn]); %note, reset lD path from matlab to system default
         tmp_idx     = strfind(eout,'->');
         error_part1 = eout(1:tmp_idx-4);
         error_path2 = eout(tmp_idx+3:end-1);
-        log_str     = [tmp_fn_list{j},',',error_part1,',',error_path2,10];
-        %write to log file
-        fid = fopen(log_fn,'at');
-        fprintf(fid,'%s',log_str);
-        fclose(fid);
-        %delete file
-        delete(tmp_ffn)
-    end
+        log_rfn{i}   = rapic_fn;
+        log_msg{i}  = error_part1;
+        log_err{i}  = error_path2;
+        %delete local files
+        %delete(local_rapic_ffn)
+        if exist(local_odim_ffn,'file') == 2
+            delete(local_odim_ffn)
+        end
 end
+
+save(log_fn,'log_rfn','log_msg','log_err')
+uniq_err     = unique(log_err);
+uniq_err_sum = zeros(length(uniq_err),1);
+
+for i=1:length(uniq_err_sum)
+    err_idx         = find(strcmp(log_err,uniq_err{i}));
+    uniq_err_sum(i) = length(err_idx);
+end
+
+
+%write to log file
+keyboard
+fid = fopen(log_fn,'at');
+fprintf(fid,'%s',log_str);
+fclose(fid);

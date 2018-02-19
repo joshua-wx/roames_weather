@@ -189,9 +189,9 @@ for i=1:length(year_list)
                 h5_ffn       = [s3_bucket,h5_name{k}];
                 [~,h5_fn,~]  = fileparts(h5_ffn);
                 try
-                date_list(k) = datenum(h5_fn(4:end),'yyyymmdd_HHMMSS');
+                    date_list(k) = datenum(h5_fn(4:end),'yyyymmdd_HHMMSS');
                 catch
-                    keyboard
+                    keyboard %WHY?
                 end
             end
             %generate dateonly and uniq lists
