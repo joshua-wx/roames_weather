@@ -32,7 +32,7 @@ if strcmp(src_ffn(1:2),'s3')
     cmd         = [prefix_cmd,'aws s3 cp ',recur_str,src_ffn,' ',dest_ffn,back_str];
     [sout,eout] = unix(cmd);
     %log
-    if ~isempty(eout)
+    if sout~=0
         utility_log_write('tmp/log.cp',src_ffn,cmd,eout)
     end
 elseif strcmp(dest_ffn(1:2),'s3') %copy from local to s3
