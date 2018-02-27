@@ -1,0 +1,4 @@
+#! /bin/bash
+
+./run_remove_corrupt_tilts.sh /usr/local/MATLAB/MATLAB_Runtime/v91/
+
