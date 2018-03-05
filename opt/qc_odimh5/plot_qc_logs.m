@@ -4,7 +4,7 @@ function plot_qc_logs
 close all
 %paths
 log_root = '/home/meso/Dropbox/academic/open_radar/odimh5_logs/';
-log_ids  = [1:79];
+log_ids  = 28;
 out_acc  = zeros(length(log_ids),1);
 for k=1:length(log_ids)
     
