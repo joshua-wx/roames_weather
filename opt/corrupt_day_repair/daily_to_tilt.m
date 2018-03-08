@@ -1,11 +1,11 @@
-function daily_rapic_to_tilt
+function daily_to_tilt(daily_path,tilt_path)
 %WHAT: for a given set of daily rapic files, split into ppi rapic files
 %(with an index of scan number of total number). Target: 7/2008 to 3/2009
 %This script was written to recover corrupt daily volumes
 
 %set paths
-daily_path  = '/home/meso/Desktop/corrupt_testing/daily/';
-tilt_path    = '/home/meso/Desktop/corrupt_testing/tilt/';
+%daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
+%tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
 
 %read daily rapic directory
 dir_listing = dir(daily_path); dir_listing(1:2) = [];
@@ -64,25 +64,30 @@ function write_scan(scan_cell,tilt_path)
     %WHAT: writes a rapic scan to file. filename constructed from header
     %skip if tilt is not volumetric
     prod_idx  = find(strncmp(scan_cell,'PRODUCT: VOLUMETRIC',19),1);
-    if ~isempty(prod_idx)
-        %extract timestamp
-        ts_idx    = find(strncmp(scan_cell,'TIMESTAMP: ',11),1,'first');
-        timestamp = datenum(scan_cell{ts_idx}(12:end),'yyyymmddHHMMSS');
-        %extract station id
-        id_idx    = find(strncmp(scan_cell,'STNID: ',7),1,'first');
-        radar_id  = scan_cell{id_idx}(8:9);
-        %extract tilt/scan index
-        tilt_idx  = find(strncmp(scan_cell,'TILT: ',6),1,'first');
-        if isempty(tilt_idx)
-            tilt_idx  = find(strncmp(scan_cell,'PASS: ',6),1,'first');
+    try
+        if ~isempty(prod_idx)
+            %extract timestamp
+            ts_idx    = find(strncmp(scan_cell,'TIMESTAMP: ',11),1,'first');
+            timestamp = datenum(scan_cell{ts_idx}(12:end),'yyyymmddHHMMSS');
+            %extract station id
+            id_idx    = find(strncmp(scan_cell,'STNID: ',7),1,'first');
+            radar_id  = scan_cell{id_idx}(8:9);
+            %extract tilt/scan index
+            tilt_idx  = find(strncmp(scan_cell,'TILT: ',6),1,'first');
+            if isempty(tilt_idx)
+                tilt_idx  = find(strncmp(scan_cell,'PASS: ',6),1,'first');
+            end
+            tilt_n    = scan_cell{tilt_idx}(7:8);
+            tilt_t    = scan_cell{tilt_idx}(13:14);
+            %construct rapic filename
+            rapic_ffn = [tilt_path,radar_id,'_',datestr(timestamp,'yyyymmdd_HHMMSS'),'_',tilt_n,'_',tilt_t,'.txt'];
+            %write out
+            fidout = fopen(rapic_ffn,'w','n','ISO-8859-1');
+            rapic_text_out = strjoin(scan_cell, char(0));
+            rapic_text_out = [rapic_text_out,char(0),char(10)];
+            fprintf(fidout,'%s',rapic_text_out);
+            fclose(fidout);
         end
-        tilt_n    = scan_cell{tilt_idx}(7:8);    
-        tilt_t    = scan_cell{tilt_idx}(13:14);
-        %construct rapic filename
-        rapic_ffn = [tilt_path,radar_id,'_',datestr(timestamp,'yyyymmdd_HHMMSS'),'_',tilt_n,'_',tilt_t,'.txt'];
-        %write out
-        fidout = fopen(rapic_ffn,'w','n','ISO-8859-1');
-        rapic_text_out = strjoin(scan_cell, char(0));
-        fprintf(fidout,'%s',rapic_text_out);
-        fclose(fidout);
+    catch
+        disp('tilt skipped, error in header')
     end

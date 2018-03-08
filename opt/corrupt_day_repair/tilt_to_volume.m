@@ -1,9 +1,9 @@
-function tilt_to_volume
+function tilt_to_volume(tilt_path,vol_path)
 %WHAT: takes a directory of tilts, and cat's into volumes based on rapic
 %filename description
 
-tilt_path = '/home/meso/Desktop/corrupt_testing/tilt/';
-vol_path  = '/home/meso/Desktop/corrupt_testing/vols/';
+%tilt_path = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
+%vol_path  = '/home/meso/Desktop/corrupt_rapic_testing/vol/';
 
 %read daily rapic directory
 dir_listing = dir(tilt_path); dir_listing(1:2) = [];
@@ -24,12 +24,18 @@ for i=2:length(fn_listing)
         %otherwise, if there are sufficent tilts for a volumes (say min of 8)
         if length(vol_idx)>8
             %cat rapic files
-            vol_fn  = [num2str(radar_id,'%02.0f'),'_',datestr(vol_start_dt,'yyyymmdd_HHMMSS'),'.txt'];
+            vol_fn  = [num2str(vol_rid,'%02.0f'),'_',datestr(vol_start_dt,'yyyymmdd_HHMMSS'),'.txt']
             vol_ffn = [vol_path,vol_fn];
             for j=1:length(vol_idx)
-                cmd = ['cat '
+                tilt_ffn = [tilt_path,fn_listing{vol_idx(j)}];
+                cmd = ['cat ',tilt_ffn,' >> ',vol_ffn];
+                [sout,eout] = unix(cmd);
+                if sout ~= 0
+                    keyboard
+                end
             end
-            keyboard
+            vol_to_odimh5(vol_ffn);
+            delete(vol_ffn);
         end
         %reset volume vars
         vol_idx      = i;
