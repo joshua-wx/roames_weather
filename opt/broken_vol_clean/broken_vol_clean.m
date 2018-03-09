@@ -34,13 +34,13 @@ for z = 1:length(radar_id_list)
     
     %s3 file list
     temp_s3_path   = [brokenvol_s3_path,num2str(radar_id,'%02.0f'),'/'];
-    load('fn_list.mat')
-    %fn_list        = s3_listing(prefix_cmd,temp_s3_path);
+    %load('fn_list.mat')
+    fn_list        = s3_listing(prefix_cmd,temp_s3_path);
     
     %logs file init
     log_ffn        = ['tmp/',num2str(radar_id,'%02.0f'),'broken_vol_clean.log'];
     
-    for i = 1327:length(fn_list)
+    for i = 1:length(fn_list)
         %init file paths
         s3_ffn        = [temp_s3_path,fn_list{i}];
         input_ffn     = tempname;
@@ -135,26 +135,47 @@ end
 function [sout,uout] = convert(prefix_cmd,input_ffn,output_ffn)
     [sout,uout] = unix(['export HDF5_DISABLE_VERSION_CHECK=1; ',prefix_cmd,'rapic_to_odim ',input_ffn,' ',output_ffn]);
 
+    
+    
 function rapic_cell = rapic_to_cell(ffn)
+    %WHAT: reads rapic file without converting into strings
     %read file
-    fid = fopen(ffn,'r','n','ISO-8859-1');
-    uout = [];
-    tline = ' ';
-    while ischar(tline)
-    tline = fgets(fid);
-        uout  = [uout,tline];
+    fid       = fopen(ffn);
+    rapicdata = fread(fid);
+    %search and destory messages
+    mssg_start_idx = strfind([char(rapicdata)'],'MSSG');
+    mssg_mask      = false(length(rapicdata),1);
+    %remove MSSG (including stop)
+    break_idx = find(rapicdata == 0 | rapicdata == 10);
+    if ~isempty(mssg_start_idx)
+        for i=1:length(mssg_start_idx)
+            stop_idx = find(break_idx>mssg_start_idx(i),1,'first');
+            mssg_mask(mssg_start_idx(i):break_idx(stop_idx)) = true;
+        end
     end
-    %%%%
-    %split text
-    rapic_cell  = strsplit(uout, {char(0),char(10)});
-    %remove image header
-    header_end = find(strcmp(rapic_cell,'/IMAGEHEADER END:'));
-    rapic_cell(1:header_end) = [];
+    rapicdata(mssg_mask) = [];
+    %find breaks
+    break_idx = find(rapicdata == 0 | rapicdata == 10);
+    %build rapic cell
+    break_count = length(break_idx);
+    rapic_cell  = cell(break_count+1,1);
+    start_idx   = 1;
+    %collate into cells using breaks
+    for i=1:break_count
+        rapic_cell{i} = rapicdata(start_idx:break_idx(i));
+        start_idx     = break_idx(i)+1;
+    end
+    rapic_cell{end}   = rapicdata(start_idx:break_idx(end));
+    
+    
     
 function [rapic_cell,timestamp] = clean_rapic(rapic_cell,radar_id)
     
     %load encodings
     encoding = rapic_encoding;
+    
+    
+    %need to work on this...
     
     %(1) remove appended entires containing multiple %
     find_out = strfind(rapic_cell,'%');

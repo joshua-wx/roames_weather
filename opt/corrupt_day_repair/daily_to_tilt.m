@@ -25,67 +25,116 @@ function read_daily(ffn,tilt_path)
     %seperate rapic files
     
     %read file
-    fid = fopen(ffn,'r','n','ISO-8859-1');
-    tline = ' ';
+    rapic_cell = rapic_to_cell(ffn);
+    scan_flag  = false;
     %while reading
-    while ischar(tline)
-        %read next line
-        tline       = fgets(fid);
-        %if test is a volume
-        if strncmp(tline,'COUNTRY: ',9)
+    for i=1:length(rapic_cell)
+        %skip empty entries
+        if length(rapic_cell{i}) < 4
+            continue
+        end
+        %skip headers
+        if rapic_cell{i}(1) == 47 %47 = '/'
+            continue
+        end
+        %catch and collate ray days
+        if scan_flag && rapic_cell{i}(1) == 37 %37 = '%'
+            tilt_cell = [tilt_cell,rapic_cell{i}];
+            continue
+        end
+        %parse header
+        ts_out = textscan(char(rapic_cell{i})','%s','Delimiter',':'); ts_out = ts_out{1};
+        if length(ts_out)==1
+            val1 = deblank(ts_out{1});
+            val2 = '';
+        else
+            val1 = deblank(ts_out{1});
+            val2 = deblank(ts_out{2});
+        end
+        if strcmp(val1,'COUNTRY')
             %break string into cells using null/newline chars
-            tline_cell  = strsplit(tline, {char(0),char(10)});
-            scan_flag   = false;
-            %for each entry
-            for i=1:length(tline_cell)
-                %if start of scan, clear cell and begin recording
-                if strncmp(tline_cell{i},'COUNTRY: ',9)
-                    scan_flag = true;
-                    scan_cell = {};
-                    scan_cell = [scan_cell,tline_cell{i}];
-                %if end of scan, stop recording and write to file
-                elseif strncmp(tline_cell{i},'END RADAR',9)
-                    scan_flag = false;
-                    scan_cell = [scan_cell,tline_cell{i}];
-                    %write out
-                    write_scan(scan_cell,tilt_path)
-                %if recording, collate
-                elseif scan_flag
-                    scan_cell = [scan_cell,tline_cell{i}];
+            tilt_cell   = rapic_cell(i);
+            tilt_atts   = struct('vol',false,'timestamp',[],'stnid','','tilt','','pass','');
+            scan_flag   = true;
+        %if end of scan, stop recording and write to file
+        elseif strcmp(val1,'END RADAR IMAGE')
+            scan_flag = false;
+            tilt_cell = [tilt_cell,rapic_cell{i}];
+            %write out
+            write_scan(tilt_cell,tilt_atts,tilt_path)
+            %if recording
+        elseif scan_flag
+            %collate
+            tilt_cell = [tilt_cell,rapic_cell(i)];
+            %build attribute struct
+            if strcmp(val1,'PRODUCT') && strcmp(val2(1:3),'VOL')
+                tilt_atts.vol = true;
+            elseif strcmp(val1,'TIMESTAMP')
+                tilt_atts.timestamp = datenum(val2,'yyyymmddHHMMSS');
+                if strcmp(val2,'20090302072205')
+                    keyboard
                 end
+            elseif strcmp(val1,'STNID')
+                tilt_atts.stnid = val2;
+            elseif strcmp(val1,'TILT')   
+                tilt_atts.tilt = val2;
+            elseif strcmp(val1,'PASS')
+                tilt_atts.pass = val2;
             end
         end
     end
-    fclose(fid);
+    
+function rapic_cell = rapic_to_cell(ffn)
+    %WHAT: reads rapic file without converting into strings
+    %read file
+    fid       = fopen(ffn);
+    rapicdata = fread(fid);
+    %search and destory messages
+    mssg_start_idx = strfind([char(rapicdata)'],'MSSG');
+    mssg_mask      = false(length(rapicdata),1);
+    %remove MSSG (including stop)
+    break_idx = find(rapicdata == 0 | rapicdata == 10);
+    if ~isempty(mssg_start_idx)
+        for i=1:length(mssg_start_idx)
+            stop_idx = find(break_idx>mssg_start_idx(i),1,'first');
+            mssg_mask(mssg_start_idx(i):break_idx(stop_idx)) = true;
+        end
+    end
+    rapicdata(mssg_mask) = [];
+    %find breaks
+    break_idx = find(rapicdata == 0 | rapicdata == 10);
+    %build rapic cell
+    break_count = length(break_idx);
+    rapic_cell  = cell(break_count+1,1);
+    start_idx   = 1;
+    %collate into cells using breaks
+    for i=1:break_count
+        rapic_cell{i} = rapicdata(start_idx:break_idx(i));
+        start_idx     = break_idx(i)+1;
+    end
+    rapic_cell{end}   = rapicdata(start_idx:break_idx(end));
     
     
-    
-function write_scan(scan_cell,tilt_path)
+function write_scan(tilt_cell,tilt_atts,tilt_path)
     %WHAT: writes a rapic scan to file. filename constructed from header
     %skip if tilt is not volumetric
-    prod_idx  = find(strncmp(scan_cell,'PRODUCT: VOLUMETRIC',19),1);
     try
-        if ~isempty(prod_idx)
-            %extract timestamp
-            ts_idx    = find(strncmp(scan_cell,'TIMESTAMP: ',11),1,'first');
-            timestamp = datenum(scan_cell{ts_idx}(12:end),'yyyymmddHHMMSS');
-            %extract station id
-            id_idx    = find(strncmp(scan_cell,'STNID: ',7),1,'first');
-            radar_id  = scan_cell{id_idx}(8:9);
-            %extract tilt/scan index
-            tilt_idx  = find(strncmp(scan_cell,'TILT: ',6),1,'first');
-            if isempty(tilt_idx)
-                tilt_idx  = find(strncmp(scan_cell,'PASS: ',6),1,'first');
+        if  tilt_atts.vol
+            %split up tilt/pass
+            if isempty(tilt_atts.tilt)
+                tilt_n    = tilt_atts.pass(1:2);
+                tilt_t    = tilt_atts.pass(7:8);
+            else
+                tilt_n    = tilt_atts.tilt(1:2);
+                tilt_t    = tilt_atts.tilt(7:8);
             end
-            tilt_n    = scan_cell{tilt_idx}(7:8);
-            tilt_t    = scan_cell{tilt_idx}(13:14);
             %construct rapic filename
-            rapic_ffn = [tilt_path,radar_id,'_',datestr(timestamp,'yyyymmdd_HHMMSS'),'_',tilt_n,'_',tilt_t,'.txt'];
+            rapic_ffn = [tilt_path,tilt_atts.stnid,'_',datestr(tilt_atts.timestamp,'yyyymmdd_HHMMSS'),'_',tilt_n,'_',tilt_t,'.txt'];
             %write out
-            fidout = fopen(rapic_ffn,'w','n','ISO-8859-1');
-            rapic_text_out = strjoin(scan_cell, char(0));
-            rapic_text_out = [rapic_text_out,char(0),char(10)];
-            fprintf(fidout,'%s',rapic_text_out);
+            fidout    = fopen(rapic_ffn,'w');
+            rapic_out = vertcat(tilt_cell{:})';
+            rapic_out = [rapic_out,10];
+            fwrite(fidout,rapic_out);
             fclose(fidout);
         end
     catch
