@@ -32,6 +32,10 @@ vol_path   = [tempname,'_rapic_vol/'];
 
 %loop through unique list of days
 uniq_date_list = unique(date_list);
+%remove entries before start date
+start_date     = datenum(num2str(start_date),'yyyymmdd');
+uniq_date_list = uniq_date_list(uniq_date_list>=start_date);
+
 try
     for i=1:length(uniq_date_list)
          
