@@ -38,7 +38,7 @@ uniq_date_list = uniq_date_list(uniq_date_list>=start_date);
 
 try
     for i=1:length(uniq_date_list)
-         
+                 
          %clean folders
          clear_dir(daily_path);
          clear_dir(tilt_path);
