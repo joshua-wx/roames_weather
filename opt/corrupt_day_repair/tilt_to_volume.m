@@ -2,8 +2,8 @@ function tilt_to_volume(tilt_path,vol_path)
 %WHAT: takes a directory of tilts, and cat's into volumes based on rapic
 %filename description
 
-%tilt_path = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
-%vol_path  = '/home/meso/Desktop/corrupt_rapic_testing/vol/';
+% tilt_path = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
+% vol_path  = '/home/meso/Desktop/corrupt_rapic_testing/vol/';
 
 %read daily rapic directory
 dir_listing = dir(tilt_path); dir_listing(1:2) = [];

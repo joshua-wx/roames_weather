@@ -54,7 +54,7 @@ try
          end
 
          %wait for aws jobs to finish
-         %utility_aws_wait
+         utility_aws_wait
          %uncompress files
          lz4_to_vol(daily_path)
          %process into tilts

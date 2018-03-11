@@ -18,6 +18,9 @@ if sout ~= 0 || exist(local_odimh5_ffn,'file') ~= 2
     radar_id_str    = rapic_fn(1:2);
     s3_broken_ffn   = [brokenvol_s3_path,radar_id_str,'/',rapic_fn,ext];
     file_mv(local_rapic_ffn,s3_broken_ffn);
+    if exist(local_odimh5_ffn,'file') == 2
+        delete(local_odimh5_ffn)
+    end
 else
     %conversion success
     %read odimh5 vol time and radar id

@@ -4,8 +4,8 @@ function daily_to_tilt(daily_path,tilt_path)
 %This script was written to recover corrupt daily volumes
 
 %set paths
-%daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
-%tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
+% daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
+% tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
 
 %read daily rapic directory
 dir_listing = dir(daily_path); dir_listing(1:2) = [];
@@ -99,9 +99,6 @@ function read_daily(ffn,tilt_path)
                 tilt_atts.vol = true;
             elseif strcmp(val1,'TIMESTAMP')
                 tilt_atts.timestamp = datenum(val2,'yyyymmddHHMMSS');
-                if strcmp(val2,'20090302072205')
-                    keyboard
-                end
             elseif strcmp(val1,'STNID')
                 tilt_atts.stnid = val2;
             elseif strcmp(val1,'TILT')   
@@ -123,8 +120,14 @@ function rapicdata = rapic_to_cell(ffn)
 function write_scan(rapic_tilt,tilt_atts,tilt_path)
     %WHAT: writes a rapic scan to file. filename constructed from header
     %skip if tilt is not volumetric
+    if isempty(tilt_atts.pass) && isempty(tilt_atts.tilt)
+        tiltpass_err = true;
+    else
+        tiltpass_err = false;        
+    end
+    
     try
-        if  tilt_atts.vol
+        if  tilt_atts.vol && ~isempty(tilt_atts.stnid) && ~isempty(tilt_atts.timestamp) && ~tiltpass_err      
             %split up tilt/pass
             if isempty(tilt_atts.tilt)
                 tilt_n    = tilt_atts.pass(1:2);
