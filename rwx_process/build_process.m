@@ -25,8 +25,8 @@ tar(tar_fn,{'run_process.sh','process','run','etc/'})
 
 display('scp')
 %realtime
-ec2_ip      = '54.66.186.64';
-[sout,eout] = unix(['scp -i /home/meso/aws_key/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
+ec2_ip      = '54.252.141.146';
+[sout,eout] = unix(['scp -i /home/meso/keys/joshuas_weather_key.pem ', tar_fn ,' fedora@',ec2_ip,':~/process'])
 
 
 delete('/home/meso/dev/roames_weather/rwx_process/etc/global.config')

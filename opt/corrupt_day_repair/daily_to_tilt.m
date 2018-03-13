@@ -115,6 +115,7 @@ function rapicdata = rapic_to_cell(ffn)
     fid       = fopen(ffn);
     rapicdata = fread(fid);
     rapicdata = rapicdata';
+    fclose(fid)
     
     
 function write_scan(rapic_tilt,tilt_atts,tilt_path)

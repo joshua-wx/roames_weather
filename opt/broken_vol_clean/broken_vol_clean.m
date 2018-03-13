@@ -8,7 +8,6 @@ prefix_cmd        = 'export LD_LIBRARY_PATH=/usr/lib; ';
 brokenvol_s3_path = 's3://roames-weather-odimh5/odimh5_archive/broken_vols/';
 odim_s3_path      = 's3://roames-weather-odimh5/odimh5_archive/';
 mkdir('tmp')
-radar_id = 0;
 if ~isdeployed
     addpath('bin')
     addpath('../../lib/m_lib')
@@ -34,8 +33,8 @@ for z = 1:length(radar_id_list)
     
     %s3 file list
     temp_s3_path   = [brokenvol_s3_path,num2str(radar_id,'%02.0f'),'/'];
-    %load('fn_list.mat')
-    fn_list        = s3_listing(prefix_cmd,temp_s3_path);
+    load('fn_list.mat')
+    %fn_list        = s3_listing(prefix_cmd,temp_s3_path);
     
     %logs file init
     log_ffn        = ['tmp/',num2str(radar_id,'%02.0f'),'broken_vol_clean.log'];
@@ -63,16 +62,11 @@ for z = 1:length(radar_id_list)
         end
         
         %use routines to remove headers and clean rays
-        rapic_cell      = rapic_to_cell(input_ffn);
-        [rapic_cell,ts] = clean_rapic(rapic_cell,radar_id);
+        vol_struct = vol_to_struct(input_ffn);
+        vol_struct = qc(vol_struct,radar_id);
+        
         if isempty(rapic_cell)
             disp('cleaned volume empty')
-            delete(input_ffn)
-            file_rm(s3_ffn,0,1)
-            continue
-        end
-        if ts>=datenum('01072007','ddmmyyyy') && ts<=datenum('15032008','ddmmyyyy')
-            disp('volume during corrupt period')
             delete(input_ffn)
             file_rm(s3_ffn,0,1)
             continue
@@ -98,21 +92,6 @@ for z = 1:length(radar_id_list)
             err_str = ['error is was not removed: ',uout]
         end
         
-        %abs encodings
-        %level 159 = 255
-        %level 63  = 159
-        %level 31  = 126
-        %level 15  = (overlaps with other encodings)
-        
-        %if this was 160 levels, the max ref would have been 5dbz, if 64
-        %levels (as indicated), then the max ref would have been 40dbz
-        %(matching comppi scan)
-        
-        %need to decode all rays, check for exeedence level based on video
-        %levels, can't do much for 16 bit though...
-        
-
-        
         %write log
         utility_log_write(log_ffn,s3_ffn,err_str,'')
         
@@ -133,19 +112,20 @@ end
 
 
 function [sout,uout] = convert(prefix_cmd,input_ffn,output_ffn)
-    [sout,uout] = unix(['export HDF5_DISABLE_VERSION_CHECK=1; ',prefix_cmd,'rapic_to_odim ',input_ffn,' ',output_ffn]);
+    [sout,uout] = unix([prefix_cmd,'rapic_to_odim ',input_ffn,' ',output_ffn]);
 
     
     
-function rapic_cell = rapic_to_cell(ffn)
+function rapicdata = rapic_to_cell(ffn)
     %WHAT: reads rapic file without converting into strings
     %read file
     fid       = fopen(ffn);
     rapicdata = fread(fid);
+    rapicdata = rapicdata';
     %search and destory messages
-    mssg_start_idx = strfind([char(rapicdata)'],'MSSG');
+    mssg_start_idx = strfind([char(rapicdata)],'MSSG');
     mssg_mask      = false(length(rapicdata),1);
-    %remove MSSG (including stop)
+    %remove MSSG (including stop) - error (1)
     break_idx = find(rapicdata == 0 | rapicdata == 10);
     if ~isempty(mssg_start_idx)
         for i=1:length(mssg_start_idx)
@@ -154,47 +134,153 @@ function rapic_cell = rapic_to_cell(ffn)
         end
     end
     rapicdata(mssg_mask) = [];
-    %find breaks
-    break_idx = find(rapicdata == 0 | rapicdata == 10);
-    %build rapic cell
-    break_count = length(break_idx);
-    rapic_cell  = cell(break_count+1,1);
+    
+
+
+function vol_struct = vol_to_struct(ffn)
+    %WHAT: reads rapicdata into tiltcells for later processing
+    
+    rapicdata   = rapic_to_cell(ffn);
+    break_idx   = find(rapicdata == 0 | rapicdata == 10);
+    line_count  = length(break_idx);
+
+    %init
+    scan_flag   = false;
     start_idx   = 1;
-    %collate into cells using breaks
-    for i=1:break_count
-        rapic_cell{i} = rapicdata(start_idx:break_idx(i));
-        start_idx     = break_idx(i)+1;
+    rapic_tilt  = [];
+    ray_list    = [];
+    vol_struct  = [];
+    %while reading
+    for i=1:line_count+1
+        
+        %extract next line
+        if i == line_count+1
+            rapic_line  = rapicdata(start_idx:break_idx(end));
+        else
+            rapic_line  = rapicdata(start_idx:break_idx(i));
+            start_idx   = break_idx(i)+1;
+        end
+
+        %skip empty entries
+        if length(rapic_line) < 4
+            continue
+        end
+        
+        %skip header table
+        if rapic_line(1) == 47 %47 = '/'
+            continue
+        end
+        
+        %skip corrupt data (double % use case)
+        if sum(rapic_line == 37)>1
+            continue
+        end
+        
+        %skip corrupt data (combine % and space in same entry)
+        if rapic_line(1) == 37 && any(rapic_line == 32)
+            continue
+        end
+        
+        %skip corrupt data (neither % and space in same entry)
+        if rapic_line(1) ~= 37 && ~any(rapic_line == 32)
+            continue
+        end
+        
+        %collate ray entries if currently processing scan (and continue)
+        if scan_flag && rapic_line(1) == 37 %37 = '%'
+            %enforce ray number uniqueness (error fix)
+            ray_number = str2num(char(rapic_line(2:4)));
+            if ~any(ray_list==ray_number)
+                ray_list   = [ray_list,ray_number];
+                rapic_tilt = [rapic_tilt,rapic_line];
+                continue
+            end
+        end
+        
+        %parse atts
+        ts_out = textscan(char(rapic_line),'%s','Delimiter',':'); ts_out = ts_out{1};
+        if length(ts_out) == 2
+            att_name = deblank(ts_out{1}); 
+            att_val  = deblank(ts_out{2});
+        else
+            att_name = deblank(ts_out{1});
+        end
+        %start new tilt on COUNTRY att_name
+        if strcmp(att_name,'COUNTRY')
+            rapic_tilt  = rapic_line;
+            tilt_struct.atts.(att_name) = att_val;
+            scan_flag   = true;
+            ray_list    = [];
+            continue
+        %stop tilt on END RADAR IMAGE att_name and append
+        elseif strcmp(att_name,'END RADAR IMAGE')
+            scan_flag  = false;
+            rapic_tilt = [rapic_tilt,rapic_line];
+            %append to tilt
+            tilt_struct.rapicdata = rapic_tilt;
+            if isempty(vol_struct)
+                vol_struct = tilt_struct;
+            else
+                vol_struct = [vol_struct,tilt_struct];
+            end
+            continue
+        end
+        %other att entries
+        if scan_flag
+            %collate
+            rapic_tilt = [rapic_tilt,rapic_line];
+            if ~isfield(att_name,tilt_struct.atts) %removes duplicated headers after main section
+                tilt_struct.atts.(att_name) = att_val;
+            end
+            
+        end
     end
-    rapic_cell{end}   = rapicdata(start_idx:break_idx(end));
     
     
+    
+function vol_struct = qc(vol_struct,r_id)
+    
+    %(1) remove non volumetric scans
+    vol_flag = false(length(vol_struct),1);
+    for i = 1:length(vol_struct)
+        if isfield(vol_struct(i).atts,'PRODUCT')
+            product_val = vol_struct(i).atts.PRODUCT;
+            if strncmp(product_val,'VOLUMETRIC',10)
+                vol_flag(i) = true;
+            end
+        end
+    end
+    vol_struct = vol_struct(vol_flag);
+    
+    %(2) remove other radars
+    stnid_list = zeros(length(vol_struct),1);
+    for i = 1:length(vol_struct)
+        if isfield(vol_struct(i).atts,'STNID')
+            stnid_list(i) = str2num(vol_struct(i).atts.STNID);
+        end
+    end
+    vol_struct = vol_struct(stnid_list==r_id);
+    
+    %(3) remove duplicated elevations
+    elev_list = zeros(length(vol_struct),1);
+    for i = 1:length(vol_struct)
+        if isfield(vol_struct(i).atts,'ELEV')
+            elev_list(i) = str2num(vol_struct(i).atts.ELEV);
+        end
+    end
+    [~,uniq_idx,~] = unique(elev_list);
+    vol_struct = vol_struct(uniq_idx);
+    
+    %(3) check samples for videores
+    %load encodings
+    encoding = rapic_encoding;
+    
+    %(4) remove headers in sample block
     
 function [rapic_cell,timestamp] = clean_rapic(rapic_cell,radar_id)
     
     %load encodings
     encoding = rapic_encoding;
-    
-    
-    %need to work on this...
-    
-    %(1) remove appended entires containing multiple %
-    find_out = strfind(rapic_cell,'%');
-    rm_mask  = cellfun(@length,find_out)>1;
-    rapic_cell(rm_mask) = [];
-    %(2) remove entires containing error messages
-    rm_mask  = contains(rapic_cell,'MSSG');
-    rapic_cell(rm_mask) = [];
-    %(3) remove mixed rays
-    ray_mask = contains(rapic_cell,'%');
-    h_mask   = contains(rapic_cell,' ');
-    rm_mask  = ray_mask & h_mask;
-    rapic_cell(rm_mask) = [];
-    %(4) remove rays containing neither header or samples
-    rm_mask  = ~ray_mask & ~h_mask;
-    rapic_cell(rm_mask) = [];
-    %(5) remove small rays (less than 4 chars)
-    cell_len = cellfun(@length,rapic_cell);
-    rapic_cell(cell_len<4) = [];    
     
     %extract timestamp
     ts_idx = find(strncmp(rapic_cell,'TIMESTAMP: ',11),1,'first');
@@ -287,7 +373,7 @@ function [rapic_cell,timestamp] = clean_rapic(rapic_cell,radar_id)
             end
         end
         
-        %remove duplicates (target second duplicate)
+        %remove header and ray duplicates (target second duplicate)
         %(7,8) this prevents ray overflow and duplicated headers
         uh_str  = unique(h_str);
         rm_mask = false(length(h_str),1);
@@ -317,13 +403,6 @@ function [rapic_cell,timestamp] = clean_rapic(rapic_cell,radar_id)
     
     %unpack tilts
     rapic_cell = [tilt_cell{:}];
-    
-
-function write_rapic_file(rapic_ffn,rapic_cell)
-    fid = fopen(rapic_ffn,'w','n','ISO-8859-1');
-    rapic_text_out = strjoin(rapic_cell, char(0));
-    fprintf(fid,'%s',rapic_text_out);
-    fclose(fid);
     
 function rapic_fn_list = s3_listing(prefix_cmd,s3_odimh5_path)
     rapic_fn_list = {};
