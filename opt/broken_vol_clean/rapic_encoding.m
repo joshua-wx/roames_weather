@@ -36,8 +36,8 @@ run_encoding = double(run_encoding);
 
 %build encodings
 encoding = struct;
-encoding.vr16  = [abs_encoding(1:16),dev_encoding,run_encoding];
-encoding.vr32  = [abs_encoding(1:32),dev_encoding,run_encoding];
-encoding.vr64  = [abs_encoding(1:64),dev_encoding,run_encoding];
-encoding.vr160 = [abs_encoding(1:160),dev_encoding,run_encoding];
+encoding.vr16  = [abs_encoding(1:16),dev_encoding,run_encoding,0];
+encoding.vr32  = [abs_encoding(1:32),dev_encoding,run_encoding,0];
+encoding.vr64  = [abs_encoding(1:64),dev_encoding,run_encoding,0];
+encoding.vr160 = [abs_encoding(1:160),dev_encoding,run_encoding,0];
 encoding.null  = abs_encoding(1);
