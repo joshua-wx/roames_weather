@@ -28,7 +28,7 @@ end
 if strcmp(delete_ffn(1:2),'s3') %delete from s3
     %s3 command in background
     cmd         = [prefix_cmd,'aws s3 rm --quiet ',recur_str,delete_ffn,' >> tmp/log.rm 2>&1 ',back_str];
-    [sout,eout] = unix(cmd)
+    [sout,eout] = unix(cmd);
 else %delete from local
     if exist(delete_ffn,'file')==2 %delete file
         delete(delete_ffn)

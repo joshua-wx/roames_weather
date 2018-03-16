@@ -3,11 +3,19 @@ function broken_vol_clean
 %start parallel processing pool
 %delete(myPool)
 %myPool = parpool();
-  
+
+%% init
+
+%disable warnings that are triggered from using string replace on integers
+warning('off','all')
+
+%init paths
 prefix_cmd        = 'export LD_LIBRARY_PATH=/usr/lib; ';
 brokenvol_s3_path = 's3://roames-weather-odimh5/odimh5_archive/broken_vols/';
 odim_s3_path      = 's3://roames-weather-odimh5/odimh5_archive/';
+%init dir
 mkdir('tmp')
+%init libs
 if ~isdeployed
     addpath('../../lib/m_lib')
     addpath('/home/meso/dev/roames_weather/etc');
@@ -17,14 +25,17 @@ end
 config_fn = 'clean.config';
 read_config(config_fn,[config_fn,'.mat'])
 load([config_fn,'.mat'])
+%parse 'all' radars into integer list
 if strcmp(radar_id_list,'all')
     radar_id_list = 1:79;
 else
     radar_id_list = str2num(radar_id_list);
 end
 
+
+%MAIN FUNCTION
+%for each radar id, attempt correction
 try
-%loop through radar id list
 for z = 1:length(radar_id_list)
     
     %target radar id
@@ -38,7 +49,7 @@ for z = 1:length(radar_id_list)
     %logs file init
     log_ffn        = ['tmp/',num2str(radar_id,'%02.0f'),'broken_vol_clean.log'];
     
-    for i = 4:length(fn_list)
+    for i = 1884:length(fn_list)
         %init file paths
         s3_ffn        = [temp_s3_path,fn_list{i}];
         input_ffn     = tempname;
@@ -86,11 +97,11 @@ for z = 1:length(radar_id_list)
             utility_log_write(log_ffn,s3_ffn,err_str,'')
                  
             %remove s3 file
-            %file_rm(s3_ffn,0,1)
+            file_rm(s3_ffn,0,1)
             continue
         else
-            err_str = ['error is was not removed: ',uout]
-            keyboard
+            err_str = ['error occured: ',uout] %fatal exception: level exceeding threshold table size encountered
+
         end
         
         %write log
@@ -131,6 +142,7 @@ function vol_struct = vol_to_struct(ffn,r_id)
     %read rapic data
     rapicdata   = read_rapic_binary(ffn);
     
+    %% Corrupt rapic data
     %search and remove messages
     mssg_start_idx = strfind(rapicdata,double('MSSG'));
     mssg_mask      = false(length(rapicdata),1);
@@ -143,65 +155,69 @@ function vol_struct = vol_to_struct(ffn,r_id)
         end
     end
     rapicdata(mssg_mask) = [];
-    
     %search and replace EFBFBD unicode replacement character with null (41)
     rapicdata = strrep(rapicdata,[239,191,189],41);
     
-    %find line breaks for processing
+    %% init for line by line processing
+    %find line breaks
     break_idx   = find(rapicdata == 0 | rapicdata == 10);
     line_count  = length(break_idx);
 
-    %init
+    %init vars
     scan_flag   = false; %used to indicate whether is scan is being record
     ray_flag    = false; %used to indicate start of ray block
     start_idx   = 1;
-    vr_ref      = [];
     rapic_tilt  = [];
     ray_list    = [];
     vol_struct  = [];
-    %while reading
+    
+    %for each line
     for i=1:line_count+1
         
-        %extract next line
+        %extract line
         if i == line_count+1
+            %for last line
             rapic_line  = rapicdata(start_idx:break_idx(end));
         else
+            %for not last line
             rapic_line  = rapicdata(start_idx:break_idx(i));
             start_idx   = break_idx(i)+1;
         end
 
+        %% Corrupt rapic line
         %skip empty entries
         if length(rapic_line) < 4
             continue
         end
-        
         %skip header table
         if rapic_line(1) == 47 %47 = '/'
             continue
         end
-        
         %skip corrupt data (double % use case)
         if sum(rapic_line == 37)>1
             continue
         end
-        
         %skip corrupt data (combine % and space in same entry)
         if rapic_line(1) == 37 && any(rapic_line == 32)
             continue
         end
-        
         %skip corrupt data (neither % and space in same entry)
         if rapic_line(1) ~= 37 && ~any(rapic_line == 32)
             continue
         end
         
+        %% collate ray
         %collate ray entries if currently processing scan (and continue)
-        if scan_flag && rapic_line(1) == 37 && ~isempty(vr_ref) %37 = '%'
+        if scan_flag && rapic_line(1) == 37 %37 = '%'
+            if ~ray_flag
+                %qc tilt header
+                [tilt_struct,scan_flag,encoding] = qc_tilt_header(tilt_struct,r_id);
+            end
             %enforce ray number uniqueness (error fix)
             ray_number = str2num(char(rapic_line(2:4)));
-            if ~any(ray_list==ray_number)
+            if scan_flag && ~any(ray_list==ray_number)
                 ray_list   = [ray_list,ray_number];
-                rapic_line = qc_ray(rapic_line,vr_ref);
+                rapic_line = qc_ray(rapic_line,tilt_struct,encoding);
                 rapic_tilt = [rapic_tilt,rapic_line];
                 ray_flag   = true;
             end
@@ -210,6 +226,9 @@ function vol_struct = vol_to_struct(ffn,r_id)
         
         %parse atts
         ts_out = textscan(char(rapic_line),'%s','Delimiter',':'); ts_out = ts_out{1};
+        if isempty(ts_out{1})
+            continue
+        end
         if length(ts_out) == 2
             att_name = deblank(ts_out{1}); 
             att_val  = deblank(ts_out{2});
@@ -218,57 +237,52 @@ function vol_struct = vol_to_struct(ffn,r_id)
         end
         %start new tilt on COUNTRY att_name
         if strcmp(att_name,'COUNTRY')
-            rapic_tilt  = rapic_line;
-            tilt_struct.atts.(att_name) = att_val;
+            %reset
             scan_flag   = true;
             ray_flag    = false;
             ray_list    = [];
-            vr_ref      = [];
+            tilt_struct = struct;
+            %collate first line and country attribute
+            rapic_tilt  = rapic_line;
+            tilt_struct.atts.(att_name) = att_val;
             continue
+            
         %stop tilt on END RADAR IMAGE att_name and append
-        elseif strcmp(att_name,'END RADAR IMAGE')
+        elseif strcmp(att_name,'END RADAR IMAGE') && scan_flag
             scan_flag  = false;
             rapic_tilt = [rapic_tilt,rapic_line];
-            %append to tilt
-            tilt_struct.rapicdata = rapic_tilt;
-            %tilt qc
-            tilt_struct = qc_tilt(tilt_struct,r_id);
+            %check if empty
+            if isempty(rapic_tilt)
+                tilt_struct = [];
+            else
+                %append to tilt
+                tilt_struct.rapicdata = rapic_tilt;
+            end
+            %append
             if isempty(vol_struct)
                 vol_struct = tilt_struct;
             else
                 vol_struct = [vol_struct,tilt_struct];
             end
             continue
+            
         end
         %other header atts entries
         if scan_flag && ~ray_flag
             %if header att, parse into struct
-            if ~isfield(att_name,tilt_struct.atts) %removes duplicated headers after main section
+            if isfield(tilt_struct.atts,att_name) %if duplicates exist
+                scan_flag = false; %halt recording tilt
+            else
                 try
-                tilt_struct.atts.(att_name) = att_val;
+                    tilt_struct.atts.(att_name) = att_val;
                 catch
-                    keyboard
+                    disp('error pasing attribute name into struct')
+                    continue
                 end
-                %source videores from file and load encodings
-                if strcmp(att_name,'VIDRES')
-                    videores = str2num(att_val);
-                    encoding = rapic_encoding;
-                    %extract reference values
-                    if videores == 16
-                        vr_ref = encoding.vr16;
-                    elseif videores == 32
-                        vr_ref = encoding.vr32;
-                    elseif videores == 64
-                        vr_ref = encoding.vr64;
-                    elseif videores == 160
-                        vr_ref = encoding.vr160;
-                    else
-                        vr_ref = [];
-                    end
-                end
-                %remove invalid timestamps
+                %remove invalid timestamps from rapicdata
                 if strcmp(att_name,'TIMESTAMP')
                     if length(att_val)~=14
+                        disp('timestamp corrupt')
                         rapic_line = '';
                     end
                 end
@@ -279,34 +293,58 @@ function vol_struct = vol_to_struct(ffn,r_id)
     end
     
 
-function tilt_struct = qc_tilt(tilt_struct,r_id)
-    %check if volume ppi
-    prod_err = true;
-    if isfield(tilt_struct.atts,'PRODUCT')
-        product_val = tilt_struct.atts.PRODUCT;
-        if strncmp(product_val,'VOLUMETRIC',10)
-            prod_err = false;
-        end
-    end
-    %check radar id of ppi
-    rid_err = true;
-    if isfield(tilt_struct.atts,'STNID')
-        temp_id = str2num(tilt_struct.atts.STNID);
-        if temp_id == r_id
-            rid_err = false;
-        end
-    end
+function [tilt_struct,scan_flag,encoding] = qc_tilt_header(tilt_struct,r_id)
     %check if range res is missing
-    rng_err = true;
-    if isfield(tilt_struct.atts,'RNGRES')
-        rng_err = false;
-    end
-    %on any error, erase tilt_struct
-    if prod_err || rid_err || rng_err
-        tilt_struct = [];
+    header_err = false;
+    scan_flag  = true;
+    encoding   = [];
+    if any(~isfield(tilt_struct.atts,{'PRODUCT','STNID','RNGRES','ENDRNG','STARTRNG','ANGRES','VIDRES','TIMESTAMP'}))
+        header_err = true;
+    else
+        %check station id matched target radar id
+        stn_id      = str2num(tilt_struct.atts.STNID);
+        if stn_id ~= r_id
+            disp('station id does not match target radar id')
+            header_err = true;
+        end
+        %check product is volumetric
+        product_str = tilt_struct.atts.PRODUCT;
+        if ~strncmp(product_str,'VOLUMETRIC',10)
+            disp('product not volumetric')
+            header_err = true;
+        end
+        %extract videores
+        videores = tilt_struct.atts.VIDRES;
+        if any(str2num(videores)==[16,32,64,160])
+            f_name = ['vr',videores];
+            encoding                  = rapic_encoding;
+            tilt_struct.atts.vr_ref   = encoding.(f_name);
+        else
+            disp('video res extract error')
+            header_err = true;
+        end
+        %extract number of bins
+        try
+            start_rng = str2num(tilt_struct.atts.STARTRNG);
+            end_rng   = str2num(tilt_struct.atts.ENDRNG);
+            rng_res   = str2num(tilt_struct.atts.RNGRES);
+            n_bins    = (end_rng-start_rng)/rng_res;
+            tilt_struct.atts.n_bins = n_bins;
+        catch
+            disp('num_bins calc error')
+            header_err = true;
+        end
     end
     
-function rapic_line = qc_ray(rapic_line,vr_ref)
+    %on any error, erase tilt_struct and halt scan
+    if header_err
+        tilt_struct = [];
+        scan_flag   = false;
+    end
+    
+function rapic_line = qc_ray(rapic_line,tilt_struct,encoding)
+    %% video level check
+    vr_ref = tilt_struct.atts.vr_ref;
     %check samples against vr_ref table
     data_sample = rapic_line(5:end);
     %compare videores to max values
@@ -317,9 +355,41 @@ function rapic_line = qc_ray(rapic_line,vr_ref)
     err_mask  = [repmat(false,1,4),~ismember(data_sample,vr_ref)];
     %remove invalid value if they exist
     if any(err_mask)
-        keyboard
+        disp('corrupt characters removed')
         rapic_line(err_mask) = [];
     end
+    %% scan overflow check
+    ray_len = 0;
+    data_len = zeros(length(data_sample),1);
+    %assign abs values to lengeth of one
+    abs_mask = ismember(data_sample,encoding.abs); data_len(abs_mask) = 1;
+    %assign dev values to a length of two
+    dev_mask = ismember(data_sample,encoding.dev); data_len(dev_mask) = 2;
+    %find rle encoding
+    rle_mask = ismember(data_sample,encoding.rle);
+    temp_rle = [];
+    %collate integers and calculate length
+    for i=1:length(rle_mask)
+        if rle_mask(i)
+            temp_rle = [temp_rle,data_sample(i)];
+            if i == length(rle_mask)
+                data_len(i) = str2num(char(temp_rle));
+            elseif ~rle_mask(i+1)
+                data_len(i) = str2num(char(temp_rle));
+                temp_rle = [];
+            end
+        end
+    end
+    %check if overflow exists
+    csum_data_len = cumsum(data_len);
+    overflow_mask = csum_data_len>tilt_struct.atts.n_bins;
+    %trim ray
+    if any(overflow_mask)
+        data_sample(overflow_mask) = [];
+        rapic_line = [rapic_line(1:4),data_sample,0]; %preserve ray %### and null
+    end
+
+
     
 
 function vol_struct = qc_vol(vol_struct)
@@ -335,6 +405,11 @@ function vol_struct = qc_vol(vol_struct)
     [~,uniq_idx,~] = unique(elev_list);
     vol_struct = vol_struct(uniq_idx);
     
+    %delete volume if it has less than 10 tilts
+    if length(vol_struct)<10
+        vol_struct = [];
+        disp('volume has less than 10 tilts, erased')
+    end
 
     
     

@@ -26,7 +26,7 @@ end
 for i=1:length(ddb_items_list)
     tmp_struct                 = struct;
     tmp_struct.PutRequest.Item = ddb_tmp_struct.(ddb_items_list{i});
-    batch_json                 = [batch_json,savejson('',tmp_struct)];
+    batch_json                 = [batch_json,jsonencode(tmp_struct)];
     if i~=length(ddb_items_list)
         batch_json = [batch_json,','];
     end
