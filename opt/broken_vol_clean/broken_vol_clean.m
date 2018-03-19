@@ -343,6 +343,34 @@ function [tilt_struct,scan_flag,encoding] = qc_tilt_header(tilt_struct,r_id)
     end
     
 function rapic_line = qc_ray(rapic_line,tilt_struct,encoding)
+%     %% so basically we need to do a full decode
+%     encoded_rapic = rapic_line(5:end);
+%     decoded_rapic = [];
+%     for i=1:length(encoded_rapic)
+%         e_val = encoded_rapic(i);
+%         %check if abs
+%         abs_mask = e_val == encoding;
+%         if any(abs_mask)
+%             d_val = find(abs_mask)-1;
+%             decoded_rapic = [decoded_rapic,d_val];
+%             continue
+%         end
+%         %check dev
+%         dev_mask = e_val == encoding.dev_encoding;
+%         if any(dev_mask)
+%             d_val1 = decoded_rapic(end) + encoding.dev_decoding1(abs_mask);
+%             d_val2 = d_val1 + encoding.dev_decoding2(abs_mask);
+%             decoded_rapic = [decoded_rapic,d_val1,d_val2];
+%             continue
+%         end
+%         %check rle
+%         rle_mask = e_val == encoding.run_encoding
+%         if any(rle_mask)
+%             rle_va
+            
+        
+    
+    
     %% video level check
     vr_ref = tilt_struct.atts.vr_ref;
     %check samples against vr_ref table

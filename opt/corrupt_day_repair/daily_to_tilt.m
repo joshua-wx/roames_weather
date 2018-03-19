@@ -4,8 +4,8 @@ function daily_to_tilt(daily_path,tilt_path)
 %This script was written to recover corrupt daily volumes
 
 %set paths
-% daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
-% tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
+daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
+tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
 
 %read daily rapic directory
 dir_listing = dir(daily_path); dir_listing(1:2) = [];
