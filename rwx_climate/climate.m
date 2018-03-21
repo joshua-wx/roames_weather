@@ -394,7 +394,8 @@ for m = 1:length(radar_id_list)
 %     save(fn_out,'step_grid','geo_coords')
     
     %kml plot merged swatsh grid
-    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Annual Occurance')    
+    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Annual Occurance')
+    climate_generate_geotiff(radar_id,track_grids.density_grid,track_R)
     %climate_generate_kml_hsda(step_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Maximum MESH (mm)')
 end
 disp('RWX Climate plotting complete')
