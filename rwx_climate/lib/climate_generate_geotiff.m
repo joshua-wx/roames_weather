@@ -16,4 +16,4 @@ load('tmp/global.config.mat')
 image_ffn   = [num2str(radar_id,'%02.0f'),'_',data_type,'.tif'];
 geotiff_ffn = [out_root,num2str(radar_id,'%02.0f'),'/',image_ffn];
 
-geotiffwrite(geotiff_ffn,raster,R)
+geotiffwrite(geotiff_ffn,flipud(raster),R)
