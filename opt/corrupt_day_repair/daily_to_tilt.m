@@ -4,8 +4,8 @@ function daily_to_tilt(daily_path,tilt_path)
 %This script was written to recover corrupt daily volumes
 
 %set paths
-daily_path  = '/home/meso/Desktop/corrupt_rapic_testing/daily/';
-tilt_path    = '/home/meso/Desktop/corrupt_rapic_testing/tilt/';
+daily_path  = '/home/meso/Desktop/rapic_testing/daily/';
+tilt_path    = '/home/meso/Desktop/rapic_testing/tilt/';
 
 %read daily rapic directory
 dir_listing = dir(daily_path); dir_listing(1:2) = [];
@@ -72,11 +72,18 @@ function read_daily(ffn,tilt_path)
         
         %parse header
         ts_out = textscan(char(rapic_line)','%s','Delimiter',':'); ts_out = ts_out{1};
+        if isempty(ts_out)
+            continue
+        end
         if length(ts_out)==1
             val1 = deblank(ts_out{1});
             val2 = '';
         else
-            val1 = deblank(ts_out{1});
+            try
+                val1 = deblank(ts_out{1});
+            catch
+                keyboard
+            end
             val2 = deblank(ts_out{2});
         end
         if strcmp(val1,'COUNTRY')
@@ -131,20 +138,21 @@ function write_scan(rapic_tilt,tilt_atts,tilt_path)
         if  tilt_atts.vol && ~isempty(tilt_atts.stnid) && ~isempty(tilt_atts.timestamp) && ~tiltpass_err      
             %split up tilt/pass
             if isempty(tilt_atts.tilt)
-                tilt_n    = tilt_atts.pass(1:2);
-                tilt_t    = tilt_atts.pass(7:8);
+                parse_str = tilt_atts.pass;
             else
-                tilt_n    = tilt_atts.tilt(1:2);
-                tilt_t    = tilt_atts.tilt(7:8);
+                parse_str = tilt_atts.tilt;
             end
+            split     = strfind(parse_str,'of');
+            tilt_n    = str2double(parse_str(1:split-2));
+            tilt_t    = str2double(parse_str(split+3:end));
             %construct rapic filename
-            rapic_ffn = [tilt_path,tilt_atts.stnid,'_',datestr(tilt_atts.timestamp,'yyyymmdd_HHMMSS'),'_',tilt_n,'_',tilt_t,'.txt'];
+            rapic_ffn = [tilt_path,tilt_atts.stnid,'_',datestr(tilt_atts.timestamp,'yyyymmdd_HHMMSS'),'_',num2str(tilt_n,'%02.0f'),'_',num2str(tilt_t,'%02.0f'),'.txt'];
             %write out
             fidout    = fopen(rapic_ffn,'w');
             rapic_out = [rapic_tilt,10];
             fwrite(fidout,rapic_out);
             fclose(fidout);
         end
-    catch
+    catch err
         disp('tilt skipped, error in header')
     end
