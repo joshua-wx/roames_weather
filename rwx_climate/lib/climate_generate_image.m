@@ -125,9 +125,16 @@ if draw_range_rings == 1
 	end
 end
 
+geoshow(-32.013,149.244,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','b','MarkerEdgeColor','k')
+geoshow(-31.130,150.22,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','b','MarkerEdgeColor','k')
+geoshow(-31.593,149.2414,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','b','MarkerEdgeColor','k')
+geoshow(-31.075,150.0802,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','b','MarkerEdgeColor','k')
+geoshow(-31.036,149.3602,'DisplayType','point','Marker','o','MarkerSize',7,'MarkerFaceColor','b','MarkerEdgeColor','k')
+
+
 %create colorbar
-h = colorbar;
-ylabel(h, replace(colorbar_label,'.',' '),'FontSize',16)
+%h = colorbar('XTickLabel',{'','1'},'XTick', [0.5,1.5]);
+%ylabel(h, replace(colorbar_label,'.',' '),'FontSize',16)
 
 %output
 img_fn    = ['IDR',num2str(radar_id,'%02.0f'),'_',site_name,'_',img_type,'.png'];

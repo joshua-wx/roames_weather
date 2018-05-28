@@ -303,7 +303,7 @@ for m = 1:length(radar_id_list)
     
     %preallocate
     blank_grid    = zeros(grid_size(1),grid_size(2));
-    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid,'max_grid',blank_grid,'grid_size',grid_size);
+    track_grids   = struct('density_grid',blank_grid,'u_grid',blank_grid,'v_grid',blank_grid,'n_grid',blank_grid,'max_grid',blank_grid,'grid_size',grid_size,'hail_idx',[],'hail_idx_date',[]);
     %create mapping georef struct
     radar_lat_vec = geo_coords.radar_lat_vec;
     radar_lon_vec = geo_coords.radar_lon_vec;
@@ -380,7 +380,7 @@ for m = 1:length(radar_id_list)
     vec_data                         = [line_vertices,arrow_vertices];
 
     %plot density and direction maps
-    climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Mean Annual Occurance')
+    %climate_generate_image(track_grids.density_grid,'merged',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Occurance')
     %plot max and direction maps
     %climate_generate_image(track_grids.max_grid,'max',radar_id,vec_data,track_R,map_config_fn,swth_rain_year_count,'Maximum Hailsize (mm)')
     
@@ -393,9 +393,13 @@ for m = 1:length(radar_id_list)
 %     fn_out = [date_start,'_mesh_steps.mat'];
 %     save(fn_out,'step_grid','geo_coords')
     
+    %output track_grids
+    fn_out = ['/home/meso/haildb_',num2str(data_min),'mm.mat'];
+    save(fn_out,'track_grids','radar_lat_mat','radar_lon_vec')
+
     %kml plot merged swatsh grid
-    climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Annual Occurance')
-    climate_generate_geotiff(radar_id,track_grids.density_grid,track_R)
+    %climate_generate_kml(track_grids.density_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Mean Annual Occurance')
+    %climate_generate_geotiff(radar_id,track_grids.density_grid,track_R)
     %climate_generate_kml_hsda(step_grid,radar_id,geo_coords,map_config_fn,swth_rain_year_count,swth_date_list,'Maximum MESH (mm)')
 end
 disp('RWX Climate plotting complete')

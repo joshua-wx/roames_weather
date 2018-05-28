@@ -70,3 +70,9 @@ track_grids.v_grid       = track_grids.v_grid       + out_struct.v_grid;
 track_grids.n_grid       = track_grids.n_grid       + out_struct.density_grid;
 %append
 track_grids.max_grid     = max(cat(3,track_grids.max_grid,out_struct.max_grid),[],3);
+%add information on index and time for hail pixels
+hail_idx      = find(out_struct.density_grid > 0);
+hail_idx_date = repmat(target_date,length(hail_idx),1);
+track_grids.hail_idx      = [track_grids.hail_idx;hail_idx];
+track_grids.hail_idx_date = [track_grids.hail_idx_date;hail_idx_date];
+
